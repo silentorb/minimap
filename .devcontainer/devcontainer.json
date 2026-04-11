@@ -1,0 +1,25 @@
+{
+    "name": "minimap",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--network=host"
+    ],
+    "features": {
+        "ghcr.io/danzilberdan/devcontainers/opencode:0": {}
+    },
+    "initializeCommand": "mkdir -p ${localEnv:HOME}/.config/opencode",
+    "mounts": [
+        "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind"
+    ],
+    "remoteEnv": {},
+    "customizations": {
+        "vscode": {
+            "extensions": []
+        }
+    },
+    "containerEnv": {
+        "OLLAMA_HOST": "http://host.docker.internal:11434"
+    }
+}
