@@ -1,26 +1,33 @@
 {
-    "name": "minimap",
+    "name": "marloth",
     "build": {
         "dockerfile": "Dockerfile"
     },
+    "features": {
+        "ghcr.io/devcontainers/features/dotnet:2": {
+            "version": "8.0",
+            "dotnetRuntimeVersions": "8.0"
+        }
+    },
+    "containerEnv": {
+        "GODOT_REMOTE_URL": "http://127.0.0.1:27182",
+        "GODOT_REMOTE_TOKEN": "${localEnv:GODOT_REMOTE_TOKEN}",
+        "CARGO_TARGET_DIR": "/workspaces/build/cargo-target"
+    },
+    "postCreateCommand": "./scripts/build_godot_launcher.sh",
     "runArgs": [
         "--network=host"
     ],
-    "features": {
-        "ghcr.io/danzilberdan/devcontainers/opencode:0": {}
-    },
-    "initializeCommand": "mkdir -p ${localEnv:HOME}/.config/opencode",
     "mounts": [
-        "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind",
         // Temporary: Unreal marloth source from host; remove or retarget when paths settle.
         "source=/mnt/e/dev/games/marloth/Source,target=${containerWorkspaceFolder}/.mnt/unreal/marloth,type=bind,readonly"
     ],
     "customizations": {
         "vscode": {
-            "extensions": []
+            "extensions": [],
+            "settings": {
+                "files.eol": "\n"
+            }
         }
-    },
-    "containerEnv": {
-        "OLLAMA_HOST": "http://host.docker.internal:11434"
     }
 }

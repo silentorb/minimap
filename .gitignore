@@ -1,3 +1,15 @@
+# Copy destination for scripts/build_godot_launcher.sh (wrapper copies release binary here)
+/dist/
+
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+.vs/
+
+# Temporary mounts
+.mnt/

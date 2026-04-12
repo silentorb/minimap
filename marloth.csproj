@@ -1,0 +1,17 @@
+<Project Sdk="Godot.NET.Sdk/4.6.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>Marloth</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="src/Marloth.Core/Marloth.Core.csproj" />
+  </ItemGroup>
+  <!-- Godot.NET.Sdk globs all *.cs under the project root; keep tests and class libraries out of this assembly. -->
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+    <Compile Remove="src/**/*.cs" />
+  </ItemGroup>
+</Project>
