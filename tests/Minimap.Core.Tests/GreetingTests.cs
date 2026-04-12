@@ -1,13 +1,13 @@
-using Marloth.Core;
+using Minimap.Core;
 using Xunit;
 
-namespace Marloth.Core.Tests;
+namespace Minimap.Core.Tests;
 
 public class GreetingTests
 {
     [Fact]
     public void Hello_returns_expected_token()
     {
-        Assert.Equal("marloth", Greeting.Hello());
+        Assert.Equal("minimap", Greeting.Hello());
     }
 }

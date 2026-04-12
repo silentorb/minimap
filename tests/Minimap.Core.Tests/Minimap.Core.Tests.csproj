@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Marloth.Core.Tests</RootNamespace>
+    <RootNamespace>Minimap.Core.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
@@ -15,6 +15,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Marloth.Core\Marloth.Core.csproj" />
+    <ProjectReference Include="..\..\src\Minimap.Core\Minimap.Core.csproj" />
   </ItemGroup>
 </Project>

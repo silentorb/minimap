@@ -2,12 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <RootNamespace>Marloth</RootNamespace>
+    <RootNamespace>Minimap</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="src/Marloth.Core/Marloth.Core.csproj" />
+    <ProjectReference Include="src/Minimap.Core/Minimap.Core.csproj" />
   </ItemGroup>
   <!-- Godot.NET.Sdk globs all *.cs under the project root; keep tests and class libraries out of this assembly. -->
   <ItemGroup>

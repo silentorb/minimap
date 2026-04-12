@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn mnt_uppercase_drive() {
-        let win = mnt_to_windows("/mnt/E/games/marloth").unwrap();
-        assert_eq!(win, "E:\\games\\marloth");
+        let win = mnt_to_windows("/mnt/E/games/minimap").unwrap();
+        assert_eq!(win, "E:\\games\\minimap");
     }
 }

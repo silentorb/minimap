@@ -1,5 +1,5 @@
 {
-    "name": "marloth",
+    "name": "minimap",
     "build": {
         "dockerfile": "Dockerfile"
     },
@@ -19,8 +19,6 @@
         "--network=host"
     ],
     "mounts": [
-        // Temporary: Unreal marloth source from host; remove or retarget when paths settle.
-        "source=/mnt/e/dev/games/marloth/Source,target=${containerWorkspaceFolder}/.mnt/unreal/marloth,type=bind,readonly"
     ],
     "customizations": {
         "vscode": {

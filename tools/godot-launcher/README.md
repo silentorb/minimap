@@ -34,8 +34,8 @@ Use this when working on Rust code; use the **wrapper script** above when you wa
 | `GODOT_LAUNCHER_GODOT_EXE` | yes | Absolute path to Windows Godot under drvfs, e.g. `/mnt/c/Apps/Godot/Godot_v4.6-stable_win64.exe`. |
 | `GODOT_LAUNCHER_ALLOWLIST_PREFIXES` | yes | Comma-separated **existing** directory prefixes (each is `canonicalize`d at startup). Project root must lie under one of them. |
 | `GODOT_LAUNCHER_LISTEN` | no | Default `127.0.0.1:27182`. |
-| `GODOT_LAUNCHER_WORKSPACE_LINUX` | no\* | Canonical Linux root for the repo in the dev container, e.g. `/workspaces/marloth`. |
-| `GODOT_LAUNCHER_WORKSPACE_WINDOWS` | no\* | Matching Windows path for `--path`, e.g. `C:\dev\games\marloth`. |
+| `GODOT_LAUNCHER_WORKSPACE_LINUX` | no\* | Canonical Linux root for the repo in the dev container, e.g. `/workspaces/minimap`. |
+| `GODOT_LAUNCHER_WORKSPACE_WINDOWS` | no\* | Matching Windows path for `--path`, e.g. `C:\dev\games\minimap`. |
 
 \*If you use `/workspaces/...` paths from the container, set **both** workspace variables so the server can map them to a Windows `--path`. If the project lives only under `/mnt/c/...`, you can omit them.
 
