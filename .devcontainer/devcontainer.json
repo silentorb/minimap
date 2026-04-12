@@ -11,9 +11,10 @@
     },
     "initializeCommand": "mkdir -p ${localEnv:HOME}/.config/opencode",
     "mounts": [
-        "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind"
+        "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind",
+        // Temporary: Unreal marloth source from host; remove or retarget when paths settle.
+        "source=/mnt/e/dev/games/marloth/Source,target=${containerWorkspaceFolder}/.mnt/unreal/marloth,type=bind,readonly"
     ],
-    "remoteEnv": {},
     "customizations": {
         "vscode": {
             "extensions": []
