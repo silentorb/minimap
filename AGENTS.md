@@ -21,10 +21,8 @@
 
 - Godot is not in the current dev container environment and exists outside of it in Windows.
 
-## Remote headless Godot (WSL launcher)
+## Extended documentation (read on demand)
 
-To run **headless Windows Godot** from this dev container, use the narrow HTTP launcher in [`tools/godot-launcher/`](tools/godot-launcher/). **Build it** with [`scripts/build_godot_launcher.sh`](scripts/build_godot_launcher.sh) from the repo root (requires Rust in the dev container; see [`.devcontainer/Dockerfile`](.devcontainer/Dockerfile)). You still typically **run** `dist/tools/godot-launcher` in **WSL** so it can spawn Windows `Godot.exe`. Agents call [`scripts/godot_remote.py`](scripts/godot_remote.py) (`python3`).
-
-- Set **`GODOT_REMOTE_TOKEN`** on the **host** (same value as `GODOT_LAUNCHER_TOKEN` in WSL). The dev container receives it via `containerEnv` substitution from `localEnv` (see [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json)).
-- **`GODOT_REMOTE_URL`** defaults to `http://127.0.0.1:27182`; adjust if your launcher listens elsewhere.
-- Do **not** commit tokens. See [`tools/godot-launcher/README.md`](tools/godot-launcher/README.md) for API and security notes.
+- [`docs/`](docs/) holds **optional** notes for agents and humans. Do **not** preload the whole tree for routine tasks.
+- Feature-specific guides live under [`docs/features/`](docs/features/). Use [`docs/features/README.md`](docs/features/README.md) as a **catalog**: match your task to a trigger there, then read **only** the listed file(s).
+- Remote / headless Godot from the dev container (WSL launcher, `godot_remote.py`, `GODOT_REMOTE_*`): see [`docs/features/remote-headless-godot.md`](docs/features/remote-headless-godot.md).
