@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="src/Minimap.Core/Minimap.Core.csproj" />
+    <ProjectReference Include="src/Minimap.Client/Minimap.Client.csproj" />
   </ItemGroup>
   <!-- Godot.NET.Sdk globs all *.cs under the project root; keep tests and class libraries out of this assembly. -->
   <ItemGroup>

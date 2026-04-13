@@ -7,4 +7,6 @@ These files are **optional**. Do **not** open every file in this folder for gene
 
 | File | Read when… |
 |------|------------|
-| [remote-headless-godot.md](remote-headless-godot.md) | Running **headless Windows Godot** from the dev container via the WSL HTTP launcher, `godot_remote.py`, or env vars `GODOT_REMOTE_*` / `GODOT_LAUNCHER_TOKEN`. |
+| [remote-headless-godot.md](remote-headless-godot.md) | Running **headless Windows Godot** from the dev container via the WSL HTTP launcher and `godot_remote.py` (export `GODOT_REMOTE_*` yourself; launcher uses `GODOT_LAUNCHER_TOKEN` in WSL). |
+| [../game-design.md](../game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
+| [../technical-design.md](../technical-design.md) | **Architecture**, simulation vs. client boundaries, **Godot directory layout**, TDD, or global-state rules. |

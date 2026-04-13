@@ -2,13 +2,25 @@
 
 ## Project
 
-- **Engine**: Godot **4.6**, Forward Plus renderer, **Jolt** for 3D physics.
-- **Entry**: `run/main_scene` is `res://main.tscn` (see `project.godot`).
-- **Name / assembly**: Application id is `minimap`; `project.godot` sets `[dotnet]` `project/assembly_name` for C# when used.
+- **Engine**: Godot **4.6**, Forward Plus renderer; gameplay is **2D** (single-screen hex arena—see [docs/game-design.md](docs/game-design.md)).
+- **Entry**: `run/main_scene` is `res://scenes/world.tscn` (see [project.godot](project.godot)).
+- **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
+- **C# modules**: **`Minimap.Simulation`** — authoritative game logic and state (no Godot references). **`Minimap.Client`** — Godot scripts, rendering, input; references Simulation. Root [minimap.csproj](minimap.csproj) is the Godot host and references **Client** only.
 
 ## Layout
 
-- Primary game content lives at the repo root (`project.godot`, scenes, scripts, assets).
+Godot-related directories (see [docs/technical-design.md](docs/technical-design.md) **Godot project layout**):
+
+| Path | Purpose |
+|------|---------|
+| [`assets/`](assets/) | Images, audio, etc. |
+| [`entities/`](entities/) | Scenes for elements used inside a root scene |
+| [`scenes/`](scenes/) | Root scenes (e.g. `world.tscn`) |
+| [`src/`](src/) | C# (`Minimap.Simulation`, `Minimap.Client`) |
+| [`tests/`](tests/) | Test projects |
+| [`ui/`](ui/) | UI scenes and related resources |
+
+Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.csproj), [icon.svg](icon.svg).
 
 ## Conventions
 
@@ -21,8 +33,13 @@
 
 - Godot is not in the current dev container environment and exists outside of it in Windows.
 
+## Product and engineering docs
+
+- [docs/game-design.md](docs/game-design.md) — Vision, genre, pillars (2D hex, co-op, proc gen, evolving world). Read when changing **gameplay feel, scope, or player count**.
+- [docs/technical-design.md](docs/technical-design.md) — Engine, C#, TDD, docs under `./docs`, simulation vs. visual separation, **Godot project layout**. Read when choosing **architecture, tests, or Godot/C# boundaries**.
+
 ## Extended documentation (read on demand)
 
 - [`docs/`](docs/) holds **optional** notes for agents and humans. Do **not** preload the whole tree for routine tasks.
 - Feature-specific guides live under [`docs/features/`](docs/features/). Use [`docs/features/README.md`](docs/features/README.md) as a **catalog**: match your task to a trigger there, then read **only** the listed file(s).
-- Remote / headless Godot from the dev container (WSL launcher, `godot_remote.py`, `GODOT_REMOTE_*`): see [`docs/features/remote-headless-godot.md`](docs/features/remote-headless-godot.md).
+- Remote / headless Godot from the dev container (WSL launcher, `godot_remote.py`; `GODOT_REMOTE_*` is **not** injected by the dev container—set manually or via a local devcontainer override): see [`docs/features/remote-headless-godot.md`](docs/features/remote-headless-godot.md).

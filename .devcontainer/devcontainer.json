@@ -10,8 +10,6 @@
         }
     },
     "containerEnv": {
-        "GODOT_REMOTE_URL": "http://127.0.0.1:27182",
-        "GODOT_REMOTE_TOKEN": "${localEnv:GODOT_REMOTE_TOKEN}",
         "CARGO_TARGET_DIR": "/workspaces/build/cargo-target"
     },
     "postCreateCommand": "./scripts/build_godot_launcher.sh",
