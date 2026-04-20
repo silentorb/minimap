@@ -26,18 +26,12 @@ def _request(
     body: dict | None = None,
 ) -> tuple[int, str]:
     base = _require_env("GODOT_REMOTE_URL").rstrip("/")
-    token = _require_env("GODOT_REMOTE_TOKEN")
     url = f"{base}{path}"
     data = None if body is None else json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
-        method=method,
-        headers={
-            "Authorization": f"Bearer {token}",
-            **({"Content-Type": "application/json"} if body is not None else {}),
-        },
-    )
+    headers = {}
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, method=method, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             raw = resp.read().decode("utf-8")

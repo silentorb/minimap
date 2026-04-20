@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option csharp_namespace = "Minimap.Automation.Contracts";
+
+package minimap.automation;
+
+service AutomationService {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc LoadMainScene(LoadMainSceneRequest) returns (CommandResponse);
+  rpc SimulateFrames(SimulateFramesRequest) returns (CommandResponse);
+  rpc SetKeyState(SetKeyStateRequest) returns (CommandResponse);
+  rpc GetWorldState(GetWorldStateRequest) returns (WorldStateResponse);
+  rpc Shutdown(ShutdownRequest) returns (CommandResponse);
+}
+
+message PingRequest {}
+
+message PingResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message LoadMainSceneRequest {
+  string scene_path = 1;
+}
+
+message SimulateFramesRequest {
+  int32 frame_count = 1;
+}
+
+message SetKeyStateRequest {
+  int32 key_code = 1;
+  bool pressed = 2;
+  bool shift_pressed = 3;
+}
+
+message GetWorldStateRequest {}
+
+message WorldStateResponse {
+  bool ok = 1;
+  string error = 2;
+  bool scene_loaded = 3;
+  bool is_world_root = 4;
+  int32 hex_layer_children = 5;
+  int32 player_layer_children = 6;
+  float player0_x = 7;
+  float player0_y = 8;
+}
+
+message ShutdownRequest {}
+
+message CommandResponse {
+  bool ok = 1;
+  string error = 2;
+}

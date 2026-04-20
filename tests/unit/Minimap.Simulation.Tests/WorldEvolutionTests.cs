@@ -20,7 +20,6 @@ public class WorldEvolutionTests
         var w = GameWorld.Create(2, 1, 7);
         var p = w.Players[0];
         var pos = p.Position;
-        // Block all neighbors with walls
         foreach (var n in pos.Neighbors())
         {
             if (w.Grid.Contains(n))

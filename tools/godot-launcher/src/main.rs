@@ -1,4 +1,4 @@
-//! Headless Godot launcher: HTTP + bearer on loopback, argv-only Windows Godot spawn from WSL.
+//! Headless Godot launcher: HTTP on loopback, argv-only Windows Godot spawn from WSL.
 
 mod config;
 mod paths;
@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use axum::{
     extract::{Path, State},
-    http::{header, HeaderMap, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     routing::{delete, get, post},
     Json, Router,
@@ -27,26 +27,7 @@ struct AppState {
     sessions: Arc<tokio::sync::Mutex<HashMap<Uuid, tokio::process::Child>>>,
 }
 
-fn bearer_ok(headers: &HeaderMap, token: &str) -> bool {
-    headers
-        .get(header::AUTHORIZATION)
-        .and_then(|v| v.to_str().ok())
-        .and_then(|v| v.strip_prefix("Bearer "))
-        .map(|t| t.trim() == token)
-        .unwrap_or(false)
-}
-
-async fn health(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-) -> impl IntoResponse {
-    if !bearer_ok(&headers, &state.cfg.token) {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(serde_json::json!({"error":"unauthorized"})),
-        )
-            .into_response();
-    }
+async fn health() -> impl IntoResponse {
     Json(serde_json::json!({"status":"ok"})).into_response()
 }
 
@@ -65,17 +46,8 @@ struct SessionResponse {
 
 async fn create_session(
     State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
     Json(body): Json<CreateSessionBody>,
 ) -> impl IntoResponse {
-    if !bearer_ok(&headers, &state.cfg.token) {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(serde_json::json!({"error":"unauthorized"})),
-        )
-            .into_response();
-    }
-
     let raw = PathBuf::from(body.project_root.trim());
     let project_canonical = match std::fs::canonicalize(&raw) {
         Ok(p) => p,
@@ -87,14 +59,6 @@ async fn create_session(
                 .into_response();
         }
     };
-
-    if !state.cfg.project_allowed(&project_canonical) {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(serde_json::json!({"error":"project_root_not_allowlisted"})),
-        )
-            .into_response();
-    }
 
     let windows_path = match paths::linux_to_windows_path(
         &project_canonical,
@@ -141,17 +105,8 @@ async fn create_session(
 
 async fn delete_session(
     State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    if !bearer_ok(&headers, &state.cfg.token) {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(serde_json::json!({"error":"unauthorized"})),
-        )
-            .into_response();
-    }
-
     let mut child = match state.sessions.lock().await.remove(&id) {
         Some(c) => c,
         None => return StatusCode::NOT_FOUND.into_response(),

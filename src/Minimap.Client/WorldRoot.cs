@@ -41,15 +41,7 @@ public partial class WorldRoot : Node2D
         if (@event is not InputEventKey k || !k.Pressed || k.Echo)
             return;
 
-        // Neighbor indices match HexAxial.NeighborOffsets: E, NE, NW, W, SW, SE
-        var moved = k.Keycode switch
-        {
-            Key.Right => _world.TryMovePlayer(0, 0),
-            Key.Up => _world.TryMovePlayer(0, k.ShiftPressed ? 1 : 2),
-            Key.Left => _world.TryMovePlayer(0, 3),
-            Key.Down => _world.TryMovePlayer(0, k.ShiftPressed ? 4 : 5),
-            _ => false,
-        };
+        var moved = TryMovePlayerFromKey(k.Keycode, k.ShiftPressed);
 
         if (moved)
         {
@@ -148,4 +140,36 @@ public partial class WorldRoot : Node2D
             3 => new Color(0.85f, 0.45f, 1f),
             _ => Colors.White,
         };
+
+    public bool TryMovePlayerFromKey(Key key, bool shiftPressed)
+    {
+        if (_world is null)
+            return false;
+
+        // Neighbor indices match HexAxial.NeighborOffsets: E, NE, NW, W, SW, SE
+        var moved = key switch
+        {
+            Key.Right => _world.TryMovePlayer(0, 0),
+            Key.Up => _world.TryMovePlayer(0, shiftPressed ? 1 : 2),
+            Key.Left => _world.TryMovePlayer(0, 3),
+            Key.Down => _world.TryMovePlayer(0, shiftPressed ? 4 : 5),
+            _ => false,
+        };
+
+        if (moved)
+            SyncPlayers();
+
+        return moved;
+    }
+
+    public int HexLayerChildCount => _hexLayer?.GetChildCount() ?? 0;
+
+    public int PlayerLayerChildCount => _playerLayer?.GetChildCount() ?? 0;
+
+    public Vector2? TryGetPlayerPosition(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _playerNodes.Count)
+            return null;
+        return _playerNodes[playerIndex].Position;
+    }
 }

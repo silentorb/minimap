@@ -4,6 +4,16 @@ This directory holds **optional** material for humans and for AI agents: deeper 
 
 Start from **AGENTS.md** for project defaults. Open files under `docs/` only when a task needs that context.
 
-## `features/`
+## Layout
 
-Task-scoped guides live in [features/](features/). Each file describes one workflow or capability. Use the catalog in [features/README.md](features/README.md) to decide **which** file to read; do not preload every feature doc for routine work.
+| Path | Contents |
+|------|----------|
+| [game/](game/) | Game vision, pillars, and **game** feature notes (`game/features/`). |
+| [technical/](technical/) | Engineering architecture, tooling, and **technical** feature notes (`technical/features/`). |
+
+## Feature catalogs
+
+Task-scoped guides are listed in the README inside each features folder—do not preload every feature doc for routine work.
+
+- [Game features](game/features/README.md)
+- [Technical features](technical/features/README.md)

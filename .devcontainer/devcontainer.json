@@ -10,7 +10,8 @@
         }
     },
     "containerEnv": {
-        "CARGO_TARGET_DIR": "/workspaces/build/cargo-target"
+        "CARGO_TARGET_DIR": "/workspaces/build/cargo-target",
+        "GODOT_REMOTE_URL": "http://127.0.0.1:27182"
     },
     "postCreateCommand": "./scripts/build_godot_launcher.sh",
     "runArgs": [

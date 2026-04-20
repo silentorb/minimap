@@ -8,7 +8,9 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="GodotSharp" Version="4.6.1" />
+    <ProjectReference Include="../Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj" />
   </ItemGroup>
 </Project>

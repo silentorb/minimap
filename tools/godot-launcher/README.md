@@ -1,6 +1,6 @@
 # godot-launcher
 
-Small **HTTP/JSON** service intended to run **in WSL** on your Windows machine. It listens on **loopback only**, accepts a **bearer token**, and spawns **Windows Godot** (`/mnt/c/.../Godot*.exe`) in **headless** mode with a fixed `--path` argument—no shell, no arbitrary client commands.
+Small **HTTP/JSON** service intended to run **in WSL** on your Windows machine. It listens on **loopback only** and spawns **Windows Godot** (`/mnt/c/.../Godot*.exe`) in **headless** mode with a fixed `--path` argument—no shell, no arbitrary client commands.
 
 The dev container uses [`scripts/godot_remote.py`](../../scripts/godot_remote.py) (Python stdlib) to call this API.
 
@@ -30,9 +30,7 @@ Use this when working on Rust code; use the **wrapper script** above when you wa
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GODOT_LAUNCHER_TOKEN` | yes | Shared secret; clients send `Authorization: Bearer <token>`. |
 | `GODOT_LAUNCHER_GODOT_EXE` | yes | Absolute path to Windows Godot under drvfs, e.g. `/mnt/c/Apps/Godot/Godot_v4.6-stable_win64.exe`. |
-| `GODOT_LAUNCHER_ALLOWLIST_PREFIXES` | yes | Comma-separated **existing** directory prefixes (each is `canonicalize`d at startup). Project root must lie under one of them. |
 | `GODOT_LAUNCHER_LISTEN` | no | Default `127.0.0.1:27182`. |
 | `GODOT_LAUNCHER_WORKSPACE_LINUX` | no\* | Canonical Linux root for the repo in the dev container, e.g. `/workspaces/minimap`. |
 | `GODOT_LAUNCHER_WORKSPACE_WINDOWS` | no\* | Matching Windows path for `--path`, e.g. `C:\dev\games\minimap`. |
@@ -43,8 +41,6 @@ See [`.env.example`](.env.example) for a template.
 
 ## API
 
-All routes require `Authorization: Bearer <GODOT_LAUNCHER_TOKEN>`.
-
 - `GET /health` → `{ "status": "ok" }`
 - `POST /sessions` with body `{ "project_root": "<absolute linux path>" }` → `{ "id": "<uuid>", "pid": <linux pid optional> }`
 - `DELETE /sessions/<uuid>` → `204` and terminates the session’s Godot (SIGTERM, then kill).
@@ -54,10 +50,10 @@ All routes require `Authorization: Bearer <GODOT_LAUNCHER_TOKEN>`.
 With WSL **mirrored networking**, the dev container often reaches the service at the same URL as WSL loopback (e.g. `http://127.0.0.1:27182`). Confirm once from inside the container:
 
 ```bash
-curl -sS -H "Authorization: Bearer $GODOT_REMOTE_TOKEN" "$GODOT_REMOTE_URL/health"
+curl -sS "$GODOT_REMOTE_URL/health"
 ```
 
 ## Security notes
 
 - Bind stays on **127.0.0.1** by default; do not widen without TLS and firewall planning.
-- **Malicious Godot projects** can still run code once headless Godot loads them—the launcher only restricts **who can start Godot and from which directories**.
+- **Malicious Godot projects** can still run code once headless Godot loads them. Any caller that can reach this API may request **any** existing `project_root` path Godot can open.

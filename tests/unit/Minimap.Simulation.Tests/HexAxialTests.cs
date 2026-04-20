@@ -26,6 +26,6 @@ public class HexAxialTests
     {
         var a = new HexAxial(1, 2);
         var b = new HexAxial(-2, 0);
-        Assert.Equal(HexAxial.Distance(a, b), HexAxial.Distance(b, a));
+        Assert.Equal(HexAxial.Distance(b, a), HexAxial.Distance(a, b));
     }
 }

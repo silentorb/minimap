@@ -5,16 +5,18 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>Minimap.Simulation.Tests</RootNamespace>
+    <NoWarn>NU1605;CS9057;CS8785</NoWarn>
+    <GodotProjectDir>$(MSBuildThisFileDirectory)..\..\..\</GodotProjectDir>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/Minimap.Simulation/Minimap.Simulation.csproj" />
+    <ProjectReference Include="../../../src/Minimap.Simulation/Minimap.Simulation.csproj" />
   </ItemGroup>
 </Project>

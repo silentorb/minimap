@@ -2,7 +2,7 @@
 name = "godot-launcher"
 version = "0.1.0"
 edition = "2021"
-description = "WSL-local HTTP launcher for headless Windows Godot (narrow API, bearer auth)"
+description = "WSL-local HTTP launcher for headless Windows Godot (narrow API)"
 publish = false
 
 [dependencies]
