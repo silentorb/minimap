@@ -10,10 +10,9 @@ public class MovementCollisionTests
     public void Move_along_plus_x_increases_x()
     {
         var gen = new AllFloorGenerator();
-        var w = GameWorld.Create(3, 3, 1, gen, spawn: Solo);
-        var pawn = w.PlayerController!.Pawn!;
+        var (w, driver, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var before = pawn.Position;
-        w.PlayerController.SetMoveInput(new SimVec2(1f, 0f));
+        driver.SetMoveInput(new SimVec2(1f, 0f));
         w.Tick(0.1f);
         Assert.True(pawn.Position.X > before.X);
         Assert.Equal(before.Y, pawn.Position.Y, precision: 3);
@@ -23,10 +22,9 @@ public class MovementCollisionTests
     public void Move_along_minus_y_decreases_y()
     {
         var gen = new AllFloorGenerator();
-        var w = GameWorld.Create(3, 3, 1, gen, spawn: Solo);
-        var pawn = w.PlayerController!.Pawn!;
+        var (w, driver, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var before = pawn.Position;
-        w.PlayerController.SetMoveInput(new SimVec2(0f, -1f));
+        driver.SetMoveInput(new SimVec2(0f, -1f));
         w.Tick(0.1f);
         Assert.True(pawn.Position.Y < before.Y);
         Assert.Equal(before.X, pawn.Position.X, precision: 3);
@@ -36,8 +34,7 @@ public class MovementCollisionTests
     public void Head_on_into_wall_stalls()
     {
         var gen = new CorridorWithEastWallGenerator();
-        var w = GameWorld.Create(2, 2, 1, gen, spawn: Solo);
-        var pawn = w.PlayerController!.Pawn!;
+        var (w, _, pawn) = TestWorldHelpers.CreateDriven(2, 2, 1, gen, Solo);
         var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
         pawn.Position = new SimVec2(wallCenter.X - w.HexSize - w.PlayerRadius - 0.5f, wallCenter.Y);
 
@@ -62,8 +59,7 @@ public class MovementCollisionTests
     public void Angled_approach_slides_along_wall()
     {
         var gen = new CorridorWithEastWallGenerator();
-        var w = GameWorld.Create(2, 2, 1, gen, spawn: Solo);
-        var pawn = w.PlayerController!.Pawn!;
+        var (w, _, pawn) = TestWorldHelpers.CreateDriven(2, 2, 1, gen, Solo);
         var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
         pawn.Position = new SimVec2(wallCenter.X - w.HexSize - w.PlayerRadius - 1f, wallCenter.Y - 4f);
         var before = pawn.Position;

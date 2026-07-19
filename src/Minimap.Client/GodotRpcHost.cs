@@ -110,7 +110,15 @@ public partial class GodotRpcHost : Node
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     }
 
-    private WorldRoot? GetWorldRoot() => GetTree().CurrentScene as WorldRoot;
+    private WorldView? GetWorldView()
+    {
+        var scene = GetTree().CurrentScene;
+        if (scene is null)
+            return null;
+        if (scene is WorldView view)
+            return view;
+        return scene.GetNodeOrNull<WorldView>("WorldView");
+    }
 
     private sealed class AutomationServiceImpl(GodotRpcHost owner) : AutomationService.AutomationServiceBase
     {
@@ -158,14 +166,14 @@ public partial class GodotRpcHost : Node
             {
                 await owner.RunOnMainThread(() =>
                 {
-                    var worldRoot = owner.GetWorldRoot();
-                    if (worldRoot is null)
-                        throw new InvalidOperationException("Current scene is not WorldRoot.");
+                    var worldView = owner.GetWorldView();
+                    if (worldView is null)
+                        throw new InvalidOperationException("Current scene has no WorldView.");
 
                     if (request.Pressed)
-                        worldRoot.SetMovementKeyState((Key)request.KeyCode, true);
+                        worldView.SetMovementKeyState((Key)request.KeyCode, true);
                     else
-                        worldRoot.SetMovementKeyState((Key)request.KeyCode, false);
+                        worldView.SetMovementKeyState((Key)request.KeyCode, false);
                     return Task.CompletedTask;
                 });
 
@@ -184,15 +192,15 @@ public partial class GodotRpcHost : Node
                 return await owner.RunOnMainThread(async () =>
                 {
                     await owner.WaitFramesAsync(1);
-                    var worldRoot = owner.GetWorldRoot();
-                    var pos = worldRoot?.TryGetPlayerPosition(0);
+                    var worldView = owner.GetWorldView();
+                    var pos = worldView?.TryGetPlayerPosition(0);
                     return new WorldStateResponse
                     {
                         Ok = true,
                         SceneLoaded = owner.GetTree().CurrentScene is not null,
-                        IsWorldRoot = worldRoot is not null,
-                        HexLayerChildren = worldRoot?.HexLayerChildCount ?? 0,
-                        PlayerLayerChildren = worldRoot?.PlayerLayerChildCount ?? 0,
+                        IsWorldRoot = worldView is not null,
+                        HexLayerChildren = worldView?.HexLayerChildCount ?? 0,
+                        PlayerLayerChildren = worldView?.PlayerLayerChildCount ?? 0,
                         Player0X = pos?.X ?? 0f,
                         Player0Y = pos?.Y ?? 0f,
                     };

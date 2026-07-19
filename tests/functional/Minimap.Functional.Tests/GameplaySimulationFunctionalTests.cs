@@ -23,10 +23,12 @@ public class GameplaySimulationFunctionalTests
     {
         var gen = new FixedLayoutGenerator();
         var w = GameWorld.Create(2, 2, 1, gen, spawn: new SpawnConfig { AiPerFaction = 0 });
-        var pawn = w.PlayerController!.Pawn!;
+        var pawn = FindUnpossessedHuman(w, 1);
+        var driver = new DriveController();
+        w.AttachController(driver, pawn);
         var before = pawn.Position;
 
-        w.PlayerController.SetMoveInput(new SimVec2(1f, 0f));
+        driver.SetMoveInput(new SimVec2(1f, 0f));
         const float dt = 1f / 60f;
         for (var i = 0; i < 30; i++)
             w.Tick(dt);
@@ -67,5 +69,44 @@ public class GameplaySimulationFunctionalTests
         w.ApplyDamage(victim, CombatTuning.DefaultMaxHealth);
         w.Tick(0.016f);
         Assert.DoesNotContain(victim, w.Characters);
+    }
+
+    private static Character FindUnpossessedHuman(GameWorld world, int playerFactionId)
+    {
+        var controlled = new HashSet<int>();
+        foreach (var c in world.Controllers)
+        {
+            if (c.Pawn is { } pawn)
+                controlled.Add(pawn.Id);
+        }
+
+        return world.Characters.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
+    }
+
+    /// <summary>Local drive double (PlayerController lives in Client).</summary>
+    private sealed class DriveController : IController
+    {
+        private SimVec2 _moveInput;
+        private float _fireCooldown;
+
+        public Character? Pawn { get; private set; }
+
+        public void Possess(Character character)
+        {
+            Pawn = character;
+            _fireCooldown = 0f;
+        }
+
+        public void Unpossess() => Pawn = null;
+
+        public void SetMoveInput(SimVec2 direction) => _moveInput = direction;
+
+        public void Tick(GameWorld world, float dt)
+        {
+            if (Pawn is null || !Pawn.IsAlive)
+                return;
+            Pawn.MoveIntent = _moveInput;
+            Autoshoot.Tick(world, Pawn, ref _fireCooldown, dt);
+        }
     }
 }

@@ -3,19 +3,13 @@ using Minimap.Simulation;
 
 namespace Minimap.Client;
 
-/// <summary>Root scene: owns <see cref="GameWorld"/>, drives evolution timer, syncs entity visuals.</summary>
-public partial class WorldRoot : Node2D
+/// <summary>World visuals + keyboard capture. Does not own or tick the simulation.</summary>
+public partial class WorldView : Node2D
 {
-    [Export] public int GridRadiusX { get; set; } = 8;
-    [Export] public int GridRadiusY { get; set; } = 6;
-    [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
-    [Export] public int PlayerFactionId { get; set; } = 1;
-    [Export] public int RivalFactionId { get; set; } = 2;
-    [Export] public int AiPerFaction { get; set; } = 3;
 
     private GameWorld? _world;
-    private Random _rng = new();
+    private Random _rng = new(1);
     private Node2D? _hexLayer;
     private Node2D? _playerLayer;
     private Node2D? _missileLayer;
@@ -25,17 +19,15 @@ public partial class WorldRoot : Node2D
     private readonly Dictionary<int, Node2D> _characterNodes = new();
     private readonly Dictionary<int, Node2D> _missileNodes = new();
     private readonly HashSet<Key> _heldKeys = new();
+    private readonly List<Character> _humanPawns = new();
 
-    public override void _Ready()
+    public void Bind(GameWorld world, Random rng, IReadOnlyList<Character> humanPawns)
     {
-        _rng = new Random(WorldSeed);
-        var spawn = new SpawnConfig
-        {
-            PlayerFactionId = PlayerFactionId,
-            RivalFactionId = RivalFactionId,
-            AiPerFaction = AiPerFaction,
-        };
-        _world = GameWorld.Create(GridRadiusX, GridRadiusY, WorldSeed, hexSize: HexSize, spawn: spawn);
+        _world = world;
+        _rng = rng;
+        _humanPawns.Clear();
+        _humanPawns.AddRange(humanPawns);
+
         _hexLayer = GetNode<Node2D>("HexLayer");
         _playerLayer = GetNode<Node2D>("PlayerLayer");
         _missileLayer = GetNodeOrNull<Node2D>("MissileLayer");
@@ -47,10 +39,11 @@ public partial class WorldRoot : Node2D
 
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
         _playerScene = GD.Load<PackedScene>("res://entities/player_visual.tscn");
-        GetNode<Godot.Timer>("EvolutionTimer").Timeout += OnEvolutionTick;
-        SyncHexes();
-        SyncCharacters();
-        SyncMissiles();
+        var timer = GetNodeOrNull<Godot.Timer>("EvolutionTimer");
+        if (timer is not null)
+            timer.Timeout += OnEvolutionTick;
+
+        SyncAll();
         RecenterCamera();
     }
 
@@ -70,17 +63,13 @@ public partial class WorldRoot : Node2D
             GetViewport().SetInputAsHandled();
     }
 
-    public override void _Process(double delta)
+    public void SyncFrame()
     {
-        if (_world is null)
-            return;
-
-        var input = ReadScreenAxisInput();
-        _world.PlayerController?.SetMoveInput(input);
-        _world.Tick((float)delta);
         SyncCharacters();
         SyncMissiles();
     }
+
+    public SimVec2 ReadMoveInput() => ReadScreenAxisInput();
 
     private void OnEvolutionTick()
     {
@@ -89,6 +78,13 @@ public partial class WorldRoot : Node2D
         WorldEvolution.Tick(_world, _rng);
         SyncHexes();
         SyncCharacters();
+    }
+
+    private void SyncAll()
+    {
+        SyncHexes();
+        SyncCharacters();
+        SyncMissiles();
     }
 
     private void SyncHexes()
@@ -259,12 +255,15 @@ public partial class WorldRoot : Node2D
 
     public Vector2? TryGetPlayerPosition(int playerIndex)
     {
-        if (_world?.PlayerController?.Pawn is { } pawn && playerIndex == 0)
-            return new Vector2(pawn.Position.X, pawn.Position.Y);
+        if (playerIndex >= 0 && playerIndex < _humanPawns.Count)
+        {
+            var pawn = _humanPawns[playerIndex];
+            if (_world is not null && _world.Characters.Contains(pawn))
+                return new Vector2(pawn.Position.X, pawn.Position.Y);
+        }
 
         if (_characterNodes.Count == 0)
             return null;
-        // Fallback: first visual by sorted id
         var first = _characterNodes.OrderBy(kv => kv.Key).FirstOrDefault();
         return first.Value?.Position;
     }

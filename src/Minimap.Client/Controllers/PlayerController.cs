@@ -1,4 +1,6 @@
-namespace Minimap.Simulation;
+using Minimap.Simulation;
+
+namespace Minimap.Client;
 
 /// <summary>Human-driven controller: client feeds move axes; autoshoot is shared.</summary>
 public sealed class PlayerController : IController

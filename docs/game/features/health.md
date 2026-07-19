@@ -11,5 +11,6 @@ Character hit points. Related: [damage.md](damage.md), [combat.md](combat.md), [
 
 ## Non-goals (for now)
 
-- Health UI / bars
 - Regeneration, armor, or invulnerability frames
+
+Player health is shown on the local HUD; see [player-hud.md](player-hud.md).

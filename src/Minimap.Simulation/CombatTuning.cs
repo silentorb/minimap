@@ -22,4 +22,7 @@ public sealed class SpawnConfig
     public int PlayerFactionId { get; init; } = 1;
     public int RivalFactionId { get; init; } = 2;
     public int AiPerFaction { get; init; } = 3;
+
+    /// <summary>Unpossessed human-faction pawns to spawn (App attaches Client PlayerControllers).</summary>
+    public int HumanPlayerCount { get; init; } = 1;
 }

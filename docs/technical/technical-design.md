@@ -9,6 +9,10 @@
 - Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks.
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
+- **C# project boundaries**:
+  - **Minimap.Simulation** — authoritative logic/state; no Godot; no user input or output
+  - **Minimap.Client** — Godot rendering, input capture, HUD; may reference Simulation sparingly
+  - **Minimap.App** — thin front-facing integration that wires Simulation and Client (session creation, attach player controllers, feed HUD models)
 
 # Godot project layout
 
@@ -21,6 +25,6 @@ It is not an exhaustive list of all the directories in this project.
 | `./assets` | All game assets (images, sound effects, etc.) |
 | `./entities` | All scenes for game elements within a root scene |
 | `./scenes` | All root scenes |
-| `./src` | Source code |
+| `./src` | Source code (`Minimap.Simulation`, `Minimap.Client`, `Minimap.App`) |
 | `./tests` | Test suite |
 | `./ui` | All user interface scenes and related resources |

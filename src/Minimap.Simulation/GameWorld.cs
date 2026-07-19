@@ -10,7 +10,6 @@ public sealed class GameWorld
     private readonly Random _random;
     private int _nextCharacterId;
     private int _nextMissileId;
-    private PlayerController? _playerController;
 
     public static GameWorld Create(
         int radiusX,
@@ -59,7 +58,6 @@ public sealed class GameWorld
     public IReadOnlyList<Character> Characters => _characters;
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
-    public PlayerController? PlayerController => _playerController;
 
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
@@ -77,8 +75,6 @@ public sealed class GameWorld
     {
         controller.Possess(character);
         _controllers.Add(controller);
-        if (controller is PlayerController pc)
-            _playerController = pc;
     }
 
     public Missile SpawnMissile(
@@ -131,12 +127,13 @@ public sealed class GameWorld
 
     private void SpawnDefaultRoster(SpawnConfig spawn, float hexSize)
     {
-        var total = 1 + spawn.AiPerFaction * 2;
+        var humans = Math.Max(0, spawn.HumanPlayerCount);
+        var total = humans + spawn.AiPerFaction * 2;
         var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, total, _random);
         var i = 0;
 
-        var player = AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], hexSize));
-        AttachController(new PlayerController(), player);
+        for (var h = 0; h < humans; h++)
+            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], hexSize));
 
         for (var a = 0; a < spawn.AiPerFaction; a++)
         {
@@ -231,8 +228,6 @@ public sealed class GameWorld
             {
                 if (_controllers[c].Pawn?.Id != dead.Id)
                     continue;
-                if (_controllers[c] is PlayerController)
-                    _playerController = null;
                 _controllers[c].Unpossess();
                 _controllers.RemoveAt(c);
             }

@@ -1,18 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://cworldroot01"]
+[gd_scene load_steps=4 format=3 uid="uid://cworldroot01"]
 
-[ext_resource type="Script" path="res://src/Minimap.Client/WorldRoot.cs" id="1_wr"]
+[ext_resource type="Script" path="res://src/Minimap.App/GameApp.cs" id="1_app"]
+[ext_resource type="Script" path="res://src/Minimap.Client/WorldView.cs" id="2_wv"]
+[ext_resource type="PackedScene" path="res://ui/player_hud_panel.tscn" id="3_hud"]
 
-[node name="WorldRoot" type="Node2D"]
-script = ExtResource("1_wr")
+[node name="GameApp" type="Node2D"]
+script = ExtResource("1_app")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="WorldView" type="Node2D" parent="."]
+script = ExtResource("2_wv")
 
-[node name="HexLayer" type="Node2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="WorldView"]
 
-[node name="PlayerLayer" type="Node2D" parent="."]
+[node name="HexLayer" type="Node2D" parent="WorldView"]
 
-[node name="MissileLayer" type="Node2D" parent="."]
+[node name="PlayerLayer" type="Node2D" parent="WorldView"]
 
-[node name="EvolutionTimer" type="Timer" parent="."]
+[node name="MissileLayer" type="Node2D" parent="WorldView"]
+
+[node name="EvolutionTimer" type="Timer" parent="WorldView"]
 wait_time = 2.0
 autostart = true
+
+[node name="PlayerHudPanel" parent="." instance=ExtResource("3_hud")]

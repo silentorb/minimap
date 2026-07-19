@@ -13,13 +13,14 @@ public class FactionAndCombatTests
     }
 
     [Fact]
-    public void Default_spawn_places_player_and_ai_on_both_factions()
+    public void Default_spawn_places_humans_unpossessed_and_ai_on_both_factions()
     {
-        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2, AiPerFaction = 3 };
+        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2, AiPerFaction = 3, HumanPlayerCount = 1 };
         var w = GameWorld.Create(4, 4, 42, spawn: spawn);
         Assert.Equal(1 + 3 + 3, w.Characters.Count);
-        Assert.NotNull(w.PlayerController);
-        Assert.Equal(1, w.Characters.Count(c => c.FactionId == 1 && ReferenceEquals(w.PlayerController!.Pawn, c)));
+        Assert.Equal(spawn.AiPerFaction * 2, w.Controllers.Count);
+        var human = TestWorldHelpers.FindUnpossessedHuman(w, spawn.PlayerFactionId);
+        Assert.Equal(1, w.Characters.Count(c => c.FactionId == 1 && c.Id == human.Id));
         Assert.Equal(4, w.Characters.Count(c => c.FactionId == 1));
         Assert.Equal(3, w.Characters.Count(c => c.FactionId == 2));
     }
@@ -28,8 +29,7 @@ public class FactionAndCombatTests
     public void Missile_damages_hostile_and_removes_at_zero_health()
     {
         var gen = new AllFloorGenerator();
-        var w = GameWorld.Create(3, 3, 1, gen, spawn: new SpawnConfig { AiPerFaction = 0 });
-        var player = w.PlayerController!.Pawn!;
+        var (w, _, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage; // one hit kills
 
@@ -51,8 +51,7 @@ public class FactionAndCombatTests
     public void Missile_does_not_damage_same_faction()
     {
         var gen = new AllFloorGenerator();
-        var w = GameWorld.Create(3, 3, 1, gen, spawn: new SpawnConfig { AiPerFaction = 0 });
-        var player = w.PlayerController!.Pawn!;
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
 
@@ -65,8 +64,7 @@ public class FactionAndCombatTests
 
         for (var i = 0; i < 30; i++)
             w.TickMovement(1f / 60f);
-        // Manually tick missiles without AI: use Tick but zero move
-        w.PlayerController.SetMoveInput(SimVec2.Zero);
+        driver.SetMoveInput(SimVec2.Zero);
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
@@ -78,11 +76,10 @@ public class FactionAndCombatTests
     public void Autoshoot_fires_toward_hostile()
     {
         var gen = new AllFloorGenerator();
-        var w = GameWorld.Create(3, 3, 1, gen, spawn: new SpawnConfig { AiPerFaction = 0 });
-        var player = w.PlayerController!.Pawn!;
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
 
-        w.PlayerController.SetMoveInput(SimVec2.Zero);
+        driver.SetMoveInput(SimVec2.Zero);
         // Fire interval is 1.25s; cooldown starts at 0 so first tick should fire
         w.Tick(0.016f);
         Assert.True(w.Missiles.Count >= 1);

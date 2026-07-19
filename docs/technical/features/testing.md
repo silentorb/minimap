@@ -16,7 +16,7 @@ For background on architecture and directories, see [Technical design](../techni
 |------|------------------|------------|---------|
 | **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`) | `Minimap.Simulation` only | Grid math, generators, evolution rules, `GameWorld` APIs—no Godot runtime dependency. |
 | **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, evolution loops). CI-friendly with `dotnet test` only. |
-| **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | `Minimap.Simulation`, `Minimap.Client`, `Minimap.Automation.Contracts` | xUnit tests that launch Godot and control `WorldRoot` via protobuf gRPC RPC calls. |
+| **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | `Minimap.Simulation`, `Minimap.Client`, `Minimap.Automation.Contracts` | xUnit tests that launch Godot and control the playable world scene (`GameApp` / `WorldView`) via protobuf gRPC RPC calls. |
 
 See also [tests/functional/README.md](../../../tests/functional/README.md).
 

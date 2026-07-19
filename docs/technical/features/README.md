@@ -12,5 +12,6 @@
 | [../../game/game-design.md](../../game/game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
 | [controllers.md](controllers.md) | Working on **IController**, possess/unpossess, PlayerController / AiController, or tick order. |
 | [characters-and-factions.md](characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
+| [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, or App→Client HUD wiring. |
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |
 | [hex-grid-shape.md](hex-grid-shape.md) | Changing **HexGrid** ellipse inclusion, RadiusX/RadiusY, or map geometry contracts. |

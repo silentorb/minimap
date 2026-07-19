@@ -14,3 +14,4 @@
 | [combat.md](combat.md) | Changing **missiles**, autoshoot, fire rate, or shared player/AI shooting feel. |
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
 | [map-layout.md](map-layout.md) | Changing **map shape or size** (ellipse extents, single-screen arena). |
+| [player-hud.md](player-hud.md) | Changing **player HUD** slots, names, or on-screen health display. |
