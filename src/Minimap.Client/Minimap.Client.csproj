@@ -6,10 +6,19 @@
     <RootNamespace>Minimap.Client</RootNamespace>
     <AssemblyName>Minimap.Client</AssemblyName>
     <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!-- Required so Godot.SourceGenerators emit [ScriptPath] for res:// script lookup. -->
+    <GodotProjectDir>$(MSBuildThisFileDirectory)..\..\</GodotProjectDir>
   </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="GodotProjectDir" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="GodotSharp" Version="4.6.1" />
+    <PackageReference Include="Godot.SourceGenerators" Version="4.6.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <ProjectReference Include="../Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj" />
   </ItemGroup>

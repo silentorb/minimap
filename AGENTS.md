@@ -5,7 +5,7 @@
 - **Engine**: Godot **4.6**, Forward Plus renderer; gameplay is **2D** (single-screen hex arena—see [docs/game/game-design.md](docs/game/game-design.md)).
 - **Entry**: `run/main_scene` is `res://scenes/world.tscn` (see [project.godot](project.godot)).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
-- **C# modules**: **`Minimap.Simulation`** — authoritative game logic and state (no Godot references). **`Minimap.Client`** — Godot scripts, rendering, input; references Simulation. Root [minimap.csproj](minimap.csproj) is the Godot host and references **Client** only.
+- **C# modules**: **`Minimap.Simulation`** — authoritative game logic and state (no Godot references). **`Minimap.Client`** — Godot scripts, rendering, input (sources under `src/Minimap.Client/`); also a class library for tests. Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Automation.Contracts.
 
 ## Layout
 

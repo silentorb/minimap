@@ -13,5 +13,8 @@ if [[ -z "${GODOT_BIN:-}" ]]; then
   exit 2
 fi
 
+# Ensure Godot's C# assemblies (including [ScriptPath] metadata) are up to date.
+dotnet build "${ROOT}/minimap.csproj" -v q
+
 dotnet test "${ROOT}/tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.Godot.Tests.csproj" \
   "$@"

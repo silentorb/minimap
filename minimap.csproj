@@ -5,13 +5,23 @@
     <RootNamespace>Minimap</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/obj/**;**/bin/**</DefaultItemExcludes>
   </PropertyGroup>
+  <!--
+    Godot 4 looks up C# scripts only in the main assembly. Client Node scripts under
+    src/Minimap.Client/ must compile into this project (not a referenced class library).
+    Minimap.Client.csproj remains for non-Godot consumers (e.g. test projects).
+  -->
   <ItemGroup>
-    <ProjectReference Include="src/Minimap.Client/Minimap.Client.csproj" />
+    <ProjectReference Include="src/Minimap.Simulation/Minimap.Simulation.csproj" />
+    <ProjectReference Include="src/Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
   </ItemGroup>
-  <!-- Godot.NET.Sdk globs all *.cs under the project root; keep tests and class libraries out of this assembly. -->
   <ItemGroup>
+    <!-- Godot.NET.Sdk globs all *.cs under the project root; keep only Client script sources. -->
     <Compile Remove="tests/**/*.cs" />
-    <Compile Remove="src/**/*.cs" />
+    <Compile Remove="src/Minimap.Simulation/**/*.cs" />
+    <Compile Remove="src/Minimap.Automation.Contracts/**/*.cs" />
+    <Compile Remove="src/Minimap.Core/**/*.cs" />
   </ItemGroup>
 </Project>
