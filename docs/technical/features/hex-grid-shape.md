@@ -12,5 +12,5 @@ Elliptical playable hex map. Implements [../../game/features/map-layout.md](../.
 - Note: on a pointy-top layout, `HexAxial(0, radiusY)` also has a nonzero X, so that cell itself may fall **outside** the axis-aligned ellipse; vertical extremes are hexes near X≈0 with `|R|` near `radiusY` (e.g. `(radiusY/2, -radiusY)` when even).
 - Enumerate candidates in an axial bounding box large enough to cover the ellipse, then filter.
 - Expose `RadiusX` / `RadiusY`.
-- Default runtime extents: **radiusX = 8**, **radiusY = 6**.
+- Default runtime extents: **radiusX = 8**, **radiusY = 6**, loaded from core settings (`config/core.json` `"radius": [8, 6]`; see [core-settings.md](core-settings.md)).
 - Wall / out-of-map boundary collider generation continues to treat neighbors outside `Contains` as solid boundary hexes.

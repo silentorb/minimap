@@ -7,8 +7,7 @@ namespace Minimap.App;
 /// <summary>Godot entry: owns <see cref="GameSession"/>, drives WorldView + player HUD panel.</summary>
 public partial class GameApp : Node2D
 {
-    [Export] public int GridRadiusX { get; set; } = 8;
-    [Export] public int GridRadiusY { get; set; } = 6;
+    [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
     [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
     [Export] public int PlayerFactionId { get; set; } = 1;
@@ -24,6 +23,7 @@ public partial class GameApp : Node2D
 
     public override void _Ready()
     {
+        var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
         var count = Math.Clamp(LocalPlayerCount, 1, 4);
         var spawn = new SpawnConfig
         {
@@ -34,8 +34,8 @@ public partial class GameApp : Node2D
         };
 
         _session = GameSession.Create(
-            GridRadiusX,
-            GridRadiusY,
+            core.Map.Radius.X,
+            core.Map.Radius.Y,
             WorldSeed,
             HexSize,
             spawn,

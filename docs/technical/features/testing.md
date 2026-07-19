@@ -14,7 +14,7 @@ For background on architecture and directories, see [Technical design](../techni
 
 | Area | Typical location | References | Purpose |
 |------|------------------|------------|---------|
-| **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`) | `Minimap.Simulation` only | Grid math, generators, evolution rules, `GameWorld` APIs—no Godot runtime dependency. |
+| **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`, `Minimap.App.Tests`) | Simulation-only or App (settings load) | Grid math, generators, evolution rules, `GameWorld` APIs, core settings JSON—no Godot runtime dependency. |
 | **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, evolution loops). CI-friendly with `dotnet test` only. |
 | **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | `Minimap.Simulation`, `Minimap.Client`, `Minimap.Automation.Contracts` | xUnit tests that launch Godot and control the playable world scene (`GameApp` / `WorldView`) via protobuf gRPC RPC calls. |
 
@@ -36,6 +36,7 @@ From repository root (after `dotnet restore`):
 
 ```bash
 dotnet test tests/unit/Minimap.Simulation.Tests/Minimap.Simulation.Tests.csproj
+dotnet test tests/unit/Minimap.App.Tests/Minimap.App.Tests.csproj
 dotnet test tests/functional/Minimap.Functional.Tests/Minimap.Functional.Tests.csproj
 ```
 

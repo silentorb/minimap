@@ -23,6 +23,7 @@ It is not an exhaustive list of all the directories in this project.
 | Directory | Purpose |
 |-----------|---------|
 | `./assets` | All game assets (images, sound effects, etc.) |
+| `./config` | Shipped JSON settings (e.g. `core.json`) |
 | `./entities` | All scenes for game elements within a root scene |
 | `./scenes` | All root scenes |
 | `./src` | Source code (`Minimap.Simulation`, `Minimap.Client`, `Minimap.App`) |
