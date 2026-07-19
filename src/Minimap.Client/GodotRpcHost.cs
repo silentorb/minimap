@@ -163,7 +163,9 @@ public partial class GodotRpcHost : Node
                         throw new InvalidOperationException("Current scene is not WorldRoot.");
 
                     if (request.Pressed)
-                        worldRoot.TryMovePlayerFromKey((Key)request.KeyCode, request.ShiftPressed);
+                        worldRoot.SetMovementKeyState((Key)request.KeyCode, true);
+                    else
+                        worldRoot.SetMovementKeyState((Key)request.KeyCode, false);
                     return Task.CompletedTask;
                 });
 

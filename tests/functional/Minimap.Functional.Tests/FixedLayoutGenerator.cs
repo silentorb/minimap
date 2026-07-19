@@ -9,11 +9,11 @@ internal sealed class FixedLayoutGenerator : IWorldGenerator
 
     public FixedLayoutGenerator(params HexAxial[] spawns) => _spawns = spawns;
 
-    public void Generate(HexGrid grid, Span<PlayerSlot> playersOut, Random random)
+    public void Generate(HexGrid grid, Span<PlayerSlot> playersOut, Random random, float hexSize = HexWorldLayout.DefaultHexSize)
     {
         foreach (var h in grid.AllHexes())
             grid.Set(h, CellType.Floor);
         for (var i = 0; i < playersOut.Length; i++)
-            playersOut[i] = new PlayerSlot(i, _spawns[i]);
+            playersOut[i] = new PlayerSlot(i, HexWorldLayout.ToWorld(_spawns[i], hexSize));
     }
 }

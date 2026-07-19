@@ -20,6 +20,8 @@ public static class WorldEvolution
                 continue;
             world.Grid.Set(n, Spread(t, random));
         }
+
+        world.RebuildWallColliders();
     }
 
     private static CellType Spread(CellType from, Random random)

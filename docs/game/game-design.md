@@ -9,6 +9,7 @@ Note: Minimap is a working title
 - 1-4 player, local-coop
 - Retro pixel art graphics
 - Hex grid world with mutable cell types
+- Realtime cartesian player movement (screen-axis input); hex walls are solid colliders with wall-slide
 - Dense, close quarters tactics
 - Minimally procedurally generated world
 - World transforms over the course of each playthrough

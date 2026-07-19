@@ -19,11 +19,12 @@ public partial class WorldRoot : Node2D
     private PackedScene? _playerScene;
     private readonly Dictionary<HexAxial, Node2D> _hexNodes = new();
     private readonly List<Node2D> _playerNodes = new();
+    private readonly HashSet<Key> _heldKeys = new();
 
     public override void _Ready()
     {
         _rng = new Random(WorldSeed);
-        _world = GameWorld.Create(GridRadius, PlayerCount, WorldSeed);
+        _world = GameWorld.Create(GridRadius, PlayerCount, WorldSeed, hexSize: HexSize);
         _hexLayer = GetNode<Node2D>("HexLayer");
         _playerLayer = GetNode<Node2D>("PlayerLayer");
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
@@ -36,18 +37,29 @@ public partial class WorldRoot : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (@event is not InputEventKey k)
+            return;
+        if (k.Echo)
+            return;
+
+        if (k.Pressed)
+            _heldKeys.Add(k.Keycode);
+        else
+            _heldKeys.Remove(k.Keycode);
+
+        if (IsMovementKey(k.Keycode))
+            GetViewport().SetInputAsHandled();
+    }
+
+    public override void _Process(double delta)
+    {
         if (_world is null)
             return;
-        if (@event is not InputEventKey k || !k.Pressed || k.Echo)
-            return;
 
-        var moved = TryMovePlayerFromKey(k.Keycode, k.ShiftPressed);
-
-        if (moved)
-        {
-            SyncPlayers();
-            GetViewport().SetInputAsHandled();
-        }
+        var input = ReadScreenAxisInput();
+        _world.SetPlayerInput(0, input);
+        _world.TickMovement((float)delta);
+        SyncPlayers();
     }
 
     private void OnEvolutionTick()
@@ -96,7 +108,8 @@ public partial class WorldRoot : Node2D
         for (var i = 0; i < _world.Players.Length; i++)
         {
             var node = _playerNodes[i];
-            node.Position = HexLayout.ToWorld(_world.Players[i].Position, HexSize);
+            var p = _world.Players[i].Position;
+            node.Position = new Vector2(p.X, p.Y);
             node.Visible = true;
             node.ZIndex = 2;
         }
@@ -122,6 +135,24 @@ public partial class WorldRoot : Node2D
             cam.Position = sum / n;
     }
 
+    private SimVec2 ReadScreenAxisInput()
+    {
+        var x = 0f;
+        var y = 0f;
+        if (_heldKeys.Contains(Key.Right) || Input.IsKeyPressed(Key.Right))
+            x += 1f;
+        if (_heldKeys.Contains(Key.Left) || Input.IsKeyPressed(Key.Left))
+            x -= 1f;
+        if (_heldKeys.Contains(Key.Down) || Input.IsKeyPressed(Key.Down))
+            y += 1f;
+        if (_heldKeys.Contains(Key.Up) || Input.IsKeyPressed(Key.Up))
+            y -= 1f;
+        return new SimVec2(x, y);
+    }
+
+    private static bool IsMovementKey(Key key) =>
+        key is Key.Up or Key.Down or Key.Left or Key.Right;
+
     private static Color ColorFor(CellType t) =>
         t switch
         {
@@ -141,25 +172,15 @@ public partial class WorldRoot : Node2D
             _ => Colors.White,
         };
 
-    public bool TryMovePlayerFromKey(Key key, bool shiftPressed)
+    /// <summary>Automation: set held state for a movement key (continuous motion while pressed).</summary>
+    public void SetMovementKeyState(Key key, bool pressed)
     {
-        if (_world is null)
-            return false;
-
-        // Neighbor indices match HexAxial.NeighborOffsets: E, NE, NW, W, SW, SE
-        var moved = key switch
-        {
-            Key.Right => _world.TryMovePlayer(0, 0),
-            Key.Up => _world.TryMovePlayer(0, shiftPressed ? 1 : 2),
-            Key.Left => _world.TryMovePlayer(0, 3),
-            Key.Down => _world.TryMovePlayer(0, shiftPressed ? 4 : 5),
-            _ => false,
-        };
-
-        if (moved)
-            SyncPlayers();
-
-        return moved;
+        if (!IsMovementKey(key))
+            return;
+        if (pressed)
+            _heldKeys.Add(key);
+        else
+            _heldKeys.Remove(key);
     }
 
     public int HexLayerChildCount => _hexLayer?.GetChildCount() ?? 0;

@@ -13,7 +13,7 @@ public class SeededWorldGeneratorTests
             var parts = w.Grid.Cells.OrderBy(kv => kv.Key.Q).ThenBy(kv => kv.Key.R)
                 .Select(kv => $"{kv.Key.Q},{kv.Key.R}:{(byte)kv.Value}");
             return string.Join(";", parts)
-                   + "|" + string.Join(";", w.Players.Select(p => $"{p.Position.Q},{p.Position.R}"));
+                   + "|" + string.Join(";", w.Players.Select(p => $"{p.Position.X:F3},{p.Position.Y:F3}"));
         }
 
         Assert.Equal(Snapshot(42), Snapshot(42));

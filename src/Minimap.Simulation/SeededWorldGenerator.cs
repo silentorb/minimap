@@ -3,7 +3,7 @@ namespace Minimap.Simulation;
 /// <summary>Weighted random terrain plus corner-ish spawns for up to four players.</summary>
 public sealed class SeededWorldGenerator : IWorldGenerator
 {
-    public void Generate(HexGrid grid, Span<PlayerSlot> playersOut, Random random)
+    public void Generate(HexGrid grid, Span<PlayerSlot> playersOut, Random random, float hexSize = HexWorldLayout.DefaultHexSize)
     {
         foreach (var h in grid.AllHexes())
         {
@@ -18,7 +18,7 @@ public sealed class SeededWorldGenerator : IWorldGenerator
 
         var spawns = PickSpawnHexes(grid, playersOut.Length, random);
         for (var i = 0; i < playersOut.Length; i++)
-            playersOut[i] = new PlayerSlot(i, spawns[i]);
+            playersOut[i] = new PlayerSlot(i, HexWorldLayout.ToWorld(spawns[i], hexSize));
     }
 
     private static HexAxial[] PickSpawnHexes(HexGrid grid, int count, Random random)

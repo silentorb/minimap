@@ -1,9 +1,9 @@
 namespace Minimap.Simulation;
 
-/// <summary>Logical player position on the hex grid (up to four local players).</summary>
+/// <summary>Logical player in cartesian world space (up to four local players).</summary>
 public sealed class PlayerSlot
 {
-    public PlayerSlot(int index, HexAxial position)
+    public PlayerSlot(int index, SimVec2 position)
     {
         if (index is < 0 or > 3)
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -12,5 +12,5 @@ public sealed class PlayerSlot
     }
 
     public int Index { get; }
-    public HexAxial Position { get; set; }
+    public SimVec2 Position { get; set; }
 }

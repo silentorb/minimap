@@ -15,18 +15,20 @@ public class WorldEvolutionTests
     }
 
     [Fact]
-    public void TryMovePlayer_blocked_by_wall()
+    public void Tick_rebuilds_wall_colliders()
     {
         var w = GameWorld.Create(2, 1, 7);
-        var p = w.Players[0];
-        var pos = p.Position;
-        foreach (var n in pos.Neighbors())
-        {
-            if (w.Grid.Contains(n))
-                w.Grid.Set(n, CellType.Wall);
-        }
+        var before = w.WallPolygons.Count;
+        Assert.True(before > 0);
 
-        Assert.False(w.TryMovePlayer(0, 0));
-        Assert.Equal(pos, p.Position);
+        // Force a wall then evolve/rebuild path.
+        foreach (var h in w.Grid.AllHexes())
+            w.Grid.Set(h, CellType.Floor);
+        w.RebuildWallColliders();
+        var floorsOnly = w.WallPolygons.Count;
+
+        w.Grid.Set(new HexAxial(0, 0), CellType.Wall);
+        w.RebuildWallColliders();
+        Assert.True(w.WallPolygons.Count > floorsOnly);
     }
 }

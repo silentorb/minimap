@@ -152,7 +152,7 @@ public class WorldRootSceneFunctionalTest(GodotAutomationFixture fixture)
         });
         Assert.True(press.Ok, press.Error);
 
-        var postStep = await fixture.Client.SimulateFramesAsync(new SimulateFramesRequest { FrameCount = 5 });
+        var postStep = await fixture.Client.SimulateFramesAsync(new SimulateFramesRequest { FrameCount = 30 });
         Assert.True(postStep.Ok, postStep.Error);
 
         var release = await fixture.Client.SetKeyStateAsync(new SetKeyStateRequest
@@ -164,6 +164,6 @@ public class WorldRootSceneFunctionalTest(GodotAutomationFixture fixture)
 
         var after = await fixture.Client.GetWorldStateAsync(new GetWorldStateRequest());
         Assert.True(after.Ok, after.Error);
-        Assert.False(before.Player0X == after.Player0X && before.Player0Y == after.Player0Y);
+        Assert.True(after.Player0X > before.Player0X, $"Expected +X motion; before={before.Player0X} after={after.Player0X}");
     }
 }
