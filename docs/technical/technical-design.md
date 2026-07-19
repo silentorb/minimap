@@ -5,8 +5,8 @@
 - Godot is the game engine
 - C# is the primary programming language
 - Mostly developed by AI agents
-- Heavily requirements-driven, documented under the `./docs` directory.
-- Heavily test-driven, using both unit tests and functional tests
+- Heavily requirements-driven, documented under the `./docs` directory. **`./docs` is the source of truth for functionality**: game rules and feel live under `docs/game/`; architecture and contracts live under `docs/technical/`. Code and tests implement those documents. When behavior changes, update the docs in the same change (or first). If code and docs disagree, docs win and code is fixed.
+- Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks.
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
 

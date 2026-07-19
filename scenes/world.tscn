@@ -11,6 +11,8 @@ script = ExtResource("1_wr")
 
 [node name="PlayerLayer" type="Node2D" parent="."]
 
+[node name="MissileLayer" type="Node2D" parent="."]
+
 [node name="EvolutionTimer" type="Timer" parent="."]
 wait_time = 2.0
 autostart = true

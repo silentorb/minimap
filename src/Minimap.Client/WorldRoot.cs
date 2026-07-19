@@ -6,32 +6,51 @@ namespace Minimap.Client;
 /// <summary>Root scene: owns <see cref="GameWorld"/>, drives evolution timer, syncs entity visuals.</summary>
 public partial class WorldRoot : Node2D
 {
-    [Export] public int GridRadius { get; set; } = 4;
-    [Export] public int PlayerCount { get; set; } = 4;
+    [Export] public int GridRadiusX { get; set; } = 8;
+    [Export] public int GridRadiusY { get; set; } = 6;
     [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
+    [Export] public int PlayerFactionId { get; set; } = 1;
+    [Export] public int RivalFactionId { get; set; } = 2;
+    [Export] public int AiPerFaction { get; set; } = 3;
 
     private GameWorld? _world;
     private Random _rng = new();
     private Node2D? _hexLayer;
     private Node2D? _playerLayer;
+    private Node2D? _missileLayer;
     private PackedScene? _hexScene;
     private PackedScene? _playerScene;
     private readonly Dictionary<HexAxial, Node2D> _hexNodes = new();
-    private readonly List<Node2D> _playerNodes = new();
+    private readonly Dictionary<int, Node2D> _characterNodes = new();
+    private readonly Dictionary<int, Node2D> _missileNodes = new();
     private readonly HashSet<Key> _heldKeys = new();
 
     public override void _Ready()
     {
         _rng = new Random(WorldSeed);
-        _world = GameWorld.Create(GridRadius, PlayerCount, WorldSeed, hexSize: HexSize);
+        var spawn = new SpawnConfig
+        {
+            PlayerFactionId = PlayerFactionId,
+            RivalFactionId = RivalFactionId,
+            AiPerFaction = AiPerFaction,
+        };
+        _world = GameWorld.Create(GridRadiusX, GridRadiusY, WorldSeed, hexSize: HexSize, spawn: spawn);
         _hexLayer = GetNode<Node2D>("HexLayer");
         _playerLayer = GetNode<Node2D>("PlayerLayer");
+        _missileLayer = GetNodeOrNull<Node2D>("MissileLayer");
+        if (_missileLayer is null)
+        {
+            _missileLayer = new Node2D { Name = "MissileLayer" };
+            AddChild(_missileLayer);
+        }
+
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
         _playerScene = GD.Load<PackedScene>("res://entities/player_visual.tscn");
         GetNode<Godot.Timer>("EvolutionTimer").Timeout += OnEvolutionTick;
         SyncHexes();
-        SyncPlayers();
+        SyncCharacters();
+        SyncMissiles();
         RecenterCamera();
     }
 
@@ -57,9 +76,10 @@ public partial class WorldRoot : Node2D
             return;
 
         var input = ReadScreenAxisInput();
-        _world.SetPlayerInput(0, input);
-        _world.TickMovement((float)delta);
-        SyncPlayers();
+        _world.PlayerController?.SetMoveInput(input);
+        _world.Tick((float)delta);
+        SyncCharacters();
+        SyncMissiles();
     }
 
     private void OnEvolutionTick()
@@ -68,7 +88,7 @@ public partial class WorldRoot : Node2D
             return;
         WorldEvolution.Tick(_world, _rng);
         SyncHexes();
-        SyncPlayers();
+        SyncCharacters();
     }
 
     private void SyncHexes()
@@ -92,30 +112,75 @@ public partial class WorldRoot : Node2D
         }
     }
 
-    private void SyncPlayers()
+    private void SyncCharacters()
     {
         if (_world is null || _playerLayer is null || _playerScene is null)
             return;
-        while (_playerNodes.Count < _world.Players.Length)
-        {
-            var n = _playerScene.Instantiate<Node2D>();
-            _playerLayer.AddChild(n);
-            _playerNodes.Add(n);
-            var cr = n.GetNode<ColorRect>("ColorRect");
-            cr.Color = PlayerColor(_playerNodes.Count - 1);
-        }
 
-        for (var i = 0; i < _world.Players.Length; i++)
+        var live = new HashSet<int>();
+        foreach (var character in _world.Characters)
         {
-            var node = _playerNodes[i];
-            var p = _world.Players[i].Position;
+            live.Add(character.Id);
+            if (!_characterNodes.TryGetValue(character.Id, out var node))
+            {
+                node = _playerScene.Instantiate<Node2D>();
+                _playerLayer.AddChild(node);
+                _characterNodes[character.Id] = node;
+                var cr = node.GetNode<ColorRect>("ColorRect");
+                cr.Color = FactionColor(character.FactionId, character.Id);
+            }
+
+            var p = character.Position;
             node.Position = new Vector2(p.X, p.Y);
             node.Visible = true;
             node.ZIndex = 2;
         }
 
-        for (var i = _world.Players.Length; i < _playerNodes.Count; i++)
-            _playerNodes[i].Visible = false;
+        foreach (var id in _characterNodes.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _characterNodes[id].QueueFree();
+            _characterNodes.Remove(id);
+        }
+    }
+
+    private void SyncMissiles()
+    {
+        if (_world is null || _missileLayer is null)
+            return;
+
+        var live = new HashSet<int>();
+        foreach (var missile in _world.Missiles)
+        {
+            live.Add(missile.Id);
+            if (!_missileNodes.TryGetValue(missile.Id, out var node))
+            {
+                node = new Node2D();
+                var rect = new ColorRect
+                {
+                    Color = new Color(1f, 0.9f, 0.3f),
+                    OffsetLeft = -4,
+                    OffsetTop = -4,
+                    OffsetRight = 4,
+                    OffsetBottom = 4,
+                };
+                node.AddChild(rect);
+                _missileLayer.AddChild(node);
+                _missileNodes[missile.Id] = node;
+            }
+
+            node.Position = new Vector2(missile.Position.X, missile.Position.Y);
+            node.ZIndex = 3;
+        }
+
+        foreach (var id in _missileNodes.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _missileNodes[id].QueueFree();
+            _missileNodes.Remove(id);
+        }
     }
 
     private void RecenterCamera()
@@ -162,15 +227,20 @@ public partial class WorldRoot : Node2D
             _ => new Color(0.1f, 0.1f, 0.12f),
         };
 
-    private static Color PlayerColor(int index) =>
-        index switch
+    private static Color FactionColor(int factionId, int characterId)
+    {
+        var baseColor = factionId switch
         {
-            0 => new Color(0.35f, 0.75f, 1f),
-            1 => new Color(1f, 0.55f, 0.2f),
-            2 => new Color(0.55f, 1f, 0.35f),
-            3 => new Color(0.85f, 0.45f, 1f),
-            _ => Colors.White,
+            1 => new Color(0.35f, 0.75f, 1f),
+            2 => new Color(1f, 0.45f, 0.35f),
+            _ => new Color(0.7f, 0.7f, 0.7f),
         };
+        var shade = (characterId % 3) * 0.06f;
+        return new Color(
+            Math.Clamp(baseColor.R + shade, 0f, 1f),
+            Math.Clamp(baseColor.G + shade * 0.5f, 0f, 1f),
+            Math.Clamp(baseColor.B - shade * 0.3f, 0f, 1f));
+    }
 
     /// <summary>Automation: set held state for a movement key (continuous motion while pressed).</summary>
     public void SetMovementKeyState(Key key, bool pressed)
@@ -189,8 +259,13 @@ public partial class WorldRoot : Node2D
 
     public Vector2? TryGetPlayerPosition(int playerIndex)
     {
-        if (playerIndex < 0 || playerIndex >= _playerNodes.Count)
+        if (_world?.PlayerController?.Pawn is { } pawn && playerIndex == 0)
+            return new Vector2(pawn.Position.X, pawn.Position.Y);
+
+        if (_characterNodes.Count == 0)
             return null;
-        return _playerNodes[playerIndex].Position;
+        // Fallback: first visual by sorted id
+        var first = _characterNodes.OrderBy(kv => kv.Key).FirstOrDefault();
+        return first.Value?.Position;
     }
 }
