@@ -6,21 +6,18 @@ Godot client smoke tests live in **`Minimap.Functional.Godot.Tests`**. These tes
 
 ## Godot functional prerequisites
 
-- Set **`GODOT_BIN`** to a Godot 4.x executable that this environment can run.
+- Set **`GODOT_BIN`** to a Godot 4.x .NET executable that this environment can run. The **dev container** sets this automatically to the installed Linux binary.
 - Optional: set **`MINIMAP_AUTOMATION_PORT`** to force a fixed gRPC port (otherwise tests auto-pick a free local port).
-- Optional: set **`GODOT_REMOTE_URL`** if you want launcher health checks before test execution.
 
-From repo root:
+From repo root (in the dev container, `GODOT_BIN` is already set):
 
 ```bash
-export GODOT_BIN=/path/to/Godot_devtools   # WSL example: /mnt/c/Apps/Godot/Godot_v4.6-stable_win64.exe
 ./scripts/run_godot_functional_tests.sh
 ```
 
 Or invoke directly:
 
 ```bash
-export GODOT_BIN=/path/to/Godot_devtools
 dotnet test tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.Godot.Tests.csproj
 ```
 
@@ -31,4 +28,4 @@ dotnet test tests/unit/Minimap.Simulation.Tests/Minimap.Simulation.Tests.csproj
 dotnet test tests/functional/Minimap.Functional.Tests/Minimap.Functional.Tests.csproj
 ```
 
-Remote launcher + dev container defaults: [docs/technical/features/remote-headless-godot.md](../../docs/technical/features/remote-headless-godot.md).
+See [docs/technical/features/testing.md](../../docs/technical/features/testing.md) for the full testing overview.

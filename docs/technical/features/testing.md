@@ -39,19 +39,23 @@ dotnet test tests/unit/Minimap.Simulation.Tests/Minimap.Simulation.Tests.csproj
 dotnet test tests/functional/Minimap.Functional.Tests/Minimap.Functional.Tests.csproj
 ```
 
-Godot client smoke (optional / machine with Godot):
+Godot client smoke (dev container sets `GODOT_BIN` automatically):
 
 ```bash
-export GODOT_BIN=/path/to/Godot_v4.x
+./scripts/run_godot_functional_tests.sh
+```
+
+Or equivalently:
+
+```bash
 dotnet test tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.Godot.Tests.csproj
 ```
 
-If `GODOT_BIN` is not set, run only unit + simulation functional suites.
+Outside the container, export `GODOT_BIN` to a Godot 4.6 .NET executable first. If `GODOT_BIN` is not set, run only unit + simulation functional suites.
 
 ## Related docs
 
 | Topic | Document |
 |-------|----------|
-| Remote/headless Godot from dev container | [remote-headless-godot.md](remote-headless-godot.md) |
 | Simulation vs client boundaries, `./tests` in tree | [Technical design](../technical-design.md) |
 | Gameplay vision (not test mechanics) | [Game design](../../game/game-design.md) |

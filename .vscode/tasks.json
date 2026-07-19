@@ -2,19 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build godot-launcher",
+            "label": "Run Godot functional tests",
             "type": "shell",
-            "command": "./scripts/build_godot_launcher.sh",
+            "command": "./scripts/run_godot_functional_tests.sh",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "group": "build",
+            "group": "test",
             "presentation": {
                 "reveal": "always",
                 "panel": "shared",
                 "focus": false
             },
-            "problemMatcher": "$rustc"
+            "problemMatcher": "$msCompile"
         }
     ]
 }

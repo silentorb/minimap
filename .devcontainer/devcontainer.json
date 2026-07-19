@@ -10,13 +10,8 @@
         }
     },
     "containerEnv": {
-        "CARGO_TARGET_DIR": "/workspaces/build/cargo-target",
-        "GODOT_REMOTE_URL": "http://127.0.0.1:27182"
+        "GODOT_BIN": "/opt/godot/Godot_v4.6-stable_mono_linux.x86_64"
     },
-    "postCreateCommand": "./scripts/build_godot_launcher.sh",
-    "runArgs": [
-        "--network=host"
-    ],
     "mounts": [
     ],
     "customizations": {

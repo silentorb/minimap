@@ -7,7 +7,6 @@ These files are **optional**. Do **not** open every file in this folder for gene
 
 | File | Read when… |
 |------|------------|
-| [testing.md](testing.md) | Working on **automated tests**: unit vs functional layout, **xUnit**, protobuf gRPC Godot automation, `dotnet test`, or running **Godot-dependent** tests from CI / dev container (links to remote headless setup). |
-| [remote-headless-godot.md](remote-headless-godot.md) | Running **headless Windows Godot** from the dev container via the WSL HTTP launcher and `godot_remote.py`. |
+| [testing.md](testing.md) | Working on **automated tests**: unit vs functional layout, **xUnit**, protobuf gRPC Godot automation, `dotnet test`, or running **Godot-dependent** tests from the CI / **dev container** (`GODOT_BIN`). |
 | [../technical-design.md](../technical-design.md) | **Architecture**, simulation vs. client boundaries, **Godot directory layout**, TDD, or global-state rules. |
 | [../../game/game-design.md](../../game/game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
