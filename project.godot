@@ -29,6 +29,10 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="minimap"
 
+[editor]
+
+run/main_run_args.linuxbsd="--rendering-driver vulkan --rendering-method forward_plus --single-window"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
