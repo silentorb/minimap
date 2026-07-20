@@ -71,6 +71,57 @@ public class GameplaySimulationFunctionalTests
         Assert.DoesNotContain(victim, w.Characters);
     }
 
+    [Fact]
+    public void Missile_hit_kills_hostile_and_removes_from_world()
+    {
+        var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator(), spawn: new SpawnConfig { AiPerFaction = 0 });
+        var player = FindUnpossessedHuman(w, 1);
+        var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
+        enemy.Health = CombatTuning.MissileDamage;
+
+        w.SpawnMissile(
+            player.Position,
+            new SimVec2(CombatTuning.MissileSpeed, 0f),
+            CombatTuning.MissileDamage,
+            player.FactionId,
+            player.Id);
+
+        for (var i = 0; i < 30; i++)
+            w.Tick(1f / 60f);
+
+        Assert.DoesNotContain(enemy, w.Characters);
+        Assert.Contains(player, w.Characters);
+    }
+
+    [Fact]
+    public void Holding_into_east_wall_does_not_tunnel_through()
+    {
+        var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator(), spawn: new SpawnConfig { AiPerFaction = 0 });
+        var pawn = FindUnpossessedHuman(w, 1);
+        var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
+        pawn.Position = new SimVec2(wallCenter.X - w.HexSize - w.PlayerRadius - 0.5f, wallCenter.Y);
+
+        var driver = new DriveController();
+        w.AttachController(driver, pawn);
+        driver.SetMoveInput(new SimVec2(1f, 0f));
+
+        for (var i = 0; i < 60; i++)
+            w.Tick(1f / 60f);
+
+        var after = pawn.Position;
+        Assert.False(
+            CircleHexCollision.TryCircleConvex(
+                after,
+                w.PlayerRadius,
+                HexWorldLayout.AbsoluteHexVertices(new HexAxial(1, 0), w.HexSize),
+                out _,
+                out var pen) && pen > 0.05f);
+
+        var blockedX = after.X;
+        w.Tick(1f / 60f);
+        Assert.Equal(blockedX, pawn.Position.X, precision: 2);
+    }
+
     private static Character FindUnpossessedHuman(GameWorld world, int playerFactionId)
     {
         var controlled = new HashSet<int>();

@@ -2,7 +2,15 @@
 
 Simulation-focused flows live in **`Minimap.Functional.Tests`** (`Minimap.Simulation` only). They run under plain `dotnet test` with no Godot executable.
 
-Godot client smoke tests live in **`Minimap.Functional.Godot.Tests`**. These tests are xUnit-based and drive Godot through the runtime autoload RPC host (`GodotRpcHost`) using protobuf gRPC calls.
+Godot client functional tests live in **`Minimap.Functional.Godot.Tests`**. They launch a **minimally modified** headless Godot process (general automation host only), then remotely load **playbook libraries** and run named **playbooks** inside that process via protobuf gRPC (`GodotRpcHost`).
+
+Playbook implementations live in **`Minimap.Functional.Godot.Playbooks`** (and additional libraries as needed). Shared in-process helpers are in **`Minimap.Automation`** (independent of Contracts and tests).
+
+## Godot as subject-under-test
+
+- One shared game process/project for many tests — not a different Godot build per case.
+- General framework code (RPC host, loader, helpers) may ship in the normal binary but stays dormant unless `MINIMAP_AUTOMATION_ENABLED` is set.
+- Per-case specialization is loaded **after** start (`LoadPlaybookLibrary` / `RunPlaybook`).
 
 ## Godot functional prerequisites
 
@@ -15,7 +23,9 @@ From repo root (in the dev container, `GODOT_BIN` is already set):
 ./scripts/run_godot_functional_tests.sh
 ```
 
-Or invoke directly:
+That script builds `Minimap.Automation`, playbook libraries, and `minimap.csproj`, then runs the Godot xUnit suite.
+
+Or invoke directly (after those builds):
 
 ```bash
 dotnet test tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.Godot.Tests.csproj

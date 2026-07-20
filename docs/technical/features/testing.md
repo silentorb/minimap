@@ -8,15 +8,30 @@ For background on architecture and directories, see [Technical design](../techni
 
 - **xUnit + Microsoft.NET.Test.Sdk** for all test projects.
 - **Godot functional automation** uses a runtime autoload node (`GodotRpcHost`) in `Minimap.Client` that hosts a gRPC server implementing contracts from `Minimap.Automation.Contracts`.
-- Godot functional tests act as an RPC client and drive scene load, frame stepping, and input simulation from xUnit.
+- Godot functional tests act as an RPC client. They load **playbook libraries** (managed DLLs) into the live process and run named **playbooks** in-process; the gRPC surface stays a thin control plane.
+
+## Godot as subject-under-test
+
+The Godot process is a **minimally modified** SUT, not a per-test custom build.
+
+| Allowed | Not allowed |
+|---------|-------------|
+| **General** automation framework code in the normal game process (RPC host, playbook loader/registry, shared helpers) — dormant unless enabled (e.g. `MINIMAP_AUTOMATION_ENABLED`) | Building or configuring a **different** Godot process / project / scene set **per test case** |
+| One shared headless launch of the **same** game binary/project for many tests | Baking test-case scenes, test runners, or case-specific scripts into the shipped Godot project as the primary model |
+| After start, remotely commanding the process to **load specialized playbook libraries** and run named playbooks | Requiring GdUnit/Gut-style in-project test trees as the main approach |
+
+Specialization lives in externally built playbook DLLs under `tests/`; the process under test stays one general automation-capable build.
 
 ## Repository layout
 
 | Area | Typical location | References | Purpose |
 |------|------------------|------------|---------|
 | **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`, `Minimap.App.Tests`) | Simulation-only or App (settings load) | Grid math, generators, evolution rules, `GameWorld` APIs, core settings JSON—no Godot runtime dependency. |
-| **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, evolution loops). CI-friendly with `dotnet test` only. |
-| **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | `Minimap.Simulation`, `Minimap.Client`, `Minimap.Automation.Contracts` | xUnit tests that launch Godot and control the playable world scene (`GameApp` / `WorldView`) via protobuf gRPC RPC calls. |
+| **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, combat, evolution loops). CI-friendly with `dotnet test` only. |
+| **Functional (Godot playbooks)** | `tests/functional/Minimap.Functional.Godot.Playbooks` | Contracts + `Minimap.Automation` | One or more `IPlaybook` types per library; loaded into Godot after start. |
+| **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | Contracts (gRPC client) | xUnit tests that launch Godot, `LoadPlaybookLibrary`, and `RunPlaybook`. |
+| **Automation helpers** | `src/Minimap.Automation` | GodotSharp only | Standalone in-process helpers (frame wait, movement keys, scene lookup). No Contracts/playbook/test references. |
+| **Automation contracts** | `src/Minimap.Automation.Contracts` | Protobuf/gRPC | Wire protocol + `IPlaybook` / `IPlaybookContext` / `PlaybookResult`. |
 
 See also [tests/functional/README.md](../../../tests/functional/README.md).
 
@@ -27,8 +42,11 @@ See also [tests/functional/README.md](../../../tests/functional/README.md).
    - `MINIMAP_AUTOMATION_HOST`
    - `MINIMAP_AUTOMATION_PORT`
 2. Autoload `GodotRpcHost` starts gRPC server inside Godot.
-3. Tests call RPC methods (`Ping`, `LoadMainScene`, `SimulateFrames`, `SetKeyState`, `GetWorldState`).
-4. Fixture sends `Shutdown` and tears down process/channel.
+3. Fixture calls `LoadPlaybookLibrary` with the path to a playbook DLL (multiple libraries supported; ids are `AssemblyName.PlaybookId`).
+4. Each test calls `RunPlaybook` — assertions and scene/input orchestration run **inside** Godot in the playbook.
+5. Fixture sends `Shutdown` and tears down process/channel.
+
+Legacy RPCs (`LoadMainScene`, `SimulateFrames`, `SetKeyState`, `GetWorldState`) remain for compatibility while playbooks become the primary path.
 
 ## Commands
 
@@ -46,7 +64,7 @@ Godot client smoke (dev container sets `GODOT_BIN` automatically):
 ./scripts/run_godot_functional_tests.sh
 ```
 
-Or equivalently:
+Or equivalently (after building Automation + Playbooks + `minimap.csproj`):
 
 ```bash
 dotnet test tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.Godot.Tests.csproj

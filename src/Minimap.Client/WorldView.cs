@@ -1,10 +1,11 @@
 using Godot;
+using Minimap.Automation;
 using Minimap.Simulation;
 
 namespace Minimap.Client;
 
 /// <summary>World visuals + keyboard capture. Does not own or tick the simulation.</summary>
-public partial class WorldView : Node2D
+public partial class WorldView : Node2D, IMovementKeyTarget
 {
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
 

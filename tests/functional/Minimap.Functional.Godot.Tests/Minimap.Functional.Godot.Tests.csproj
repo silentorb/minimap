@@ -22,5 +22,8 @@
     <ProjectReference Include="../../../src/Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <ProjectReference Include="../../../src/Minimap.Simulation/Minimap.Simulation.csproj" />
     <ProjectReference Include="../../../src/Minimap.Client/Minimap.Client.csproj" />
+    <ProjectReference Include="../Minimap.Functional.Godot.Playbooks/Minimap.Functional.Godot.Playbooks.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 </Project>

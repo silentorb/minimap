@@ -1,17 +1,20 @@
 using System.Collections.Concurrent;
 using Godot;
 using Grpc.Core;
+using Minimap.Automation;
 using Minimap.Automation.Contracts;
 
 namespace Minimap.Client;
 
 /// <summary>
-/// Runtime autoload that exposes gRPC automation endpoints for external xUnit tests.
+/// Runtime autoload that exposes gRPC automation endpoints for external xUnit tests,
+/// including loading and running playbook libraries after process start.
 /// </summary>
 public partial class GodotRpcHost : Node
 {
     private const string DefaultScenePath = "res://scenes/world.tscn";
     private readonly ConcurrentQueue<Func<Task>> _mainThreadQueue = new();
+    private readonly PlaybookRegistry _playbooks = new();
     private Server? _server;
     private bool _isEnabled;
 
@@ -105,23 +108,65 @@ public partial class GodotRpcHost : Node
 
     private async Task WaitFramesAsync(int frameCount)
     {
-        var frames = Math.Max(1, frameCount);
-        for (var i = 0; i < frames; i++)
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await SceneFrames.WaitAsync(GetTree(), frameCount);
     }
 
-    private WorldView? GetWorldView()
+    private WorldView? GetWorldView() =>
+        SceneNodes.FindInCurrentScene<WorldView>(GetTree(), "WorldView");
+
+    private sealed class PlaybookContext(GodotRpcHost owner) : IPlaybookContext
     {
-        var scene = GetTree().CurrentScene;
-        if (scene is null)
-            return null;
-        if (scene is WorldView view)
-            return view;
-        return scene.GetNodeOrNull<WorldView>("WorldView");
+        public Task LoadSceneAsync(string? scenePath, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var path = string.IsNullOrWhiteSpace(scenePath) ? DefaultScenePath : scenePath;
+                var error = owner.GetTree().ChangeSceneToFile(path);
+                if (error != Error.Ok)
+                    throw new InvalidOperationException($"ChangeSceneToFile failed with {error}.");
+                await owner.WaitFramesAsync(2);
+            });
+
+        public Task WaitFramesAsync(int frameCount, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(frameCount);
+            });
+
+        public Task SetMovementKeyAsync(int keyCode, bool pressed, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var worldView = owner.GetWorldView()
+                    ?? throw new InvalidOperationException("Current scene has no WorldView.");
+                MovementKeys.Set(worldView, (Key)keyCode, pressed);
+                return Task.CompletedTask;
+            });
+
+        public Task<PlaybookWorldSnapshot> GetWorldSnapshotAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var worldView = owner.GetWorldView();
+                var pos = worldView?.TryGetPlayerPosition(0);
+                return new PlaybookWorldSnapshot
+                {
+                    SceneLoaded = owner.GetTree().CurrentScene is not null,
+                    IsWorldRoot = worldView is not null,
+                    HexLayerChildren = worldView?.HexLayerChildCount ?? 0,
+                    PlayerLayerChildren = worldView?.PlayerLayerChildCount ?? 0,
+                    Player0X = pos?.X ?? 0f,
+                    Player0Y = pos?.Y ?? 0f,
+                };
+            });
     }
 
     private sealed class AutomationServiceImpl(GodotRpcHost owner) : AutomationService.AutomationServiceBase
     {
+        private readonly PlaybookContext _playbookContext = new(owner);
+
         public override Task<PingResponse> Ping(PingRequest request, ServerCallContext context)
         {
             return Task.FromResult(new PingResponse { Ok = true, Message = "pong" });
@@ -131,14 +176,7 @@ public partial class GodotRpcHost : Node
         {
             try
             {
-                await owner.RunOnMainThread(async () =>
-                {
-                    var scenePath = string.IsNullOrWhiteSpace(request.ScenePath) ? DefaultScenePath : request.ScenePath;
-                    var error = owner.GetTree().ChangeSceneToFile(scenePath);
-                    if (error != Error.Ok)
-                        throw new InvalidOperationException($"ChangeSceneToFile failed with {error}.");
-                    await owner.WaitFramesAsync(2);
-                });
+                await _playbookContext.LoadSceneAsync(request.ScenePath);
                 return new CommandResponse { Ok = true };
             }
             catch (Exception ex)
@@ -151,7 +189,7 @@ public partial class GodotRpcHost : Node
         {
             try
             {
-                await owner.RunOnMainThread(() => owner.WaitFramesAsync(request.FrameCount));
+                await _playbookContext.WaitFramesAsync(request.FrameCount);
                 return new CommandResponse { Ok = true };
             }
             catch (Exception ex)
@@ -164,19 +202,7 @@ public partial class GodotRpcHost : Node
         {
             try
             {
-                await owner.RunOnMainThread(() =>
-                {
-                    var worldView = owner.GetWorldView();
-                    if (worldView is null)
-                        throw new InvalidOperationException("Current scene has no WorldView.");
-
-                    if (request.Pressed)
-                        worldView.SetMovementKeyState((Key)request.KeyCode, true);
-                    else
-                        worldView.SetMovementKeyState((Key)request.KeyCode, false);
-                    return Task.CompletedTask;
-                });
-
+                await _playbookContext.SetMovementKeyAsync(request.KeyCode, request.Pressed);
                 return new CommandResponse { Ok = true };
             }
             catch (Exception ex)
@@ -189,26 +215,89 @@ public partial class GodotRpcHost : Node
         {
             try
             {
-                return await owner.RunOnMainThread(async () =>
+                var snap = await _playbookContext.GetWorldSnapshotAsync();
+                return new WorldStateResponse
                 {
-                    await owner.WaitFramesAsync(1);
-                    var worldView = owner.GetWorldView();
-                    var pos = worldView?.TryGetPlayerPosition(0);
-                    return new WorldStateResponse
-                    {
-                        Ok = true,
-                        SceneLoaded = owner.GetTree().CurrentScene is not null,
-                        IsWorldRoot = worldView is not null,
-                        HexLayerChildren = worldView?.HexLayerChildCount ?? 0,
-                        PlayerLayerChildren = worldView?.PlayerLayerChildCount ?? 0,
-                        Player0X = pos?.X ?? 0f,
-                        Player0Y = pos?.Y ?? 0f,
-                    };
-                });
+                    Ok = true,
+                    SceneLoaded = snap.SceneLoaded,
+                    IsWorldRoot = snap.IsWorldRoot,
+                    HexLayerChildren = snap.HexLayerChildren,
+                    PlayerLayerChildren = snap.PlayerLayerChildren,
+                    Player0X = snap.Player0X,
+                    Player0Y = snap.Player0Y,
+                };
             }
             catch (Exception ex)
             {
                 return new WorldStateResponse
+                {
+                    Ok = false,
+                    Error = ex.Message,
+                };
+            }
+        }
+
+        public override Task<LoadPlaybookLibraryResponse> LoadPlaybookLibrary(
+            LoadPlaybookLibraryRequest request,
+            ServerCallContext context)
+        {
+            var outcome = owner._playbooks.LoadLibrary(request.AssemblyPath);
+            var response = new LoadPlaybookLibraryResponse
+            {
+                Ok = outcome.Success,
+                Error = outcome.Error,
+            };
+            response.PlaybookIds.AddRange(outcome.PlaybookIds);
+            return Task.FromResult(response);
+        }
+
+        public override Task<ListPlaybooksResponse> ListPlaybooks(
+            ListPlaybooksRequest request,
+            ServerCallContext context)
+        {
+            var response = new ListPlaybooksResponse { Ok = true };
+            response.PlaybookIds.AddRange(owner._playbooks.ListIds());
+            return Task.FromResult(response);
+        }
+
+        public override async Task<PlaybookResultResponse> RunPlaybook(
+            RunPlaybookRequest request,
+            ServerCallContext context)
+        {
+            if (string.IsNullOrWhiteSpace(request.PlaybookId))
+            {
+                return new PlaybookResultResponse
+                {
+                    Ok = false,
+                    Error = "playbook_id is required.",
+                };
+            }
+
+            if (!owner._playbooks.TryGet(request.PlaybookId, out var playbook) || playbook is null)
+            {
+                return new PlaybookResultResponse
+                {
+                    Ok = false,
+                    Error = $"Unknown playbook id '{request.PlaybookId}'.",
+                };
+            }
+
+            try
+            {
+                var result = await playbook.RunAsync(
+                    _playbookContext,
+                    request.ArgsJson ?? "",
+                    context.CancellationToken);
+                return new PlaybookResultResponse
+                {
+                    Ok = result.Ok,
+                    Error = result.Error,
+                    Diagnostics = result.Diagnostics,
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PlaybookResultResponse
                 {
                     Ok = false,
                     Error = ex.Message,

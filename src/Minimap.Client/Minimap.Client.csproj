@@ -19,6 +19,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <ProjectReference Include="../Minimap.Automation/Minimap.Automation.csproj" />
     <ProjectReference Include="../Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj" />
   </ItemGroup>
