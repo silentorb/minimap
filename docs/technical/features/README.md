@@ -16,3 +16,6 @@
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |
 | [hex-grid-shape.md](hex-grid-shape.md) | Changing **HexGrid** ellipse inclusion, RadiusX/RadiusY, or map geometry contracts. |
 | [core-settings.md](core-settings.md) | Changing **core.json**, App settings load APIs, or the JSON vector-as-array convention. |
+| [lobby.md](lobby.md) | Working on **lobby scene**, slot state machine, or lobby → world navigation. |
+| [local-input.md](local-input.md) | Working on **LocalInputAggregator**, joypad/keyboard routing, or reconnect overlay. |
+| [local-play-context.md](local-play-context.md) | Working on **LocalPlayContext** autoload or cross-scene device roster. |

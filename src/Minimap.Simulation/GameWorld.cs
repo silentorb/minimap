@@ -125,6 +125,20 @@ public sealed class GameWorld
         target.Health = MathF.Max(0f, target.Health - amount);
     }
 
+    /// <summary>Remove a living character and detach its controller (player drop).</summary>
+    public void ForceRemoveCharacter(Character character)
+    {
+        for (var c = _controllers.Count - 1; c >= 0; c--)
+        {
+            if (_controllers[c].Pawn?.Id != character.Id)
+                continue;
+            _controllers[c].Unpossess();
+            _controllers.RemoveAt(c);
+        }
+
+        _characters.Remove(character);
+    }
+
     private void SpawnDefaultRoster(SpawnConfig spawn, float hexSize)
     {
         var humans = Math.Max(0, spawn.HumanPlayerCount);

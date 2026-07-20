@@ -3,7 +3,7 @@
 ## Project
 
 - **Engine**: Godot **4.6**, Forward Plus renderer; gameplay is **2D** (single-screen hex arena—see [docs/game/game-design.md](docs/game/game-design.md)).
-- **Entry**: `run/main_scene` is `res://scenes/world.tscn` (see [project.godot](project.godot)).
+- **Entry**: `run/main_scene` is `res://scenes/lobby.tscn` for normal play; `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
   - **`Minimap.Simulation`** — authoritative game logic and state (no Godot, no user input/output).

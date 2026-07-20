@@ -13,10 +13,9 @@ Unreal-style controller / pawn separation. Implements game [ai.md](../../game/fe
   - **`PlayerController` (Minimap.Client)**: receives move axes via `SetMoveInput(SimVec2)`; each tick applies move intent and shared autoshoot. **Not** part of Simulation (Simulation has no user input APIs).
   - **`AiController` (Simulation)**: picks random wander directions periodically; same shared autoshoot as the player.
 - **Shared autoshoot** helper (Simulation): nearest living hostile by faction rules; fire on cooldown. No hard-coded faction ids.
-- **Minimap.App** creates the world, attaches Client `PlayerController`s to unpossessed human pawns, and feeds keyboard move input into local player index 0.
+- **Minimap.App** creates the world, attaches Client `PlayerController`s to unpossessed human pawns, and feeds per-player move input via **`LocalInputAggregator`** from each player’s bound devices (see [local-input.md](local-input.md)).
 - **`GameWorld.Tick(dt)` order**: controllers → apply movement → tick missiles → apply damage / remove dead → prune missiles.
 
 ## Non-goals (for now)
 
-- Extra gamepads / per-slot local input devices (slots 1–3 receive zero move input)
 - Networked remote controllers

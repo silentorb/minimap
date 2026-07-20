@@ -3,6 +3,7 @@ using Godot;
 using Grpc.Core;
 using Minimap.Automation;
 using Minimap.Automation.Contracts;
+using Minimap.Client.Lobby;
 
 namespace Minimap.Client;
 
@@ -114,6 +115,12 @@ public partial class GodotRpcHost : Node
     private WorldView? GetWorldView() =>
         SceneNodes.FindInCurrentScene<WorldView>(GetTree(), "WorldView");
 
+    private IGameAutomationTarget? GetGameTarget() =>
+        GetTree().CurrentScene as IGameAutomationTarget;
+
+    private ILobbySnapshotSource? GetLobbySource() =>
+        GetTree().CurrentScene as ILobbySnapshotSource;
+
     private sealed class PlaybookContext(GodotRpcHost owner) : IPlaybookContext
     {
         public Task LoadSceneAsync(string? scenePath, CancellationToken cancellationToken = default) =>
@@ -150,6 +157,7 @@ public partial class GodotRpcHost : Node
                 cancellationToken.ThrowIfCancellationRequested();
                 await owner.WaitFramesAsync(1);
                 var worldView = owner.GetWorldView();
+                var game = owner.GetGameTarget();
                 var pos = worldView?.TryGetPlayerPosition(0);
                 return new PlaybookWorldSnapshot
                 {
@@ -159,7 +167,100 @@ public partial class GodotRpcHost : Node
                     PlayerLayerChildren = worldView?.PlayerLayerChildCount ?? 0,
                     Player0X = pos?.X ?? 0f,
                     Player0Y = pos?.Y ?? 0f,
+                    HumanPlayerCount = game?.HumanPlayerCount ?? 0,
                 };
+            });
+
+        public Task<PlaybookLobbySnapshot> GetLobbySnapshotAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var lobby = owner.GetLobbySource();
+                if (lobby is null)
+                {
+                    return new PlaybookLobbySnapshot
+                    {
+                        IsLobbyScene = false,
+                    };
+                }
+
+                var snap = lobby.GetLobbySnapshot();
+                return new PlaybookLobbySnapshot
+                {
+                    IsLobbyScene = snap.IsLobbyScene,
+                    SlotModes = snap.SlotModes.Select(m => m.ToString()).ToList(),
+                    ClaimedCount = snap.ClaimedCount,
+                    CanStartGame = snap.CanStartGame,
+                };
+            });
+
+        public Task SetActivateKeyAsync(bool pressed, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                LobbyInput.SetActivateKey(owner, pressed);
+                return Task.CompletedTask;
+            });
+
+        public Task SetBackKeyAsync(bool pressed, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                LobbyInput.SetBackKey(owner, pressed);
+                return Task.CompletedTask;
+            });
+
+        public Task SetJoypadButtonAsync(
+            int deviceIndex,
+            int joyButton,
+            bool pressed,
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                LobbyInput.SetJoypadButton(owner, deviceIndex, (JoyButton)joyButton, pressed);
+                return Task.CompletedTask;
+            });
+
+        public Task<PlaybookPauseOverlaySnapshot> GetPauseOverlaySnapshotAsync(
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var game = owner.GetGameTarget();
+                var overlay = game?.ReconnectOverlay;
+                return new PlaybookPauseOverlaySnapshot
+                {
+                    Visible = overlay?.OverlayVisible ?? false,
+                    DropButtonVisible = overlay?.DropButtonVisible ?? false,
+                    TreePaused = game?.GameplayPaused ?? false,
+                };
+            });
+
+        public Task SimulateJoypadDisconnectAsync(int playerIndex, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                owner.GetGameTarget()?.SimulateJoypadDisconnectForTests(playerIndex);
+                return Task.CompletedTask;
+            });
+
+        public Task FocusReconnectDropAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                owner.GetGameTarget()?.ReconnectOverlay?.FocusDropForAutomation();
+                return Task.CompletedTask;
+            });
+
+        public Task ClearLocalPlayContextAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                owner.GetNode<LocalPlayContextNode>("/root/LocalPlayContext").Clear();
+                return Task.CompletedTask;
             });
     }
 

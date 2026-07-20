@@ -6,7 +6,7 @@ Note: Minimap is a working title
 
 - A 2D action/strategy game in the Vampire Survivor / roguelite genre
 - Single screen world, no scrolling (elliptical hex arena — see [features/map-layout.md](features/map-layout.md))
-- 1-4 player, local-coop (current mode: one human-controlled character plus AI on both factions)
+- 1-4 player, local-coop (lobby join → hex arena; see [features/lobby.md](features/lobby.md))
 - Retro pixel art graphics
 - Hex grid world with mutable cell types
 - Realtime cartesian movement (screen-axis input); hex walls are solid colliders with wall-slide

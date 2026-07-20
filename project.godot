@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="minimap"
-run/main_scene="res://scenes/world.tscn"
+run/main_scene="res://scenes/lobby.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GodotRpcHost="*res://src/Minimap.Client/GodotRpcHost.cs"
+LocalPlayContext="*res://src/Minimap.Client/LocalPlayContextNode.cs"
 
 [display]
 

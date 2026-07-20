@@ -13,7 +13,8 @@ public sealed class ArrowRightMovesPlayerPlaybook : IPlaybook
         string argsJson,
         CancellationToken cancellationToken)
     {
-        await context.LoadSceneAsync(null, cancellationToken);
+        await context.ClearLocalPlayContextAsync(cancellationToken);
+        await context.LoadSceneAsync("res://scenes/world.tscn", cancellationToken);
         await context.WaitFramesAsync(15, cancellationToken);
 
         var before = await context.GetWorldSnapshotAsync(cancellationToken);

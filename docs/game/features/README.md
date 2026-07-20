@@ -15,3 +15,5 @@
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
 | [map-layout.md](map-layout.md) | Changing **map shape or size** (ellipse extents, single-screen arena). |
 | [player-hud.md](player-hud.md) | Changing **player HUD** slots, names, or on-screen health display. |
+| [lobby.md](lobby.md) | Changing **local player lobby**, join panels, or lobby → world start flow. |
+| [local-input.md](local-input.md) | Changing **gamepad/keyboard** binding, per-player devices, disconnect/reconnect, or in-world input. |

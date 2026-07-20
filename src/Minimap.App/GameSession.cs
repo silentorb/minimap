@@ -69,6 +69,24 @@ public sealed class GameSession
         return models;
     }
 
+    /// <summary>Drop a local human mid-game (disconnect flow).</summary>
+    public bool DropHumanPlayer(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return false;
+
+        var controller = _players[playerIndex];
+        var pawn = controller.Pawn;
+        controller.Unpossess();
+        _players.RemoveAt(playerIndex);
+        _humanPawns.RemoveAt(playerIndex);
+
+        if (pawn is not null)
+            World.ForceRemoveCharacter(pawn);
+
+        return true;
+    }
+
     private void AttachHumanPlayers(int playerFactionId, int count)
     {
         var controlled = new HashSet<int>();

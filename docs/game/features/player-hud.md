@@ -14,6 +14,5 @@ On-screen player status for local humans. Related: [health.md](health.md).
 ## Non-goals (for now)
 
 - Binding display names to simulation/player profile data
-- Per-player input devices beyond the first local player’s keyboard
 - Health bars as graphical meters (text `current/max` is enough)
 - Death animations or HUD flourish on death
