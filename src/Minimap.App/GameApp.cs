@@ -10,8 +10,10 @@ namespace Minimap.App;
 public partial class GameApp : Node2D, IGameAutomationTarget
 {
     private const string LobbyScenePath = "res://scenes/lobby.tscn";
+    private const string WorldScenePath = "res://scenes/world.tscn";
 
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
+    [Export] public string DefaultScenarioPath { get; set; } = CliArgs.DefaultScenarioPath;
     [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
     [Export] public int PlayerFactionId { get; set; } = 1;
@@ -25,14 +27,17 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     private LocalPlayContextNode? _playContext;
     private LocalInputAggregator? _input;
     private ReconnectOverlay? _reconnectOverlay;
+    private GameOverOverlay? _gameOverOverlay;
     private readonly ReconnectState _reconnect = new();
     private bool _gameplayPaused;
+    private bool _gameOverShown;
 
     public WorldView? WorldView => _worldView;
     public GameSession? Session => _session;
     public int HumanPlayerCount => _session?.Players.Count ?? 0;
     public bool GameplayPaused => _gameplayPaused;
     public ReconnectOverlay? ReconnectOverlay => _reconnectOverlay;
+    public GameOverOverlay? GameOverOverlay => _gameOverOverlay;
 
     public override void _Ready()
     {
@@ -45,6 +50,10 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             : _playContext.Roster.PlayerCount;
 
         var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
+        var scenarioPath = ResolveScenarioPath();
+        _playContext.ScenarioPath = scenarioPath;
+        var scenario = ScenarioSettings.LoadFromFile(ProjectSettings.GlobalizePath(scenarioPath));
+
         var spawn = new SpawnConfig
         {
             PlayerFactionId = PlayerFactionId,
@@ -59,6 +68,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             WorldSeed,
             HexSize,
             spawn,
+            scenario,
             count);
 
         _worldView = GetNode<WorldView>("WorldView");
@@ -71,7 +81,21 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         _input = new LocalInputAggregator(_playContext.Roster, _worldView);
         _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
         _reconnectOverlay.DropPlayerRequested += OnDropDisconnectedPlayer;
+        _gameOverOverlay = GetNode<GameOverOverlay>("GameOverOverlay");
+        _gameOverOverlay.ContinueRequested += OnGameOverContinue;
         Input.JoyConnectionChanged += OnJoyConnectionChanged;
+    }
+
+    private string ResolveScenarioPath()
+    {
+        var cliPath = CliArgs.TryGetScenarioPath(OS.GetCmdlineArgs());
+        if (!string.IsNullOrWhiteSpace(cliPath))
+            return cliPath;
+
+        if (!string.IsNullOrWhiteSpace(_playContext?.ScenarioPath))
+            return _playContext.ScenarioPath;
+
+        return DefaultScenarioPath;
     }
 
     private void OnJoyConnectionChanged(long device, bool connected)
@@ -83,6 +107,8 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     public override void _ExitTree()
     {
         Input.JoyConnectionChanged -= OnJoyConnectionChanged;
+        if (_gameOverOverlay is not null)
+            _gameOverOverlay.ContinueRequested -= OnGameOverContinue;
     }
 
     public override void _Process(double delta)
@@ -97,6 +123,17 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             _session.SetMoveInput(i, _input.ReadMove(i));
 
         _session.Tick((float)delta);
+
+        if (_session.LastScenarioTickResult.LevelRegenerated)
+            _worldView.OnLevelRegenerated(_session.HumanPawns);
+
+        if (_session.IsGameOver && !_gameOverShown && _gameOverOverlay is not null)
+        {
+            _gameOverShown = true;
+            _gameplayPaused = true;
+            _gameOverOverlay.ShowOverlay();
+        }
+
         _worldView.SyncFrame();
         _hudPanel.Apply(_session.BuildHudModels());
     }
@@ -214,6 +251,15 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
         _hudPanel?.Apply(_session.BuildHudModels());
         EndReconnectWait();
+    }
+
+    private void OnGameOverContinue()
+    {
+        if (_playContext is null)
+            return;
+
+        var nextScene = _playContext.EnteredFromLobby ? LobbyScenePath : WorldScenePath;
+        GetTree().ChangeSceneToFile(nextScene);
     }
 
     internal void EndReconnectWait()

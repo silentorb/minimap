@@ -6,26 +6,25 @@ public sealed class GameWorld
     private readonly List<Character> _characters = new();
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
+    private readonly List<WaveSpawner> _spawners = new();
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly Random _random;
     private int _nextCharacterId;
     private int _nextMissileId;
+    private int _nextSpawnerId;
 
     public static GameWorld Create(
         int radiusX,
         int radiusY,
         int seed,
         IWorldGenerator? generator = null,
-        float hexSize = HexWorldLayout.DefaultHexSize,
-        SpawnConfig? spawn = null)
+        float hexSize = HexWorldLayout.DefaultHexSize)
     {
         var grid = new HexGrid(radiusX, radiusY, hexSize);
         var gen = generator ?? new SeededWorldGenerator();
         var rng = new Random(seed);
         gen.GenerateTerrain(grid, rng);
-        var world = new GameWorld(grid, hexSize, rng);
-        world.SpawnDefaultRoster(spawn ?? new SpawnConfig(), hexSize);
-        return world;
+        return new GameWorld(grid, hexSize, rng, seed);
     }
 
     /// <summary>Equal-axis convenience (tests).</summary>
@@ -33,14 +32,14 @@ public sealed class GameWorld
         int radius,
         int seed,
         IWorldGenerator? generator = null,
-        float hexSize = HexWorldLayout.DefaultHexSize,
-        SpawnConfig? spawn = null) =>
-        Create(radius, radius, seed, generator, hexSize, spawn);
+        float hexSize = HexWorldLayout.DefaultHexSize) =>
+        Create(radius, radius, seed, generator, hexSize);
 
-    public GameWorld(HexGrid grid, float hexSize, Random? random = null)
+    public GameWorld(HexGrid grid, float hexSize, Random? random = null, int worldSeed = 0)
     {
         Grid = grid;
         HexSize = hexSize;
+        WorldSeed = worldSeed;
         MoveSpeed = CombatTuning.MoveSpeed;
         PlayerRadius = hexSize * 0.35f;
         MissileRadius = PlayerRadius * 0.45f;
@@ -50,6 +49,7 @@ public sealed class GameWorld
 
     public HexGrid Grid { get; }
     public float HexSize { get; }
+    public int WorldSeed { get; }
     public float MoveSpeed { get; set; }
     public float PlayerRadius { get; set; }
     public float MissileRadius { get; set; }
@@ -58,6 +58,7 @@ public sealed class GameWorld
     public IReadOnlyList<Character> Characters => _characters;
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
+    public IReadOnlyList<WaveSpawner> Spawners => _spawners;
 
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
@@ -96,6 +97,93 @@ public sealed class GameWorld
         return m;
     }
 
+    public void InitializeScenarioLevel(Scenario scenario, SpawnConfig spawn)
+    {
+        SpawnHumanPlayers(spawn);
+        PlaceWaveSpawners(scenario.SpawnerCount);
+    }
+
+    public void RegenerateLevel(Scenario scenario, SpawnConfig spawn, int levelIndex)
+    {
+        ClearRivalsAndMissiles(spawn.RivalFactionId);
+        _spawners.Clear();
+
+        var rng = new Random(WorldSeed + levelIndex);
+        var gen = new SeededWorldGenerator();
+        gen.GenerateTerrain(Grid, rng);
+        RebuildWallColliders();
+
+        RepositionAndHealHumans(spawn);
+        PlaceWaveSpawners(scenario.SpawnerCount);
+    }
+
+    public void SpawnHumanPlayers(SpawnConfig spawn)
+    {
+        var humans = Math.Max(0, spawn.HumanPlayerCount);
+        if (humans == 0)
+            return;
+
+        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, humans, _random);
+        for (var h = 0; h < humans; h++)
+            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[h], HexSize));
+    }
+
+    public void PlaceWaveSpawners(int count)
+    {
+        _spawners.Clear();
+        if (count <= 0)
+            return;
+
+        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, count, _random);
+        for (var i = 0; i < count; i++)
+            _spawners.Add(new WaveSpawner(_nextSpawnerId++, hexes[i]));
+    }
+
+    public void SpawnWaveEnemies(WaveSpawner spawner, int count, int rivalFactionId)
+    {
+        if (count <= 0)
+            return;
+
+        var candidates = CollectNearbyFloorHexes(spawner.Position, maxDistance: 2);
+        if (candidates.Count == 0)
+        {
+            candidates = Grid.AllHexes()
+                .Where(h => Grid.Get(h) == CellType.Floor)
+                .ToList();
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            var hex = candidates[_random.Next(candidates.Count)];
+            var enemy = AddCharacter(rivalFactionId, HexWorldLayout.ToWorld(hex, HexSize));
+            AttachController(new AiController(_random), enemy);
+        }
+    }
+
+    /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>
+    public void SpawnDefaultRoster(SpawnConfig spawn)
+    {
+        var humans = Math.Max(0, spawn.HumanPlayerCount);
+        var total = humans + spawn.AiPerFaction * 2;
+        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, total, _random);
+        var i = 0;
+
+        for (var h = 0; h < humans; h++)
+            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+
+        for (var a = 0; a < spawn.AiPerFaction; a++)
+        {
+            var ally = AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+            AttachController(new AiController(_random), ally);
+        }
+
+        for (var a = 0; a < spawn.AiPerFaction; a++)
+        {
+            var rival = AddCharacter(spawn.RivalFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+            AttachController(new AiController(_random), rival);
+        }
+    }
+
     /// <summary>Full simulation step: controllers → movement → missiles → death prune.</summary>
     public void Tick(float dt)
     {
@@ -128,37 +216,77 @@ public sealed class GameWorld
     /// <summary>Remove a living character and detach its controller (player drop).</summary>
     public void ForceRemoveCharacter(Character character)
     {
+        DetachControllersFor(character);
+        _characters.Remove(character);
+    }
+
+    private void ClearRivalsAndMissiles(int rivalFactionId)
+    {
+        _missiles.Clear();
+
+        for (var i = _characters.Count - 1; i >= 0; i--)
+        {
+            if (_characters[i].FactionId != rivalFactionId)
+                continue;
+
+            DetachControllersFor(_characters[i]);
+            _characters.RemoveAt(i);
+        }
+    }
+
+    private void RepositionAndHealHumans(SpawnConfig spawn)
+    {
+        var playerFaction = spawn.PlayerFactionId;
+        var humans = _characters.Where(c => c.FactionId == playerFaction).ToList();
+        var needed = Math.Max(0, spawn.HumanPlayerCount);
+
+        while (humans.Count < needed)
+            humans.Add(AddCharacter(playerFaction, SimVec2.Zero));
+
+        if (humans.Count == 0)
+            return;
+
+        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, humans.Count, _random);
+        for (var i = 0; i < humans.Count; i++)
+        {
+            humans[i].Position = HexWorldLayout.ToWorld(hexes[i], HexSize);
+            humans[i].Health = humans[i].MaxHealth;
+        }
+    }
+
+    private List<HexAxial> CollectNearbyFloorHexes(HexAxial center, int maxDistance)
+    {
+        var result = new List<HexAxial>();
+        foreach (var h in Grid.AllHexes())
+        {
+            if (Grid.Get(h) != CellType.Floor)
+                continue;
+
+            var distance = HexAxial.Distance(center, h);
+            if (distance >= 1 && distance <= maxDistance)
+                result.Add(h);
+        }
+
+        if (result.Count > 0)
+            return result;
+
+        foreach (var h in Grid.AllHexes())
+        {
+            if (Grid.Get(h) == CellType.Floor && HexAxial.Distance(center, h) <= maxDistance)
+                result.Add(h);
+        }
+
+        return result;
+    }
+
+    private void DetachControllersFor(Character character)
+    {
         for (var c = _controllers.Count - 1; c >= 0; c--)
         {
             if (_controllers[c].Pawn?.Id != character.Id)
                 continue;
             _controllers[c].Unpossess();
             _controllers.RemoveAt(c);
-        }
-
-        _characters.Remove(character);
-    }
-
-    private void SpawnDefaultRoster(SpawnConfig spawn, float hexSize)
-    {
-        var humans = Math.Max(0, spawn.HumanPlayerCount);
-        var total = humans + spawn.AiPerFaction * 2;
-        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, total, _random);
-        var i = 0;
-
-        for (var h = 0; h < humans; h++)
-            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], hexSize));
-
-        for (var a = 0; a < spawn.AiPerFaction; a++)
-        {
-            var ally = AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], hexSize));
-            AttachController(new AiController(_random), ally);
-        }
-
-        for (var a = 0; a < spawn.AiPerFaction; a++)
-        {
-            var rival = AddCharacter(spawn.RivalFactionId, HexWorldLayout.ToWorld(hexes[i++], hexSize));
-            AttachController(new AiController(_random), rival);
         }
     }
 
@@ -238,14 +366,7 @@ public sealed class GameWorld
             if (_characters[i].IsAlive)
                 continue;
             var dead = _characters[i];
-            for (var c = _controllers.Count - 1; c >= 0; c--)
-            {
-                if (_controllers[c].Pawn?.Id != dead.Id)
-                    continue;
-                _controllers[c].Unpossess();
-                _controllers.RemoveAt(c);
-            }
-
+            DetachControllersFor(dead);
             _characters.RemoveAt(i);
         }
     }

@@ -37,7 +37,8 @@ internal static class TestWorldHelpers
         SpawnConfig? spawn = null)
     {
         var config = spawn ?? new SpawnConfig { AiPerFaction = 0 };
-        var w = GameWorld.Create(radiusX, radiusY, seed, generator, spawn: config);
+        var w = GameWorld.Create(radiusX, radiusY, seed, generator);
+        w.SpawnHumanPlayers(config);
         var human = FindUnpossessedHuman(w, config.PlayerFactionId);
         var driver = new DriveController();
         w.AttachController(driver, human);

@@ -8,7 +8,8 @@ public class GameplaySimulationFunctionalTests
     [Fact]
     public void Seeded_world_has_characters_on_floor_within_grid()
     {
-        var w = GameWorld.Create(3, 3, 42, spawn: new SpawnConfig { AiPerFaction = 1 });
+        var w = GameWorld.Create(3, 3, 42);
+        w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 });
         Assert.Equal(1 + 1 + 1, w.Characters.Count);
         foreach (var p in w.Characters)
         {
@@ -22,7 +23,8 @@ public class GameplaySimulationFunctionalTests
     public void Holding_right_moves_player_continuously_along_plus_x()
     {
         var gen = new FixedLayoutGenerator();
-        var w = GameWorld.Create(2, 2, 1, gen, spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(2, 2, 1, gen);
+        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var driver = new DriveController();
         w.AttachController(driver, pawn);
@@ -41,7 +43,8 @@ public class GameplaySimulationFunctionalTests
     [Fact]
     public void Evolution_loop_maintains_tick_count_and_valid_terrain()
     {
-        var w = GameWorld.Create(3, 3, 100, spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(3, 3, 100);
+        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var rng = new Random(999);
         const int n = 30;
         for (var i = 0; i < n; i++)
@@ -64,7 +67,8 @@ public class GameplaySimulationFunctionalTests
     [Fact]
     public void Zero_health_quietly_removes_character()
     {
-        var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator(), spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var victim = w.AddCharacter(2, SimVec2.Zero);
         w.ApplyDamage(victim, CombatTuning.DefaultMaxHealth);
         w.Tick(0.016f);
@@ -74,7 +78,8 @@ public class GameplaySimulationFunctionalTests
     [Fact]
     public void Missile_hit_kills_hostile_and_removes_from_world()
     {
-        var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator(), spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var player = FindUnpossessedHuman(w, 1);
         var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage;
@@ -96,7 +101,8 @@ public class GameplaySimulationFunctionalTests
     [Fact]
     public void Holding_into_east_wall_does_not_tunnel_through()
     {
-        var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator(), spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator());
+        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
         pawn.Position = new SimVec2(wallCenter.X - w.HexSize - w.PlayerRadius - 0.5f, wallCenter.Y);

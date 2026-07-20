@@ -8,17 +8,26 @@ public sealed class GameSession
 {
     private readonly List<PlayerController> _players = new();
     private readonly List<Character> _humanPawns = new();
+    private readonly SpawnConfig _spawnConfig;
+    private readonly ScenarioRunner _scenarioRunner = new();
+    private bool _isGameOver;
 
-    private GameSession(GameWorld world, Random rng)
+    private GameSession(GameWorld world, Random rng, Scenario scenario, SpawnConfig spawnConfig)
     {
         World = world;
         Rng = rng;
+        Scenario = scenario;
+        _spawnConfig = spawnConfig;
     }
 
     public GameWorld World { get; }
     public Random Rng { get; }
+    public Scenario Scenario { get; }
+    public ScenarioRunner ScenarioRunner => _scenarioRunner;
     public IReadOnlyList<PlayerController> Players => _players;
     public IReadOnlyList<Character> HumanPawns => _humanPawns;
+    public bool IsGameOver => _isGameOver;
+    public ScenarioTickResult LastScenarioTickResult { get; private set; }
 
     public static GameSession Create(
         int radiusX,
@@ -26,6 +35,7 @@ public sealed class GameSession
         int seed,
         float hexSize,
         SpawnConfig spawn,
+        Scenario scenario,
         int localPlayerCount)
     {
         var count = Math.Clamp(localPlayerCount, 1, 4);
@@ -37,8 +47,10 @@ public sealed class GameSession
             HumanPlayerCount = count,
         };
 
-        var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize, spawn: config);
-        var session = new GameSession(world, new Random(seed));
+        var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
+        world.InitializeScenarioLevel(scenario, config);
+
+        var session = new GameSession(world, new Random(seed), scenario, config);
         session.AttachHumanPlayers(config.PlayerFactionId, count);
         return session;
     }
@@ -50,7 +62,20 @@ public sealed class GameSession
         _players[playerIndex].SetMoveInput(direction);
     }
 
-    public void Tick(float dt) => World.Tick(dt);
+    public void Tick(float dt)
+    {
+        if (_isGameOver)
+            return;
+
+        LastScenarioTickResult = _scenarioRunner.Tick(World, Scenario, _spawnConfig, dt);
+        if (LastScenarioTickResult.LevelRegenerated)
+            ReattachHumanPlayers(_spawnConfig.PlayerFactionId);
+
+        World.Tick(dt);
+
+        if (AllHumanPlayersDead())
+            _isGameOver = true;
+    }
 
     public IReadOnlyList<PlayerHudModel> BuildHudModels()
     {
@@ -62,7 +87,7 @@ public sealed class GameSession
             {
                 DisplayName = $"Player {i + 1}",
                 Health = pawn is { IsAlive: true } ? pawn.Health : 0f,
-                MaxHealth = pawn?.MaxHealth ?? 0f,
+                MaxHealth = pawn?.MaxHealth ?? CombatTuning.DefaultMaxHealth,
             });
         }
 
@@ -87,6 +112,20 @@ public sealed class GameSession
         return true;
     }
 
+    private bool AllHumanPlayersDead()
+    {
+        if (_players.Count == 0)
+            return false;
+
+        foreach (var player in _players)
+        {
+            if (player.Pawn is { IsAlive: true })
+                return false;
+        }
+
+        return true;
+    }
+
     private void AttachHumanPlayers(int playerFactionId, int count)
     {
         var controlled = new HashSet<int>();
@@ -107,6 +146,31 @@ public sealed class GameSession
             World.AttachController(controller, human);
             _players.Add(controller);
             _humanPawns.Add(human);
+        }
+    }
+
+    private void ReattachHumanPlayers(int playerFactionId)
+    {
+        var controlled = new HashSet<int>();
+        foreach (var c in World.Controllers)
+        {
+            if (c.Pawn is { } pawn)
+                controlled.Add(pawn.Id);
+        }
+
+        var humans = World.Characters
+            .Where(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id))
+            .Take(_players.Count)
+            .ToList();
+
+        for (var i = 0; i < _players.Count && i < humans.Count; i++)
+        {
+            var controller = _players[i];
+            if (controller.Pawn is not null)
+                controller.Unpossess();
+
+            World.AttachController(controller, humans[i]);
+            _humanPawns[i] = humans[i];
         }
     }
 }

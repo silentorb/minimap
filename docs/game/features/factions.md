@@ -8,9 +8,9 @@ Faction membership and hostility. Related: [ai.md](ai.md), [combat.md](combat.md
 - **Hostility**: two characters are enemies if and only if their faction ids **differ**. Combat and AI target hostiles only; never hard-code “attack the player.”
 - Core rules (hostility, targeting, friendly fire) must stay **generic**—no special-casing of particular faction numbers inside combat or AI logic.
 - **Current game mode (surface only)**: two factions with ids **1** (player’s faction) and **2** (rival). Spawn:
-  - **1** human-controlled character on faction **1**
-  - **3** AI on faction **1**
-  - **3** AI on faction **2**
+  - **Human players** on faction **1** (count from lobby / local play)
+  - **Rival AI** only via **wave spawners** during waves (not at map bootstrap)
+- The legacy bootstrap roster (1 human + 3 ally AI + 3 rival AI) remains available as `GameWorld.SpawnDefaultRoster` for tests but is **not** used in normal play.
 - Specific ids **1** and **2**, and those counts, belong at **bootstrap/spawn configuration** only—not inside generalized faction helpers.
 
 ## Future

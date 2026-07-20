@@ -8,12 +8,26 @@ public partial class LocalPlayContextNode : Node
 {
     public LocalPlayRoster Roster { get; } = new();
 
-    public void Clear() => Roster.Clear();
+    public bool EnteredFromLobby { get; private set; }
 
-    public void ApplyDefaultSoloKeyboard() => Roster.ApplyDefaultSoloKeyboard();
+    public string? ScenarioPath { get; set; }
+
+    public void Clear()
+    {
+        Roster.Clear();
+        EnteredFromLobby = false;
+        ScenarioPath = null;
+    }
+
+    public void ApplyDefaultSoloKeyboard()
+    {
+        EnteredFromLobby = false;
+        Roster.ApplyDefaultSoloKeyboard();
+    }
 
     public void ApplyFromLobby(LocalPlayRoster roster)
     {
+        EnteredFromLobby = true;
         Roster.Clear();
         Roster.SetPlayerCount(roster.PlayerCount);
         for (var i = 0; i < roster.PlayerCount; i++)

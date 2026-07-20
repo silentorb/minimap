@@ -7,7 +7,7 @@ public class WorldEvolutionTests
     [Fact]
     public void Tick_advances_tick_index()
     {
-        var w = GameWorld.Create(2, 2, 99, spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(2, 2, 99);
         Assert.Equal(0, w.TickIndex);
         var rng = new Random(1);
         WorldEvolution.Tick(w, rng);
@@ -17,7 +17,7 @@ public class WorldEvolutionTests
     [Fact]
     public void Tick_rebuilds_wall_colliders()
     {
-        var w = GameWorld.Create(2, 2, 7, spawn: new SpawnConfig { AiPerFaction = 0 });
+        var w = GameWorld.Create(2, 2, 7);
         var before = w.WallPolygons.Count;
         Assert.True(before > 0);
 

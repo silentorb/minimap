@@ -16,7 +16,8 @@ public class FactionAndCombatTests
     public void Default_spawn_places_humans_unpossessed_and_ai_on_both_factions()
     {
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2, AiPerFaction = 3, HumanPlayerCount = 1 };
-        var w = GameWorld.Create(4, 4, 42, spawn: spawn);
+        var w = GameWorld.Create(4, 4, 42);
+        w.SpawnDefaultRoster(spawn);
         Assert.Equal(1 + 3 + 3, w.Characters.Count);
         Assert.Equal(spawn.AiPerFaction * 2, w.Controllers.Count);
         var human = TestWorldHelpers.FindUnpossessedHuman(w, spawn.PlayerFactionId);

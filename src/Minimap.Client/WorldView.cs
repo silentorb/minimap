@@ -12,11 +12,14 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private GameWorld? _world;
     private Random _rng = new(1);
     private Node2D? _hexLayer;
+    private Node2D? _spawnerLayer;
     private Node2D? _playerLayer;
     private Node2D? _missileLayer;
     private PackedScene? _hexScene;
+    private PackedScene? _spawnerScene;
     private PackedScene? _playerScene;
     private readonly Dictionary<HexAxial, Node2D> _hexNodes = new();
+    private readonly Dictionary<int, Node2D> _spawnerNodes = new();
     private readonly Dictionary<int, Node2D> _characterNodes = new();
     private readonly Dictionary<int, Node2D> _missileNodes = new();
     private readonly HashSet<Key> _heldKeys = new();
@@ -30,6 +33,13 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         _humanPawns.AddRange(humanPawns);
 
         _hexLayer = GetNode<Node2D>("HexLayer");
+        _spawnerLayer = GetNodeOrNull<Node2D>("SpawnerLayer");
+        if (_spawnerLayer is null)
+        {
+            _spawnerLayer = new Node2D { Name = "SpawnerLayer" };
+            AddChild(_spawnerLayer);
+        }
+
         _playerLayer = GetNode<Node2D>("PlayerLayer");
         _missileLayer = GetNodeOrNull<Node2D>("MissileLayer");
         if (_missileLayer is null)
@@ -39,6 +49,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         }
 
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
+        _spawnerScene = GD.Load<PackedScene>("res://entities/wave_spawner_visual.tscn");
         _playerScene = GD.Load<PackedScene>("res://entities/player_visual.tscn");
         var timer = GetNodeOrNull<Godot.Timer>("EvolutionTimer");
         if (timer is not null)
@@ -68,6 +79,15 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     {
         SyncCharacters();
         SyncMissiles();
+        SyncSpawners();
+    }
+
+    public void OnLevelRegenerated(IReadOnlyList<Character> humanPawns)
+    {
+        _humanPawns.Clear();
+        _humanPawns.AddRange(humanPawns);
+        SyncAll();
+        RecenterCamera();
     }
 
     public SimVec2 ReadMoveInput() => ReadScreenAxisInput();
@@ -84,6 +104,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private void SyncAll()
     {
         SyncHexes();
+        SyncSpawners();
         SyncCharacters();
         SyncMissiles();
     }
@@ -106,6 +127,36 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             var poly = node.GetNode<Polygon2D>("Polygon2D");
             poly.Polygon = polyTemplate;
             poly.Color = ColorFor(_world.Grid.Get(h));
+        }
+    }
+
+    private void SyncSpawners()
+    {
+        if (_world is null || _spawnerLayer is null || _spawnerScene is null)
+            return;
+
+        var live = new HashSet<int>();
+        foreach (var spawner in _world.Spawners)
+        {
+            live.Add(spawner.Id);
+            if (!_spawnerNodes.TryGetValue(spawner.Id, out var node))
+            {
+                node = _spawnerScene.Instantiate<Node2D>();
+                _spawnerLayer.AddChild(node);
+                _spawnerNodes[spawner.Id] = node;
+            }
+
+            var worldPos = HexLayout.ToWorld(spawner.Position, HexSize);
+            node.Position = new Vector2(worldPos.X, worldPos.Y);
+            node.ZIndex = 1;
+        }
+
+        foreach (var id in _spawnerNodes.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _spawnerNodes[id].QueueFree();
+            _spawnerNodes.Remove(id);
         }
     }
 
