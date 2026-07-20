@@ -19,6 +19,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj" />
+    <ProjectReference Include="../Minimap.Extensive/Minimap.Extensive.csproj" />
     <ProjectReference Include="../Minimap.Client/Minimap.Client.csproj" />
   </ItemGroup>
 </Project>

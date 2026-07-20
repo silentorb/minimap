@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CompuQuest.Minimap</RootNamespace>
+    <AssemblyName>CompuQuest.Minimap</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Minimap.Extensive/Minimap.Extensive.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyExtensionToRepoExtensions" AfterTargets="Build">
+    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\extensions" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
+          DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+  </Target>
+</Project>

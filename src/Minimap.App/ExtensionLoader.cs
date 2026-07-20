@@ -1,0 +1,75 @@
+using System.Runtime.Loader;
+using Minimap.Extensive;
+
+namespace Minimap.App;
+
+/// <summary>Loads extension assemblies and builds a registry with the built-in default integrator.</summary>
+public static class ExtensionLoader
+{
+    public sealed record LoadResult(ExtensionRegistry Registry, IIntegrator Integrator);
+
+    public static LoadResult Load(ExtensionsSettings settings, string configDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentException.ThrowIfNullOrWhiteSpace(configDirectory);
+
+        var registry = new ExtensionRegistry();
+        registry.AddIntegrator(new DefaultIntegrator());
+
+        foreach (var entry in settings.Extensions)
+        {
+            var path = ExtensionPathResolver.ResolveAssemblyPath(
+                entry,
+                settings.SearchPaths,
+                configDirectory);
+            LoadAssembly(path, registry);
+        }
+
+        var integrator = registry.RequireIntegrator(settings.Integrator);
+        return new LoadResult(registry, integrator);
+    }
+
+    public static LoadResult LoadFromFile(string settingsPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
+        var settings = ExtensionsSettings.LoadFromFile(settingsPath);
+        var configDirectory = Path.GetDirectoryName(Path.GetFullPath(settingsPath))
+            ?? throw new InvalidOperationException($"Could not resolve directory for '{settingsPath}'.");
+        return Load(settings, configDirectory);
+    }
+
+    private static void LoadAssembly(string assemblyPath, ExtensionRegistry registry)
+    {
+        var hostAlc = AssemblyLoadContext.GetLoadContext(typeof(ExtensionLoader).Assembly)
+            ?? AssemblyLoadContext.Default;
+        var assembly = hostAlc.LoadFromAssemblyPath(assemblyPath);
+        var discovered = 0;
+
+        foreach (var type in assembly.GetExportedTypes())
+        {
+            if (type.IsAbstract || type.IsInterface || !typeof(IExtension).IsAssignableFrom(type))
+                continue;
+
+            IExtension extension;
+            try
+            {
+                extension = (IExtension)(Activator.CreateInstance(type)
+                    ?? throw new InvalidOperationException($"Failed to construct {type.FullName}."));
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create extension {type.FullName}: {ex.Message}", ex);
+            }
+
+            extension.Register(registry);
+            discovered++;
+        }
+
+        if (discovered == 0)
+        {
+            throw new InvalidOperationException(
+                $"No IExtension types found in {assemblyPath}.");
+        }
+    }
+}

@@ -14,6 +14,7 @@
   -->
   <ItemGroup>
     <ProjectReference Include="src/Minimap.Simulation/Minimap.Simulation.csproj" />
+    <ProjectReference Include="src/Minimap.Extensive/Minimap.Extensive.csproj" />
     <ProjectReference Include="src/Minimap.Automation/Minimap.Automation.csproj" />
     <ProjectReference Include="src/Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
@@ -22,6 +23,8 @@
     <!-- Godot.NET.Sdk globs all *.cs under the project root; keep only App + Client script sources. -->
     <Compile Remove="tests/**/*.cs" />
     <Compile Remove="src/Minimap.Simulation/**/*.cs" />
+    <Compile Remove="src/Minimap.Extensive/**/*.cs" />
+    <Compile Remove="src/CompuQuest.Minimap/**/*.cs" />
     <Compile Remove="src/Minimap.Automation/**/*.cs" />
     <Compile Remove="src/Minimap.Automation.Contracts/**/*.cs" />
     <Compile Remove="src/Minimap.Core/**/*.cs" />

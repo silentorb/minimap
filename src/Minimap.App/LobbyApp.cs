@@ -14,10 +14,15 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
     private LobbyPanel[] _panels = Array.Empty<LobbyPanel>();
     private LocalPlayContextNode? _playContext;
 
+    [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
+
     public LobbyStateMachine LobbyState => _lobby;
 
     public override void _Ready()
     {
+        // Fail fast if extension config / DLLs are invalid before the player starts a game.
+        ExtensionLoader.LoadFromFile(ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+
         _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
         _playContext.Clear();
 

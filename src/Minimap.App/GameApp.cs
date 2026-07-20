@@ -13,6 +13,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     private const string WorldScenePath = "res://scenes/world.tscn";
 
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
+    [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
     [Export] public string DefaultScenarioPath { get; set; } = CliArgs.DefaultScenarioPath;
     [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
@@ -50,6 +51,8 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             : _playContext.Roster.PlayerCount;
 
         var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
+        var extensions = ExtensionLoader.LoadFromFile(
+            ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
         var scenarioPath = ResolveScenarioPath();
         _playContext.ScenarioPath = scenarioPath;
         var scenario = ScenarioSettings.LoadFromFile(ProjectSettings.GlobalizePath(scenarioPath));
@@ -69,7 +72,8 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             HexSize,
             spawn,
             scenario,
-            count);
+            count,
+            extensions.Integrator);
 
         _worldView = GetNode<WorldView>("WorldView");
         _worldView.HexSize = HexSize;

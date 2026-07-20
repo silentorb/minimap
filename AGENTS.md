@@ -7,9 +7,11 @@
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
   - **`Minimap.Simulation`** — authoritative game logic and state (no Godot, no user input/output).
+  - **`Minimap.Extensive`** — extension contracts, registry, and default integrator (no Godot, no file I/O).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD (sources under `src/Minimap.Client/`); also a class library for tests. Depends on Simulation (minimized; HUD types stay Simulation-free).
-  - **`Minimap.App`** — thin composition between Simulation and Client (`GameSession`, `GameApp`); mitigates tight coupling.
-  - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Automation.Contracts.
+  - **`Minimap.App`** — thin composition between Simulation and Client (`GameSession`, `GameApp`); loads extensions from config; mitigates tight coupling.
+  - **`CompuQuest.Minimap`** — content extension library (loadable DLL under `extensions/`; not referenced by the Godot host).
+  - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Extensive + Automation.Contracts.
 
 ## Layout
 
@@ -19,8 +21,9 @@ Godot-related directories (see [docs/technical/technical-design.md](docs/technic
 |------|---------|
 | [`assets/`](assets/) | Images, audio, etc. |
 | [`entities/`](entities/) | Scenes for elements used inside a root scene |
+| [`extensions/`](extensions/) | Built extension DLLs for local load |
 | [`scenes/`](scenes/) | Root scenes (e.g. `world.tscn`) |
-| [`src/`](src/) | C# (`Minimap.Simulation`, `Minimap.Client`, `Minimap.App`) |
+| [`src/`](src/) | C# (`Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | [`tests/`](tests/) | Test projects |
 | [`ui/`](ui/) | UI scenes and related resources |
 

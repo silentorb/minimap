@@ -1,3 +1,4 @@
+using Minimap.Extensive;
 using Minimap.Simulation;
 using Xunit;
 
@@ -36,5 +37,17 @@ public class GameSessionGameOverTests
         session.Tick(0.016f);
 
         Assert.False(session.IsGameOver);
+    }
+
+    [Fact]
+    public void Create_stores_provided_integrator()
+    {
+        var scenario = Scenario.Defaults;
+        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
+        var integrator = new DefaultIntegrator();
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, integrator);
+
+        Assert.Same(integrator, session.Integrator);
     }
 }

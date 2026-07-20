@@ -16,6 +16,7 @@
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |
 | [hex-grid-shape.md](hex-grid-shape.md) | Changing **HexGrid** ellipse inclusion, RadiusX/RadiusY, or map geometry contracts. |
 | [core-settings.md](core-settings.md) | Changing **core.json**, App settings load APIs, or the JSON vector-as-array convention. |
+| [extensions.md](extensions.md) | Working on **extension loading**, `Minimap.Extensive`, `extensions.json`, integrators, or `CompuQuest.Minimap`. |
 | [scenario-settings.md](scenario-settings.md) | Changing **scenario JSON**, CLI `--scenario`, or `ScenarioSettings` load APIs. |
 | [lobby.md](lobby.md) | Working on **lobby scene**, slot state machine, or lobby → world navigation. |
 | [local-input.md](local-input.md) | Working on **LocalInputAggregator**, joypad/keyboard routing, or reconnect overlay. |

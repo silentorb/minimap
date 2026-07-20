@@ -11,8 +11,10 @@
 - Clean separation between visual game state and simulation game state
 - **C# project boundaries**:
   - **Minimap.Simulation** — authoritative logic/state; no Godot; no user input or output
+  - **Minimap.Extensive** — extension contracts, registry, and default integrator (no Godot, no file I/O)
   - **Minimap.Client** — Godot rendering, input capture, HUD; may reference Simulation sparingly
-  - **Minimap.App** — thin front-facing integration that wires Simulation and Client (session creation, attach player controllers, feed HUD models)
+  - **Minimap.App** — thin front-facing integration that wires Simulation and Client (session creation, attach player controllers, feed HUD models); loads extension assemblies from config
+  - **CompuQuest.Minimap** — sample/content extension library (loadable DLL; not compiled into the Godot host)
 
 # Godot project layout
 
@@ -23,9 +25,10 @@ It is not an exhaustive list of all the directories in this project.
 | Directory | Purpose |
 |-----------|---------|
 | `./assets` | All game assets (images, sound effects, etc.) |
-| `./config` | Shipped JSON settings (e.g. `core.json`) |
+| `./config` | Shipped JSON settings (e.g. `core.json`, `extensions.json`) |
 | `./entities` | All scenes for game elements within a root scene |
+| `./extensions` | Built extension DLLs copied here for local load (see [extensions](features/extensions.md)) |
 | `./scenes` | All root scenes |
-| `./src` | Source code (`Minimap.Simulation`, `Minimap.Client`, `Minimap.App`) |
+| `./src` | Source code (`Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | `./tests` | Test suite |
 | `./ui` | All user interface scenes and related resources |

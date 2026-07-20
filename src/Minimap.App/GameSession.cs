@@ -1,4 +1,5 @@
 using Minimap.Client;
+using Minimap.Extensive;
 using Minimap.Simulation;
 
 namespace Minimap.App;
@@ -12,17 +13,24 @@ public sealed class GameSession
     private readonly ScenarioRunner _scenarioRunner = new();
     private bool _isGameOver;
 
-    private GameSession(GameWorld world, Random rng, Scenario scenario, SpawnConfig spawnConfig)
+    private GameSession(
+        GameWorld world,
+        Random rng,
+        Scenario scenario,
+        SpawnConfig spawnConfig,
+        IIntegrator integrator)
     {
         World = world;
         Rng = rng;
         Scenario = scenario;
+        Integrator = integrator;
         _spawnConfig = spawnConfig;
     }
 
     public GameWorld World { get; }
     public Random Rng { get; }
     public Scenario Scenario { get; }
+    public IIntegrator Integrator { get; }
     public ScenarioRunner ScenarioRunner => _scenarioRunner;
     public IReadOnlyList<PlayerController> Players => _players;
     public IReadOnlyList<Character> HumanPawns => _humanPawns;
@@ -36,7 +44,8 @@ public sealed class GameSession
         float hexSize,
         SpawnConfig spawn,
         Scenario scenario,
-        int localPlayerCount)
+        int localPlayerCount,
+        IIntegrator? integrator = null)
     {
         var count = Math.Clamp(localPlayerCount, 1, 4);
         var config = new SpawnConfig
@@ -50,7 +59,12 @@ public sealed class GameSession
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
         world.InitializeScenarioLevel(scenario, config);
 
-        var session = new GameSession(world, new Random(seed), scenario, config);
+        var session = new GameSession(
+            world,
+            new Random(seed),
+            scenario,
+            config,
+            integrator ?? new DefaultIntegrator());
         session.AttachHumanPlayers(config.PlayerFactionId, count);
         return session;
     }
