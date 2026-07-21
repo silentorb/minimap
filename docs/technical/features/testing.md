@@ -72,6 +72,38 @@ dotnet test tests/functional/Minimap.Functional.Godot.Tests/Minimap.Functional.G
 
 Outside the container, export `GODOT_BIN` to a Godot 4.6 .NET executable first. If `GODOT_BIN` is not set, run only unit + simulation functional suites.
 
+## Bug regressions / debugging
+
+Debugging should be as test-driven as practical. When a **user-reported bug** was not caught by the suite, a regression test is part of the fix—unless a sound test is not available.
+
+### Workflow
+
+1. Reproduce the failure (manually or via a new failing test).
+2. Prefer a **failing test first** at the **lowest layer** that can express the bug.
+3. Fix product code; keep the test; leave it in the suite.
+4. Assert **documented** requirements (feature docs / [technical design](../technical-design.md)). If the bug reveals missing documented behavior, update the docs in the same change and test against that—not against undocumented quirks.
+
+### Layer choice
+
+| Prefer | When |
+|--------|------|
+| **Unit** (`tests/unit/`) | Pure logic, settings load, path resolution, state machines—no Godot runtime. |
+| **Simulation functional** | Multi-step simulation journeys still without Godot. |
+| **Godot playbook** | Scene lifecycle, input routing, lobby/world UI, or other client-only behavior. |
+
+### Escalate instead of a bad test
+
+Stop and discuss with the user (do **not** quietly ship weak coverage) when a reproduction would require:
+
+- Hacking or expanding general testing harnesses beyond the fix
+- Likely **brittle** assertions (e.g. parsing project XML, depending on ambient build artifacts)
+- Likely **flaky**, **hanging**, or **non-deterministic** behavior
+- Deliberately breaking the SUT environment in ways happy-path automation does not support cleanly
+
+Then the user can choose: skip the test for this bug, invest in harness work, or redesign code for testability.
+
+Agent rule: [`.cursor/rules/bug-regression-tests.mdc`](../../../.cursor/rules/bug-regression-tests.mdc).
+
 ## Related docs
 
 | Topic | Document |

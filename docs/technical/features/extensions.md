@@ -33,7 +33,8 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
   - `integrator` — id of the `IIntegrator` to use for the new game. Must be registered (built-in or from a loaded extension) or load fails.
 - Built-in **`DefaultIntegrator`** with id **`default`** is always registered before extension DLLs load.
 - `LobbyApp` also loads the same config on ready so a bad extension set fails before the player starts a game.
-- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (not referenced by the Godot host). Registers integrator id **`compuquest`**, **Gun** accessory, and **generic** character definition. Build output is copied to repo-root `extensions/`.
+- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (**not** linked into the Godot host assembly). The host project (`minimap.csproj`) has a **build-only** `ProjectReference` (`ReferenceOutputAssembly=false`) so Godot Play / `dotnet build` builds it and copies output to repo-root `extensions/`. Registers integrator id **`compuquest`**, **Gun** accessory, and **generic** character definition.
+- Lobby boot binds panels **before** extension preflight (`LobbySceneBoot`). A failed load **aborts** the lobby (no input / no further play) and quits; it must not leave a corrupted interactive scene.
 
 ## Non-goals (for now)
 

@@ -11,31 +11,50 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
     private const string WorldScenePath = "res://scenes/world.tscn";
 
     private readonly LobbyStateMachine _lobby = new();
+    private readonly LobbySceneBoot _boot = new();
     private LobbyPanel[] _panels = Array.Empty<LobbyPanel>();
     private LocalPlayContextNode? _playContext;
 
     [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
 
     public LobbyStateMachine LobbyState => _lobby;
+    internal LobbySceneBoot Boot => _boot;
 
     public override void _Ready()
     {
-        // Fail fast if extension config / DLLs are invalid before the player starts a game.
-        ExtensionLoader.LoadFromFile(ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+        try
+        {
+            _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
+            _playContext.Clear();
 
-        _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
-        _playContext.Clear();
+            var row = GetNode<HBoxContainer>("Margin/PanelRow");
+            _panels = new LobbyPanel[LobbyStateMachine.SlotCount];
+            for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
+                _panels[i] = row.GetChild<LobbyPanel>(i);
 
-        var row = GetNode<HBoxContainer>("Margin/PanelRow");
-        _panels = new LobbyPanel[LobbyStateMachine.SlotCount];
-        for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
-            _panels[i] = row.GetChild<LobbyPanel>(i);
+            _boot.MarkPanelsBound();
+            RefreshPanels();
 
-        RefreshPanels();
+            // Fail fast if extension config / DLLs are invalid before the player starts a game.
+            ExtensionLoader.LoadFromFile(ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+            _boot.MarkExtensionsLoaded();
+        }
+        catch (Exception ex)
+        {
+            _boot.Abort(ex.Message);
+            GD.PushError($"Lobby boot failed: {ex.Message}");
+            // Do not leave a half-initialized lobby interactive; exit after this frame.
+            CallDeferred(MethodName.QuitAfterBootFailure);
+        }
     }
+
+    private void QuitAfterBootFailure() => GetTree().Quit(1);
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (!_boot.TryAcceptInput())
+            return;
+
         if (@event is InputEventKey key && !key.Echo)
         {
             if (key.Pressed)
@@ -49,6 +68,9 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
     internal void HandleDeviceInput(InputDeviceId device, Key? key, JoyButton? button)
     {
+        if (!_boot.TryAcceptInput())
+            return;
+
         if (key is Key k)
         {
             if (GameInput.IsBackKey(k))
@@ -118,7 +140,7 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
     private void TryStartGame()
     {
-        if (!_lobby.CanStartGame || _playContext is null)
+        if (!_boot.TryAcceptInput() || !_lobby.CanStartGame || _playContext is null)
             return;
 
         _playContext.ApplyFromLobby(_lobby.BuildRoster());
@@ -127,6 +149,9 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
     private void RefreshPanels()
     {
+        if (!_boot.CanRefreshPanels())
+            return;
+
         for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
             _panels[i].ApplyMode(_lobby.GetMode(i), i);
     }

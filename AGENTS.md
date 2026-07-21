@@ -11,7 +11,7 @@
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator (no Godot, no file I/O).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD (sources under `src/Minimap.Client/`); also a class library for tests. Depends on Simulation (minimized; HUD types stay Simulation-free).
   - **`Minimap.App`** — thin composition between Simulation and Client (`GameSession`, `GameApp`); loads extensions from config; mitigates tight coupling.
-  - **`CompuQuest.Minimap`** — content extension library (loadable DLL under `extensions/`; not referenced by the Godot host).
+  - **`CompuQuest.Minimap`** — content extension library (loadable DLL under `extensions/`; build-only dependency of the Godot host, not linked into the main assembly).
   - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Extensive + Automation.Contracts.
 
 ## Layout
@@ -35,6 +35,7 @@ Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.cspr
 - **Line endings:** Use **Unix (LF)** for all text in this repo. [`.gitattributes`](.gitattributes) enforces `eol=lf` on checkout/commit; [`.editorconfig`](.editorconfig) sets `end_of_line = lf`. The dev container sets **`files.eol`** to `\n` in VS Code / Cursor so new files default to LF. If you create or edit files on Windows outside the setup, set the editor to LF (not CRLF) and avoid reintroducing `\r\n`; use `git add --renormalize .` if you need to fix a batch of files after changing `.gitattributes`.
 - Prefer changing game logic and scenes in this repo; keep Godot editor–managed files (`*.tscn`, `project.godot`) consistent with how Godot serializes them.
 - Match existing script language and style in the files you touch (GDScript vs C#).
+- **Bug regressions:** When fixing a user-reported bug the suite missed, add a regression test at the lowest sound layer—or escalate instead of brittle/flaky coverage. See [`.cursor/rules/bug-regression-tests.mdc`](.cursor/rules/bug-regression-tests.mdc) and [docs/technical/features/testing.md](docs/technical/features/testing.md) (**Bug regressions / debugging**).
 
 ## Environment
 
@@ -53,4 +54,4 @@ Do **not** preload the whole `docs/` tree for routine tasks. Skim the feature RE
 
 - **Game** (design / player-facing rules): [`docs/game/features/README.md`](docs/game/features/README.md)
 - **Technical** (architecture / contracts): [`docs/technical/features/README.md`](docs/technical/features/README.md)
-- Automated testing (unit vs functional, xUnit, gRPC-based Godot automation, `dotnet test`, in-container `GODOT_BIN` for client smoke): [`docs/technical/features/testing.md`](docs/technical/features/testing.md), layout: [`tests/functional/README.md`](tests/functional/README.md).
+- Automated testing (unit vs functional, xUnit, gRPC-based Godot automation, `dotnet test`, in-container `GODOT_BIN` for client smoke, bug regressions): [`docs/technical/features/testing.md`](docs/technical/features/testing.md), layout: [`tests/functional/README.md`](tests/functional/README.md).

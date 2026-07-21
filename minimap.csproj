@@ -17,6 +17,10 @@
     <ProjectReference Include="src/Minimap.Extensive/Minimap.Extensive.csproj" />
     <ProjectReference Include="src/Minimap.Automation/Minimap.Automation.csproj" />
     <ProjectReference Include="src/Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
+    <!-- Build/copy loadable content DLL only; do not reference it from the host assembly. -->
+    <ProjectReference Include="src/CompuQuest.Minimap/CompuQuest.Minimap.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
   </ItemGroup>
   <ItemGroup>
