@@ -1,11 +1,24 @@
-using Minimap.Extensive;
 using Minimap.Simulation;
+using Minimap.Simulation.Types;
 using Xunit;
 
 namespace Minimap.App.Tests;
 
 public class GameSessionGameOverTests
 {
+    private static GameContent TestGameContent()
+    {
+        var gun = new AccessoryDefinition(
+            "gun",
+            [
+                new AutoshootEffect(
+                    CombatTuning.FireIntervalSeconds,
+                    CombatTuning.MissileSpeed,
+                    CombatTuning.MissileDamage),
+            ]);
+        return new GameContent(new CharacterDefinition("generic", [gun]));
+    }
+
     [Fact]
     public void All_human_players_dead_sets_game_over()
     {
@@ -18,7 +31,8 @@ public class GameSessionGameOverTests
             SpawnerVolume = 1,
         };
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
-        var session = GameSession.Create(4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1);
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestGameContent());
 
         var pawn = session.HumanPawns[0];
         session.World.ApplyDamage(pawn, CombatTuning.DefaultMaxHealth);
@@ -32,7 +46,8 @@ public class GameSessionGameOverTests
     {
         var scenario = Scenario.Defaults;
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
-        var session = GameSession.Create(4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1);
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestGameContent());
 
         session.Tick(0.016f);
 
@@ -40,14 +55,15 @@ public class GameSessionGameOverTests
     }
 
     [Fact]
-    public void Create_stores_provided_integrator()
+    public void Create_stores_provided_game_content()
     {
         var scenario = Scenario.Defaults;
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
-        var integrator = new DefaultIntegrator();
+        var content = TestGameContent();
         var session = GameSession.Create(
-            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, integrator);
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, content);
 
-        Assert.Same(integrator, session.Integrator);
+        Assert.Same(content, session.Content);
+        Assert.Equal("generic", session.Content.DefaultCharacter.Id);
     }
 }

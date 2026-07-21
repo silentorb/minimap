@@ -10,6 +10,7 @@
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
 - **C# project boundaries**:
+  - **Minimap.Simulation.Types** — shared definition/content types (little/no logic); depended on by Simulation and Extensive
   - **Minimap.Simulation** — authoritative logic/state; no Godot; no user input or output
   - **Minimap.Extensive** — extension contracts, registry, and default integrator (no Godot, no file I/O)
   - **Minimap.Client** — Godot rendering, input capture, HUD; may reference Simulation sparingly
@@ -29,6 +30,6 @@ It is not an exhaustive list of all the directories in this project.
 | `./entities` | All scenes for game elements within a root scene |
 | `./extensions` | Built extension DLLs copied here for local load (see [extensions](features/extensions.md)) |
 | `./scenes` | All root scenes |
-| `./src` | Source code (`Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
+| `./src` | Source code (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | `./tests` | Test suite |
 | `./ui` | All user interface scenes and related resources |

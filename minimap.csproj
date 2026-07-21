@@ -23,6 +23,7 @@
     <!-- Godot.NET.Sdk globs all *.cs under the project root; keep only App + Client script sources. -->
     <Compile Remove="tests/**/*.cs" />
     <Compile Remove="src/Minimap.Simulation/**/*.cs" />
+    <Compile Remove="src/Minimap.Simulation.Types/**/*.cs" />
     <Compile Remove="src/Minimap.Extensive/**/*.cs" />
     <Compile Remove="src/CompuQuest.Minimap/**/*.cs" />
     <Compile Remove="src/Minimap.Automation/**/*.cs" />

@@ -6,7 +6,6 @@ public sealed class AiController : IController
     private readonly Random _random;
     private SimVec2 _walkDir;
     private float _retargetTimer;
-    private float _fireCooldown;
 
     public AiController(Random random)
     {
@@ -19,7 +18,9 @@ public sealed class AiController : IController
     public void Possess(Character character)
     {
         Pawn = character;
-        _fireCooldown = (float)(_random.NextDouble() * CombatTuning.FireIntervalSeconds);
+        var effect = Autoshoot.FindAutoshootEffect(character);
+        if (effect is not null)
+            effect.CooldownRemaining = (float)(_random.NextDouble() * effect.FireIntervalSeconds);
         PickNewWalk();
     }
 
@@ -35,7 +36,7 @@ public sealed class AiController : IController
             PickNewWalk();
 
         Pawn.MoveIntent = _walkDir;
-        Autoshoot.Tick(world, Pawn, ref _fireCooldown, dt);
+        Autoshoot.Tick(world, Pawn, dt);
     }
 
     private void PickNewWalk()

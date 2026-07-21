@@ -1,12 +1,16 @@
 using System.Runtime.Loader;
 using Minimap.Extensive;
+using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
 /// <summary>Loads extension assemblies and builds a registry with the built-in default integrator.</summary>
 public static class ExtensionLoader
 {
-    public sealed record LoadResult(ExtensionRegistry Registry, IIntegrator Integrator);
+    public sealed record LoadResult(
+        ExtensionRegistry Registry,
+        IIntegrator Integrator,
+        GameContent Content);
 
     public static LoadResult Load(ExtensionsSettings settings, string configDirectory)
     {
@@ -26,7 +30,8 @@ public static class ExtensionLoader
         }
 
         var integrator = registry.RequireIntegrator(settings.Integrator);
-        return new LoadResult(registry, integrator);
+        var content = integrator.CreateGameContent(registry);
+        return new LoadResult(registry, integrator, content);
     }
 
     public static LoadResult LoadFromFile(string settingsPath)

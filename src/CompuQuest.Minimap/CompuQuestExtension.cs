@@ -9,5 +9,9 @@ public sealed class CompuQuestExtension : IExtension
     {
         ArgumentNullException.ThrowIfNull(registry);
         registry.AddIntegrator(new CompuQuestIntegrator());
+
+        var gun = GunAccessory.CreateDefinition();
+        registry.AddAccessoryDefinition(gun);
+        registry.AddCharacterDefinition(GenericCharacter.CreateDefinition(gun));
     }
 }

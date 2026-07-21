@@ -1,18 +1,15 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Simulation.Tests;
 
 /// <summary>Test double for human-like control (PlayerController lives in Client).</summary>
 internal sealed class DriveController : IController
 {
     private SimVec2 _moveInput;
-    private float _fireCooldown;
 
     public Character? Pawn { get; private set; }
 
-    public void Possess(Character character)
-    {
-        Pawn = character;
-        _fireCooldown = 0f;
-    }
+    public void Possess(Character character) => Pawn = character;
 
     public void Unpossess() => Pawn = null;
 
@@ -23,7 +20,7 @@ internal sealed class DriveController : IController
         if (Pawn is null || !Pawn.IsAlive)
             return;
         Pawn.MoveIntent = _moveInput;
-        Autoshoot.Tick(world, Pawn, ref _fireCooldown, dt);
+        Autoshoot.Tick(world, Pawn, dt);
     }
 }
 
@@ -34,10 +31,13 @@ internal static class TestWorldHelpers
         int radiusY,
         int seed,
         IWorldGenerator? generator = null,
-        SpawnConfig? spawn = null)
+        SpawnConfig? spawn = null,
+        CharacterDefinition? definition = null)
     {
         var config = spawn ?? new SpawnConfig { AiPerFaction = 0 };
+        var def = definition ?? TestContent.Generic;
         var w = GameWorld.Create(radiusX, radiusY, seed, generator);
+        w.SetSpawnCharacterDefinition(def);
         w.SpawnHumanPlayers(config);
         var human = FindUnpossessedHuman(w, config.PlayerFactionId);
         var driver = new DriveController();

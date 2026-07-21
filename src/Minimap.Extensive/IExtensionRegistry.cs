@@ -1,3 +1,5 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Extensive;
 
 /// <summary>Typed registration surface for extension contributions.</summary>
@@ -8,4 +10,12 @@ public interface IExtensionRegistry
     IReadOnlyList<IIntegrator> Integrators { get; }
 
     bool TryGetIntegrator(string id, out IIntegrator? integrator);
+
+    void AddAccessoryDefinition(AccessoryDefinition definition);
+
+    IReadOnlyList<AccessoryDefinition> AccessoryDefinitions { get; }
+
+    void AddCharacterDefinition(CharacterDefinition definition);
+
+    IReadOnlyList<CharacterDefinition> CharacterDefinitions { get; }
 }

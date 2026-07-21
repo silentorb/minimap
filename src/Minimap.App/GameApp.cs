@@ -73,7 +73,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             spawn,
             scenario,
             count,
-            extensions.Integrator);
+            extensions.Content);
 
         _worldView = GetNode<WorldView>("WorldView");
         _worldView.HexSize = HexSize;

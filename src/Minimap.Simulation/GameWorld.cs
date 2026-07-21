@@ -1,3 +1,5 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Simulation;
 
 /// <summary>Authoritative simulation: terrain, characters, controllers, missiles.</summary>
@@ -9,9 +11,11 @@ public sealed class GameWorld
     private readonly List<WaveSpawner> _spawners = new();
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly Random _random;
+    private CharacterDefinition? _spawnCharacterDefinition;
     private int _nextCharacterId;
     private int _nextMissileId;
     private int _nextSpawnerId;
+
 
     public static GameWorld Create(
         int radiusX,
@@ -60,14 +64,30 @@ public sealed class GameWorld
     public IReadOnlyList<IController> Controllers => _controllers;
     public IReadOnlyList<WaveSpawner> Spawners => _spawners;
 
+    /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
+    public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
+
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
 
     public void AdvanceTick() => TickIndex++;
 
-    public Character AddCharacter(int factionId, SimVec2 position, float maxHealth = CombatTuning.DefaultMaxHealth)
+    public void SetSpawnCharacterDefinition(CharacterDefinition definition)
     {
-        var c = new Character(_nextCharacterId++, factionId, position, maxHealth);
+        ArgumentNullException.ThrowIfNull(definition);
+        _spawnCharacterDefinition = definition;
+    }
+
+    public Character AddCharacter(
+        int factionId,
+        SimVec2 position,
+        CharacterDefinition? definition = null,
+        float maxHealth = CombatTuning.DefaultMaxHealth)
+    {
+        var def = definition ?? _spawnCharacterDefinition
+            ?? throw new InvalidOperationException(
+                "Character definition is required (pass definition or call SetSpawnCharacterDefinition).");
+        var c = new Character(_nextCharacterId++, factionId, position, def, maxHealth);
         _characters.Add(c);
         return c;
     }
@@ -97,8 +117,12 @@ public sealed class GameWorld
         return m;
     }
 
-    public void InitializeScenarioLevel(Scenario scenario, SpawnConfig spawn)
+    public void InitializeScenarioLevel(
+        Scenario scenario,
+        SpawnConfig spawn,
+        CharacterDefinition characterDefinition)
     {
+        SetSpawnCharacterDefinition(characterDefinition);
         SpawnHumanPlayers(spawn);
         PlaceWaveSpawners(scenario.SpawnerCount);
     }
@@ -161,8 +185,9 @@ public sealed class GameWorld
     }
 
     /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>
-    public void SpawnDefaultRoster(SpawnConfig spawn)
+    public void SpawnDefaultRoster(SpawnConfig spawn, CharacterDefinition characterDefinition)
     {
+        SetSpawnCharacterDefinition(characterDefinition);
         var humans = Math.Max(0, spawn.HumanPlayerCount);
         var total = humans + spawn.AiPerFaction * 2;
         var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, total, _random);

@@ -6,6 +6,7 @@
 - **Entry**: `run/main_scene` is `res://scenes/lobby.tscn` for normal play; `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
+  - **`Minimap.Simulation.Types`** — shared definition/content types (little/no logic); Simulation and Extensive depend on it.
   - **`Minimap.Simulation`** — authoritative game logic and state (no Godot, no user input/output).
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator (no Godot, no file I/O).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD (sources under `src/Minimap.Client/`); also a class library for tests. Depends on Simulation (minimized; HUD types stay Simulation-free).
@@ -23,7 +24,7 @@ Godot-related directories (see [docs/technical/technical-design.md](docs/technic
 | [`entities/`](entities/) | Scenes for elements used inside a root scene |
 | [`extensions/`](extensions/) | Built extension DLLs for local load |
 | [`scenes/`](scenes/) | Root scenes (e.g. `world.tscn`) |
-| [`src/`](src/) | C# (`Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
+| [`src/`](src/) | C# (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | [`tests/`](tests/) | Test projects |
 | [`ui/`](ui/) | UI scenes and related resources |
 

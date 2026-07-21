@@ -1,3 +1,5 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Simulation;
 
 /// <summary>Shared nearest-hostile autoshoot (docs/game/features/combat.md).</summary>
@@ -25,15 +27,26 @@ public static class Autoshoot
         return best;
     }
 
-    /// <summary>Decrements cooldown; when ready and a hostile exists, spawns a missile and resets cooldown.</summary>
-    public static void Tick(
-        GameWorld world,
-        Character shooter,
-        ref float cooldownRemaining,
-        float dt)
+    public static AutoshootEffect? FindAutoshootEffect(Character shooter)
     {
-        cooldownRemaining -= dt;
-        if (cooldownRemaining > 0f)
+        foreach (var effect in shooter.Effects)
+        {
+            if (effect is AutoshootEffect autoshoot)
+                return autoshoot;
+        }
+
+        return null;
+    }
+
+    /// <summary>Decrements cooldown on the character's AutoshootEffect; when ready and a hostile exists, spawns a missile.</summary>
+    public static void Tick(GameWorld world, Character shooter, float dt)
+    {
+        var effect = FindAutoshootEffect(shooter);
+        if (effect is null)
+            return;
+
+        effect.CooldownRemaining -= dt;
+        if (effect.CooldownRemaining > 0f)
             return;
 
         var target = FindNearestHostile(shooter, world.Characters);
@@ -46,10 +59,10 @@ public static class Autoshoot
 
         world.SpawnMissile(
             shooter.Position,
-            dir * CombatTuning.MissileSpeed,
-            CombatTuning.MissileDamage,
+            dir * effect.MissileSpeed,
+            effect.MissileDamage,
             shooter.FactionId,
             shooter.Id);
-        cooldownRemaining = CombatTuning.FireIntervalSeconds;
+        effect.CooldownRemaining = effect.FireIntervalSeconds;
     }
 }

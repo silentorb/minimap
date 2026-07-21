@@ -6,15 +6,10 @@ namespace Minimap.Client;
 public sealed class PlayerController : IController
 {
     private SimVec2 _moveInput;
-    private float _fireCooldown;
 
     public Character? Pawn { get; private set; }
 
-    public void Possess(Character character)
-    {
-        Pawn = character;
-        _fireCooldown = 0f;
-    }
+    public void Possess(Character character) => Pawn = character;
 
     public void Unpossess() => Pawn = null;
 
@@ -25,6 +20,6 @@ public sealed class PlayerController : IController
         if (Pawn is null || !Pawn.IsAlive)
             return;
         Pawn.MoveIntent = _moveInput;
-        Autoshoot.Tick(world, Pawn, ref _fireCooldown, dt);
+        Autoshoot.Tick(world, Pawn, dt);
     }
 }

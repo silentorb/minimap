@@ -6,4 +6,7 @@
     <RootNamespace>Minimap.Extensive</RootNamespace>
     <AssemblyName>Minimap.Extensive</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Minimap.Simulation.Types/Minimap.Simulation.Types.csproj" />
+  </ItemGroup>
 </Project>

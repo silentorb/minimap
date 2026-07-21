@@ -5,7 +5,7 @@ namespace Minimap.App.Tests;
 public class ExtensionLoaderTests
 {
     [Fact]
-    public void Load_with_empty_extensions_selects_default_integrator()
+    public void Load_with_empty_extensions_fails_without_character_definitions()
     {
         var settings = new ExtensionsSettings
         {
@@ -14,10 +14,8 @@ public class ExtensionLoaderTests
             Integrator = "default",
         };
 
-        var result = ExtensionLoader.Load(settings, Path.GetTempPath());
-
-        Assert.Equal("default", result.Integrator.Id);
-        Assert.Contains(result.Registry.Integrators, i => i.Id == "default");
+        Assert.Throws<InvalidOperationException>(() =>
+            ExtensionLoader.Load(settings, Path.GetTempPath()));
     }
 
     [Fact]
@@ -55,6 +53,9 @@ public class ExtensionLoaderTests
         Assert.Equal("compuquest", result.Integrator.Id);
         Assert.True(result.Registry.TryGetIntegrator("default", out _));
         Assert.True(result.Registry.TryGetIntegrator("compuquest", out _));
+        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
+        Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
+        Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "generic");
     }
 
     [Fact]
@@ -68,6 +69,7 @@ public class ExtensionLoaderTests
 
         var result = ExtensionLoader.LoadFromFile(Path.Combine(repoRoot, "config", "extensions.json"));
         Assert.Equal("compuquest", result.Integrator.Id);
+        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
     }
 
     private static string FindRepoRoot()

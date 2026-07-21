@@ -1,6 +1,7 @@
 using Minimap.Client;
 using Minimap.Extensive;
 using Minimap.Simulation;
+using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
@@ -18,19 +19,19 @@ public sealed class GameSession
         Random rng,
         Scenario scenario,
         SpawnConfig spawnConfig,
-        IIntegrator integrator)
+        GameContent content)
     {
         World = world;
         Rng = rng;
         Scenario = scenario;
-        Integrator = integrator;
+        Content = content;
         _spawnConfig = spawnConfig;
     }
 
     public GameWorld World { get; }
     public Random Rng { get; }
     public Scenario Scenario { get; }
-    public IIntegrator Integrator { get; }
+    public GameContent Content { get; }
     public ScenarioRunner ScenarioRunner => _scenarioRunner;
     public IReadOnlyList<PlayerController> Players => _players;
     public IReadOnlyList<Character> HumanPawns => _humanPawns;
@@ -45,8 +46,10 @@ public sealed class GameSession
         SpawnConfig spawn,
         Scenario scenario,
         int localPlayerCount,
-        IIntegrator? integrator = null)
+        GameContent content)
     {
+        ArgumentNullException.ThrowIfNull(content);
+
         var count = Math.Clamp(localPlayerCount, 1, 4);
         var config = new SpawnConfig
         {
@@ -57,14 +60,14 @@ public sealed class GameSession
         };
 
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
-        world.InitializeScenarioLevel(scenario, config);
+        world.InitializeScenarioLevel(scenario, config, content.DefaultCharacter);
 
         var session = new GameSession(
             world,
             new Random(seed),
             scenario,
             config,
-            integrator ?? new DefaultIntegrator());
+            content);
         session.AttachHumanPlayers(config.PlayerFactionId, count);
         return session;
     }

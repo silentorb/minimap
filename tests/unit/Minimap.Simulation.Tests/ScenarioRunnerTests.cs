@@ -19,7 +19,7 @@ public class ScenarioRunnerTests
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
         var runner = new ScenarioRunner();
 
         runner.Tick(world, scenario, spawn, 0.5f);
@@ -38,7 +38,7 @@ public class ScenarioRunnerTests
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
         var runner = new ScenarioRunner();
 
         runner.Tick(world, scenario, spawn, 1.1f);
@@ -65,7 +65,7 @@ public class ScenarioRunnerTests
         };
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
         player.Health = 10f;
         var runner = new ScenarioRunner();
@@ -101,7 +101,7 @@ public class ScenarioRunnerTests
         };
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
         world.ApplyDamage(player, CombatTuning.DefaultMaxHealth);
         world.Tick(0.016f);

@@ -1,15 +1,29 @@
 using Minimap.Simulation;
+using Minimap.Simulation.Types;
 using Xunit;
 
 namespace Minimap.Functional.Tests;
 
 public class GameplaySimulationFunctionalTests
 {
+    private static readonly CharacterDefinition Generic = new(
+        "generic",
+        [
+            new AccessoryDefinition(
+                "gun",
+                [
+                    new AutoshootEffect(
+                        CombatTuning.FireIntervalSeconds,
+                        CombatTuning.MissileSpeed,
+                        CombatTuning.MissileDamage),
+                ]),
+        ]);
+
     [Fact]
     public void Seeded_world_has_characters_on_floor_within_grid()
     {
         var w = GameWorld.Create(3, 3, 42);
-        w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 });
+        w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 }, Generic);
         Assert.Equal(1 + 1 + 1, w.Characters.Count);
         foreach (var p in w.Characters)
         {
@@ -24,6 +38,7 @@ public class GameplaySimulationFunctionalTests
     {
         var gen = new FixedLayoutGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
+        w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var driver = new DriveController();
@@ -44,6 +59,7 @@ public class GameplaySimulationFunctionalTests
     public void Evolution_loop_maintains_tick_count_and_valid_terrain()
     {
         var w = GameWorld.Create(3, 3, 100);
+        w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var rng = new Random(999);
         const int n = 30;
@@ -68,6 +84,7 @@ public class GameplaySimulationFunctionalTests
     public void Zero_health_quietly_removes_character()
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var victim = w.AddCharacter(2, SimVec2.Zero);
         w.ApplyDamage(victim, CombatTuning.DefaultMaxHealth);
@@ -79,6 +96,7 @@ public class GameplaySimulationFunctionalTests
     public void Missile_hit_kills_hostile_and_removes_from_world()
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var player = FindUnpossessedHuman(w, 1);
         var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
@@ -102,6 +120,7 @@ public class GameplaySimulationFunctionalTests
     public void Holding_into_east_wall_does_not_tunnel_through()
     {
         var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator());
+        w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
@@ -144,15 +163,10 @@ public class GameplaySimulationFunctionalTests
     private sealed class DriveController : IController
     {
         private SimVec2 _moveInput;
-        private float _fireCooldown;
 
         public Character? Pawn { get; private set; }
 
-        public void Possess(Character character)
-        {
-            Pawn = character;
-            _fireCooldown = 0f;
-        }
+        public void Possess(Character character) => Pawn = character;
 
         public void Unpossess() => Pawn = null;
 
@@ -163,7 +177,7 @@ public class GameplaySimulationFunctionalTests
             if (Pawn is null || !Pawn.IsAlive)
                 return;
             Pawn.MoveIntent = _moveInput;
-            Autoshoot.Tick(world, Pawn, ref _fireCooldown, dt);
+            Autoshoot.Tick(world, Pawn, dt);
         }
     }
 }

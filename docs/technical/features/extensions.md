@@ -1,17 +1,22 @@
 # Extensions
 
-Minimap loads **extension** assemblies so game content can ship as libraries on top of the host. Contracts live in **`Minimap.Extensive`** (the extensibility capability assembly—not a plural bag of instances). Shipped lists of libraries live under plural paths (`config/extensions.json`, `extensions/`).
+Minimap loads **extension** assemblies so game content can ship as libraries on top of the host. Contracts live in **`Minimap.Extensive`** (the extensibility capability assembly—not a plural bag of instances). Shipped lists of libraries live under plural paths (`config/extensions.json`, `extensions/`). Shared definition/content types live in **`Minimap.Simulation.Types`** (not in Extensive).
 
 ## Roles
 
 - **Extension** — a loadable C# library that implements `IExtension` and registers contributions via typed APIs on `IExtensionRegistry`.
-- **Integrator** — the single authority for how registered contributions are used in a playthrough. **One active integrator per new game** (avoids conflicting multi-plugin integration).
-- Typed registration only (e.g. `AddIntegrator`). There is **no** universal element type or normalized enumeration of “all registrable things.”
+- **Integrator** — the single authority for how registered contributions are turned into playthrough **`GameContent`**. **One active integrator per new game** (avoids conflicting multi-plugin integration).
+- Typed registration only (e.g. `AddIntegrator`, `AddCharacterDefinition`). There is **no** universal element type or normalized enumeration of “all registrable things.”
+- **`GameContent`** (in Simulation.Types) is ordinary content for the rest of the app (e.g. `DefaultCharacter`). Building it is an integration concern; consuming it is not.
 
 ## Requirements
 
-- Extension contracts and the in-memory registry live in **`Minimap.Extensive`** (no Godot, no file I/O).
-- **Minimap.App** loads settings and assemblies: `ExtensionsSettings`, `ExtensionLoader`. Simulation and Client do not load extension DLLs.
+- Extension contracts and the in-memory registry live in **`Minimap.Extensive`** (no Godot, no file I/O). Registry catalogs (registration order):
+  - integrators
+  - accessory definitions
+  - character definitions
+- **`IIntegrator.CreateGameContent(IExtensionRegistry)`** returns `GameContent`. **`DefaultIntegrator`** sets `DefaultCharacter` to the **first registered** character definition (fails if none).
+- **Minimap.App** loads settings and assemblies: `ExtensionsSettings`, `ExtensionLoader`. After load, App calls `CreateGameContent` and passes **`GameContent`** into `GameSession`. Simulation and Client do not load extension DLLs.
 - Shipped config: **`config/extensions.json`** (Godot path `res://config/extensions.json`).
 - Schema:
 
@@ -27,15 +32,13 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
   - `extensions` — each entry is an absolute path or a filename/relative name resolved via `searchPaths`. Missing libraries fail fast.
   - `integrator` — id of the `IIntegrator` to use for the new game. Must be registered (built-in or from a loaded extension) or load fails.
 - Built-in **`DefaultIntegrator`** with id **`default`** is always registered before extension DLLs load.
-- `IIntegrator` currently exposes only **`Id`**. Further integrator APIs (e.g. listing components by type) come later.
-- `GameApp` loads extensions on ready (exportable path, default `res://config/extensions.json`) and passes the selected integrator into `GameSession` (stored for future use; no gameplay behavior change from the integrator yet).
 - `LobbyApp` also loads the same config on ready so a bad extension set fails before the player starts a game.
-- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (not referenced by the Godot host). Its `CompuQuestExtension` registers integrator id **`compuquest`**. Build output is copied to repo-root `extensions/`.
+- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (not referenced by the Godot host). Registers integrator id **`compuquest`**, **Gun** accessory, and **generic** character definition. Build output is copied to repo-root `extensions/`.
 
 ## Non-goals (for now)
 
-- Component type catalogs (characters, abilities, tiles, scenarios) and matching integrator getters
 - New-game UI to pick an integrator
 - Hot-reload of extension assemblies
 - Mixing multiple integrators in one run
 - A universal “element” registration bag
+- Per-accessory query APIs on the integrator (use registry catalogs / character definitions)
