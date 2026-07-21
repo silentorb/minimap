@@ -73,6 +73,17 @@ public class ExtensionRegistryTests
     }
 
     [Fact]
+    public void AddAccessoryEffectFactory_rejects_duplicate_type()
+    {
+        var registry = new ExtensionRegistry();
+        registry.AddAccessoryEffectFactory("shoot", (_, _, _) =>
+            throw new InvalidOperationException("unused"));
+        Assert.Throws<InvalidOperationException>(() =>
+            registry.AddAccessoryEffectFactory("SHOOT", (_, _, _) =>
+                throw new InvalidOperationException("unused")));
+    }
+
+    [Fact]
     public void CreateGameContent_uses_first_registered_character()
     {
         var registry = new ExtensionRegistry();

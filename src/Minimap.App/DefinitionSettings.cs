@@ -5,11 +5,27 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
-/// <summary>Loads accessory and character definitions from JSON under config directories.</summary>
+/// <summary>Loads accessory and character definitions from JSON under extension content directories.</summary>
 public static class DefinitionSettings
 {
     public const string AccessoriesDirectoryName = "accessories";
     public const string CharactersDirectoryName = "characters";
+
+    /// <summary>
+    /// Content root beside a loaded extension DLL:
+    /// <c>{dllDir}/{assemblyName}/</c> (e.g. <c>extensions/CompuQuest.Minimap/</c>).
+    /// </summary>
+    public static string ContentDirectoryForAssembly(string assemblyPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(assemblyPath);
+        var fullPath = Path.GetFullPath(assemblyPath);
+        var directory = Path.GetDirectoryName(fullPath)
+            ?? throw new InvalidOperationException($"Could not resolve directory for '{assemblyPath}'.");
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new InvalidOperationException($"Could not resolve assembly name for '{assemblyPath}'.");
+        return Path.Combine(directory, name);
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -18,61 +34,71 @@ public static class DefinitionSettings
         AllowTrailingCommas = true,
     };
 
-    public static IReadOnlyList<AccessoryDefinition> LoadAccessoriesFromDirectory(string directory)
+    public static IReadOnlyList<AccessoryDefinition> LoadAccessoriesFromDirectory(
+        string directory,
+        IExtensionRegistry registry)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        ArgumentNullException.ThrowIfNull(registry);
 
         if (!Directory.Exists(directory))
             return Array.Empty<AccessoryDefinition>();
 
         var definitions = new List<AccessoryDefinition>();
         foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
-            definitions.Add(LoadAccessoryFromFile(path));
+            definitions.Add(LoadAccessoryFromFile(path, registry));
 
         return definitions;
     }
 
-    public static AccessoryDefinition LoadAccessoryFromJson(string json, string? sourcePath = null)
+    public static AccessoryDefinition LoadAccessoryFromJson(
+        string json,
+        IExtensionRegistry registry,
+        string? sourcePath = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        ArgumentNullException.ThrowIfNull(registry);
 
-        AccessoryFile? file;
-        try
+        using var document = ParseAccessoryDocument(json, sourcePath);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
         {
-            file = JsonSerializer.Deserialize<AccessoryFile>(json, JsonOptions);
-        }
-        catch (JsonException ex)
-        {
-            throw new InvalidOperationException(
-                FormatParseError("accessory", sourcePath), ex);
-        }
-
-        if (file is null)
             throw new InvalidOperationException(
                 FormatEmptyObjectError("accessory", sourcePath));
+        }
 
-        if (string.IsNullOrWhiteSpace(file.Id))
+        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
             throw new InvalidOperationException(
                 FormatRequiredFieldError("accessory", "id", sourcePath));
+        }
 
-        if (file.Effects is null)
+        if (!root.TryGetProperty("effects", out var effectsElement) ||
+            effectsElement.ValueKind != JsonValueKind.Array)
+        {
             throw new InvalidOperationException(
                 FormatRequiredFieldError("accessory", "effects", sourcePath));
+        }
 
         var effects = new List<AccessoryEffect>();
-        for (var i = 0; i < file.Effects.Count; i++)
-            effects.Add(ParseEffect(file.Effects[i], i, sourcePath));
+        var index = 0;
+        foreach (var effectElement in effectsElement.EnumerateArray())
+        {
+            effects.Add(ParseEffect(effectElement, index, registry, sourcePath));
+            index++;
+        }
 
-        return new AccessoryDefinition(file.Id, effects);
+        return new AccessoryDefinition(id, effects);
     }
 
-    public static AccessoryDefinition LoadAccessoryFromFile(string path)
+    public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(registry);
         if (!File.Exists(path))
             throw new FileNotFoundException($"Accessory definition file not found: {path}", path);
 
-        return LoadAccessoryFromJson(File.ReadAllText(path), path);
+        return LoadAccessoryFromJson(File.ReadAllText(path), registry, path);
     }
 
     public static IReadOnlyList<CharacterDefinition> LoadCharactersFromDirectory(
@@ -162,26 +188,58 @@ public static class DefinitionSettings
     }
 
     /// <summary>
-    /// Registers JSON definitions from <paramref name="configDirectory"/> into
+    /// Registers JSON definitions from <paramref name="contentDirectory"/> into
     /// <paramref name="registry"/> (accessories, then characters).
+    /// Effect <c>type</c> values must already be registered via
+    /// <see cref="IExtensionRegistry.AddAccessoryEffectFactory"/>.
     /// </summary>
-    public static void RegisterFromConfigDirectory(string configDirectory, IExtensionRegistry registry)
+    public static void RegisterFromConfigDirectory(string contentDirectory, IExtensionRegistry registry)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(configDirectory);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
         ArgumentNullException.ThrowIfNull(registry);
 
-        var accessoriesDir = Path.Combine(configDirectory, AccessoriesDirectoryName);
-        foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir))
+        var accessoriesDir = Path.Combine(contentDirectory, AccessoriesDirectoryName);
+        foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir, registry))
             registry.AddAccessoryDefinition(accessory);
 
-        var charactersDir = Path.Combine(configDirectory, CharactersDirectoryName);
+        var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
         foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
             registry.AddCharacterDefinition(character);
     }
 
-    private static AccessoryEffect ParseEffect(EffectFile effect, int index, string? sourcePath)
+    private static JsonDocument ParseAccessoryDocument(string json, string? sourcePath)
     {
-        if (effect.Type is null || string.IsNullOrWhiteSpace(effect.Type))
+        try
+        {
+            return JsonDocument.Parse(json, new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+            });
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(
+                FormatParseError("accessory", sourcePath), ex);
+        }
+    }
+
+    private static AccessoryEffect ParseEffect(
+        JsonElement effectElement,
+        int index,
+        IExtensionRegistry registry,
+        string? sourcePath)
+    {
+        if (effectElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory effect at index {index} must be a JSON object.",
+                    sourcePath));
+        }
+
+        if (!TryGetStringProperty(effectElement, "type", out var type) ||
+            string.IsNullOrWhiteSpace(type))
         {
             throw new InvalidOperationException(
                 AppendSource(
@@ -189,51 +247,27 @@ public static class DefinitionSettings
                     sourcePath));
         }
 
-        return effect.Type.Trim().ToLowerInvariant() switch
-        {
-            "shoot" => ParseShootEffect(effect, index, sourcePath),
-            _ => throw new InvalidOperationException(
-                AppendSource(
-                    $"Unknown accessory effect type '{effect.Type}' at index {index}.",
-                    sourcePath)),
-        };
-    }
-
-    private static ShootEffect ParseShootEffect(EffectFile effect, int index, string? sourcePath)
-    {
-        if (effect.FireIntervalSeconds is null)
-            throw MissingEffectField("shoot", "fireIntervalSeconds", index, sourcePath);
-        if (effect.MissileSpeed is null)
-            throw MissingEffectField("shoot", "missileSpeed", index, sourcePath);
-        if (effect.MissileDamage is null)
-            throw MissingEffectField("shoot", "missileDamage", index, sourcePath);
-
-        try
-        {
-            return new ShootEffect(
-                effect.FireIntervalSeconds.Value,
-                effect.MissileSpeed.Value,
-                effect.MissileDamage.Value,
-                effect.FriendlyFire ?? true);
-        }
-        catch (ArgumentOutOfRangeException ex)
+        if (!registry.TryGetAccessoryEffectFactory(type, out var factory) || factory is null)
         {
             throw new InvalidOperationException(
                 AppendSource(
-                    $"Invalid shoot effect values at index {index}: {ex.Message}",
-                    sourcePath),
-                ex);
+                    $"Unknown accessory effect type '{type}' at index {index}.",
+                    sourcePath));
         }
+
+        return factory(effectElement, index, sourcePath);
     }
 
-    private static InvalidOperationException MissingEffectField(
-        string effectType,
-        string field,
-        int index,
-        string? sourcePath) =>
-        new(AppendSource(
-            $"Accessory effect '{effectType}' at index {index} must include {field}.",
-            sourcePath));
+    private static bool TryGetStringProperty(JsonElement obj, string name, out string? value)
+    {
+        value = null;
+        if (!obj.TryGetProperty(name, out var prop))
+            return false;
+        if (prop.ValueKind != JsonValueKind.String)
+            return false;
+        value = prop.GetString();
+        return true;
+    }
 
     private static string FormatParseError(string kind, string? sourcePath) =>
         AppendSource($"Failed to parse {kind} definition JSON.", sourcePath);
@@ -246,33 +280,6 @@ public static class DefinitionSettings
 
     private static string AppendSource(string message, string? sourcePath) =>
         string.IsNullOrWhiteSpace(sourcePath) ? message : $"{message} ({sourcePath})";
-
-    private sealed class AccessoryFile
-    {
-        [JsonPropertyName("id")]
-        public string? Id { get; init; }
-
-        [JsonPropertyName("effects")]
-        public List<EffectFile>? Effects { get; init; }
-    }
-
-    private sealed class EffectFile
-    {
-        [JsonPropertyName("type")]
-        public string? Type { get; init; }
-
-        [JsonPropertyName("fireIntervalSeconds")]
-        public float? FireIntervalSeconds { get; init; }
-
-        [JsonPropertyName("missileSpeed")]
-        public float? MissileSpeed { get; init; }
-
-        [JsonPropertyName("missileDamage")]
-        public float? MissileDamage { get; init; }
-
-        [JsonPropertyName("friendlyFire")]
-        public bool? FriendlyFire { get; init; }
-    }
 
     private sealed class CharacterFile
     {

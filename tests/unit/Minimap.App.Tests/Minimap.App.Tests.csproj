@@ -18,5 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../src/Minimap.App/Minimap.App.csproj" />
+    <ProjectReference Include="../../../src/CompuQuest.Minimap/CompuQuest.Minimap.csproj" />
   </ItemGroup>
 </Project>

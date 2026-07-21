@@ -6,12 +6,12 @@
 - **Entry**: `run/main_scene` is `res://scenes/lobby.tscn` for normal play; `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
-  - **`Minimap.Simulation.Types`** — shared definition/content types (little/no logic); Simulation and Extensive depend on it.
+  - **`Minimap.Simulation.Types`** — shared contracts only (minimal boilerplate); see [`src/Minimap.Simulation.Types/AGENTS.md`](src/Minimap.Simulation.Types/AGENTS.md). Simulation and Extensive depend on it.
   - **`Minimap.Simulation`** — authoritative game logic and state (no Godot, no user input/output).
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator (no Godot, no file I/O).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD (sources under `src/Minimap.Client/`); also a class library for tests. Depends on Simulation (minimized; HUD types stay Simulation-free).
   - **`Minimap.App`** — thin composition between Simulation and Client (`GameSession`, `GameApp`); loads extensions from config; mitigates tight coupling.
-  - **`CompuQuest.Minimap`** — content extension library (loadable DLL under `extensions/`; build-only dependency of the Godot host, not linked into the main assembly).
+  - **`CompuQuest.Minimap`** — content extension library (loadable DLL under `extensions/`; depends on Extensive + Simulation; build-only dependency of the Godot host, not linked into the main assembly). Default home for concrete accessory effects.
   - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Extensive + Automation.Contracts.
 
 ## Layout

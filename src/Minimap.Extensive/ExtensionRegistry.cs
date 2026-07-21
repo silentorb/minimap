@@ -10,6 +10,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, AccessoryDefinition> _accessoryById = new(StringComparer.Ordinal);
     private readonly List<CharacterDefinition> _characterDefinitions = new();
     private readonly Dictionary<string, CharacterDefinition> _characterById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AccessoryEffectFactory> _effectFactories =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyList<IIntegrator> Integrators =>
         _integrators.Values.OrderBy(i => i.Id, StringComparer.Ordinal).ToList();
@@ -75,5 +77,29 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         }
 
         _characterDefinitions.Add(definition);
+    }
+
+    public void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        var key = type.Trim();
+        if (!_effectFactories.TryAdd(key, factory))
+        {
+            throw new InvalidOperationException(
+                $"Duplicate accessory effect type '{key}'.");
+        }
+    }
+
+    public bool TryGetAccessoryEffectFactory(string type, out AccessoryEffectFactory? factory)
+    {
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            factory = null;
+            return false;
+        }
+
+        return _effectFactories.TryGetValue(type.Trim(), out factory);
     }
 }

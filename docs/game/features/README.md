@@ -10,8 +10,8 @@
 | [../game-design.md](../game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
-| [characters.md](characters.md) | Changing **character definitions**, `config/characters/` JSON, default character, or definition vs instance rules. |
-| [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, `config/accessories/` JSON, or character effect-cache rules. |
+| [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
+| [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
 | [ai.md](ai.md) | Changing **AI** wander, AI combat behavior, or AI spawn counts per faction. |
 | [combat.md](combat.md) | Changing **missiles**, shoot effect, fire rate, twin-stick aim, or AI nearest-hostile aim. |
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |

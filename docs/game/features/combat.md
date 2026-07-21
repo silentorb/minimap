@@ -4,13 +4,13 @@ Missiles and shooting. Related: [damage.md](damage.md), [health.md](health.md), 
 
 ## Requirements
 
-- Characters shoot **medium-speed missiles** when they have a **`ShootEffect`** on their character effect cache (provided by the **Gun** accessory on the generic character definition). Controllers only fire if the pawn has a `ShootEffect`.
+- Characters shoot **medium-speed missiles** when they have an **`IShootEffect`** on their character effect cache (CompuQuest **`ShootEffect`** via the **Gun** accessory on the generic character definition). Controllers only fire if the pawn has an `IShootEffect`.
 - **Missile speed**: **200** world units per second (character move speed is 120) — from the effect.
 - **Fire direction** is supplied by the controller (not by the effect):
   - **Player**: twin-stick aim — fire in the aim-stick / aim-key direction while that vector is non-zero. No separate fire button.
   - **AI**: aim toward the **nearest living hostile** (different faction), or do not fire when none exists.
-- **Fire interval**: about **1.25** seconds between shots — cooldown lives on the **`ShootEffect`**, not on the controller.
-- Missiles that hit a living character (other than the shooter) apply damage per [damage.md](damage.md) (default Gun damage **25**). **`ShootEffect` / Gun defaults to friendly fire**, so same-faction overlap damages. Missiles that hit walls are destroyed.
+- **Fire interval**: about **1.25** seconds between shots — cooldown lives on the **`IShootEffect`**, not on the controller.
+- Missiles that hit a living character (other than the shooter) apply damage per [damage.md](damage.md) (default Gun damage **25**). **Gun / `ShootEffect` defaults to friendly fire**, so same-faction overlap damages. Missiles that hit walls are destroyed.
 
 ## Non-goals (for now)
 

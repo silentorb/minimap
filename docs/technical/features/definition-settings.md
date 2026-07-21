@@ -4,14 +4,15 @@ JSON configuration for accessory and character definitions (and the pattern for 
 
 ## Requirements
 
-- Shipped definitions live under the config tree (Godot `res://config/...`):
-  - **Accessories:** `config/accessories/*.json` (e.g. `gun.json`)
-  - **Characters:** `config/characters/*.json` (e.g. `generic.json`)
+- Shipped definitions are **extension content**, authored next to the extension project and copied beside the loadable DLL on build:
+  - Source: `src/CompuQuest.Minimap/config/accessories/*.json`, `src/CompuQuest.Minimap/config/characters/*.json`
+  - Runtime: `extensions/CompuQuest.Minimap/accessories/`, `extensions/CompuQuest.Minimap/characters/` (directory named after the assembly, next to `CompuQuest.Minimap.dll`)
 - One definition per file. **Minimap.App** `DefinitionSettings` loads every `*.json` in each directory (sorted by filename for stable registration order). Missing directories are treated as empty.
-- Load order inside `ExtensionLoader` (after extension DLLs `Register`, before `CreateGameContent`):
-  1. Register accessory definitions from `config/accessories/`
-  2. Register character definitions from `config/characters/` (accessory ids resolve against the registry, including any C#-registered defs)
-- Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped content is JSON.
+- Load order inside `ExtensionLoader` (for each configured extension DLL, after that DLL’s `Register`, before `CreateGameContent`):
+  1. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/`
+  2. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry, including any C#-registered defs and earlier extensions)
+- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`). The host does **not** hardcode concrete effect classes.
+- Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
 - Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory ids, or duplicate ids fail fast (same boot/preflight boundary as extensions).
 
 ### Accessory schema
@@ -32,8 +33,8 @@ JSON configuration for accessory and character definitions (and the pattern for 
 ```
 
 - `id` and `effects` are required.
-- Effect `type` is a discriminator. Supported today:
-  - **`shoot`** → `ShootEffect` — requires `fireIntervalSeconds`, `missileSpeed`, `missileDamage`; `friendlyFire` optional (default **true**).
+- Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
+  - **`shoot`** → CompuQuest `ShootEffect` (`IShootEffect`) — requires `fireIntervalSeconds`, `missileSpeed`, `missileDamage`; `friendlyFire` optional (default **true**).
 
 ### Character schema
 
@@ -48,10 +49,9 @@ JSON configuration for accessory and character definitions (and the pattern for 
 
 ### Later similar catalogs
 
-For a new definition kind: add `config/<plural-kind>/`, a loader that builds types in `Minimap.Simulation.Types` and registers on `IExtensionRegistry`, then wire that step into `ExtensionLoader` after its dependencies.
+For a new definition kind in an extension: add `config/<plural-kind>/` under the extension project, copy it to `extensions/{AssemblyName}/` on build, and add a loader step in `DefinitionSettings` / `ExtensionLoader` after its dependencies. New effect types: register an `AddAccessoryEffectFactory` in the extension’s `Register`.
 
 ## Non-goals (for now)
 
 - Hot-reload of definition JSON during play
-- Per-extension content directories (host `config/` is the authoring surface)
-- Effect types beyond `shoot`
+- Host-root `config/` accessory/character catalogs (those remain for core/scenario/extensions settings only)

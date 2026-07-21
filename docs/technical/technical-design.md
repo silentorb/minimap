@@ -11,12 +11,12 @@
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
 - **C# project boundaries**:
-  - **Minimap.Simulation.Types** — shared definition/content types (little/no logic); depended on by Simulation and Extensive
+  - **Minimap.Simulation.Types** — shared **contracts** only (minimal boilerplate: ctors, getters/setters, trivial abstracts). No sealed gameplay implementations. See `src/Minimap.Simulation.Types/AGENTS.md`. Depended on by Simulation and Extensive
   - **Minimap.Simulation** — authoritative logic/state; no Godot; no user input or output
   - **Minimap.Extensive** — extension contracts, registry, and default integrator (no Godot, no file I/O)
   - **Minimap.Client** — Godot rendering, input capture, HUD; may reference Simulation sparingly
   - **Minimap.App** — thin front-facing integration that wires Simulation and Client (session creation, attach player controllers, feed HUD models); loads extension assemblies from config
-  - **CompuQuest.Minimap** — sample/content extension library (loadable DLL; build-only host dependency, not linked into the Godot assembly)
+  - **CompuQuest.Minimap** — sample/content extension library (loadable DLL; depends on Extensive + Simulation; build-only host dependency, not linked into the Godot assembly). Default home for concrete accessory effects
 
 # Godot project layout
 
@@ -27,9 +27,9 @@ It is not an exhaustive list of all the directories in this project.
 | Directory | Purpose |
 |-----------|---------|
 | `./assets` | All game assets (images, sound effects, etc.) |
-| `./config` | Shipped JSON settings (e.g. `core.json`, `extensions.json`) |
+| `./config` | Shipped host JSON settings (e.g. `core.json`, `extensions.json`, scenarios) |
 | `./entities` | All scenes for game elements within a root scene |
-| `./extensions` | Built extension DLLs copied here for local load (see [extensions](features/extensions.md)) |
+| `./extensions` | Built extension DLLs and copied per-extension content dirs for local load (see [extensions](features/extensions.md)) |
 | `./scenes` | All root scenes |
 | `./src` | Source code (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | `./tests` | Test suite |

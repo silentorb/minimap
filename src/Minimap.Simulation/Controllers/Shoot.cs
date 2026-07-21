@@ -2,7 +2,7 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Shared shoot helper: cooldown on ShootEffect; fire direction from controller (docs/game/features/combat.md).</summary>
+/// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller (docs/game/features/combat.md).</summary>
 public static class Shoot
 {
     public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters)
@@ -27,11 +27,11 @@ public static class Shoot
         return best;
     }
 
-    public static ShootEffect? FindShootEffect(Character shooter)
+    public static IShootEffect? FindShootEffect(Character shooter)
     {
         foreach (var effect in shooter.Effects)
         {
-            if (effect is ShootEffect shoot)
+            if (effect is IShootEffect shoot)
                 return shoot;
         }
 
@@ -39,7 +39,7 @@ public static class Shoot
     }
 
     /// <summary>
-    /// Decrements cooldown on the character's ShootEffect; when ready and
+    /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready and
     /// <paramref name="fireDirection"/> is non-zero, spawns a missile in that direction.
     /// </summary>
     public static void Tick(GameWorld world, Character shooter, float dt, SimVec2 fireDirection)

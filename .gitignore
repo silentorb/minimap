@@ -6,6 +6,8 @@
 /extensions/*.pdb
 /extensions/*.deps.json
 /extensions/*.xml
+/extensions/*/
+
 
 # Godot 4+ specific ignores
 .godot/

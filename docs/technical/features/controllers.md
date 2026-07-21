@@ -12,7 +12,7 @@ Unreal-style controller / pawn separation. Implements game [ai.md](../../game/fe
 - Implementations:
   - **`PlayerController` (Minimap.Client)**: receives move axes via `SetMoveInput(SimVec2)` and aim axes via `SetAimInput(SimVec2)`; each tick applies move intent and calls shared shoot with the aim direction (zero aim = no fire). **Not** part of Simulation (Simulation has no user input APIs).
   - **`AiController` (Simulation)**: picks random wander directions periodically; supplies fire direction toward the nearest living hostile (or zero if none).
-- **Shared shoot** helper (Simulation): reads the first **`ShootEffect`** on **`character.Effects`**; ticks that effect’s cooldown; when ready and `fireDirection` is non-zero, spawns a missile in that direction. Controllers choose the direction; they do **not** own fire cooldown. Nearest-hostile lookup lives on the helper for AI (and tests); no hard-coded faction ids.
+- **Shared shoot** helper (Simulation): reads the first **`IShootEffect`** on **`character.Effects`**; ticks that effect’s cooldown; when ready and `fireDirection` is non-zero, spawns a missile in that direction. Controllers choose the direction; they do **not** own fire cooldown. Concrete `ShootEffect` lives in CompuQuest. Nearest-hostile lookup lives on the helper for AI (and tests); no hard-coded faction ids.
 - **Minimap.App** creates the world, attaches Client `PlayerController`s to unpossessed human pawns, and feeds per-player move and aim input via **`LocalInputAggregator`** from each player’s bound devices (see [local-input.md](local-input.md)).
 - **`GameWorld.Tick(dt)` order**: controllers → apply movement → tick missiles → apply damage / remove dead → prune missiles.
 

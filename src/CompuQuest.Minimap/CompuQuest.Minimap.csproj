@@ -11,9 +11,16 @@
     <ProjectReference Include="../Minimap.Extensive/Minimap.Extensive.csproj">
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="CopyExtensionToRepoExtensions" AfterTargets="Build">
     <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\extensions" />
+    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\extensions\$(AssemblyName)" />
     <Copy SourceFiles="$(TargetPath)"
           DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
           SkipUnchangedFiles="true" />
@@ -21,5 +28,11 @@
           DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
           SkipUnchangedFiles="true"
           Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    <ItemGroup>
+      <_ExtensionConfigFiles Include="$(MSBuildThisFileDirectory)config\**\*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ExtensionConfigFiles)"
+          DestinationFiles="@(_ExtensionConfigFiles->'$(MSBuildThisFileDirectory)..\..\extensions\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
   </Target>
 </Project>

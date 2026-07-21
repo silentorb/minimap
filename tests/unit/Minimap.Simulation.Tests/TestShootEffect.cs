@@ -1,9 +1,11 @@
-namespace Minimap.Simulation.Types;
+using Minimap.Simulation.Types;
 
-/// <summary>Gun shoot parameters and per-instance fire cooldown (docs/game/features/combat.md).</summary>
-public sealed class ShootEffect : AccessoryEffect
+namespace Minimap.Simulation.Tests;
+
+/// <summary>Test double for <see cref="IShootEffect"/> (Simulation tests must not reference CompuQuest).</summary>
+internal sealed class TestShootEffect : AccessoryEffect, IShootEffect
 {
-    public ShootEffect(
+    public TestShootEffect(
         float fireIntervalSeconds,
         float missileSpeed,
         float missileDamage,
@@ -29,5 +31,5 @@ public sealed class ShootEffect : AccessoryEffect
     public float CooldownRemaining { get; set; }
 
     public override AccessoryEffect Clone() =>
-        new ShootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage, FriendlyFire);
+        new TestShootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage, FriendlyFire);
 }

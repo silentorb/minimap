@@ -18,4 +18,12 @@ public interface IExtensionRegistry
     void AddCharacterDefinition(CharacterDefinition definition);
 
     IReadOnlyList<CharacterDefinition> CharacterDefinitions { get; }
+
+    /// <summary>
+    /// Registers a JSON effect <paramref name="type"/> factory (case-insensitive).
+    /// Duplicate type ids fail fast.
+    /// </summary>
+    void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory);
+
+    bool TryGetAccessoryEffectFactory(string type, out AccessoryEffectFactory? factory);
 }

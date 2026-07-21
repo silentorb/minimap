@@ -4,8 +4,8 @@ Character definition vs instance contracts. Implements [../../game/features/char
 
 ## Requirements
 
-- Definition and content types live in **`Minimap.Simulation.Types`** (little/no logic): `CharacterDefinition` (`Id`, ordered accessory definitions).
+- Definition and content **contracts** live in **`Minimap.Simulation.Types`** (contracts only; see that project’s `AGENTS.md`): `CharacterDefinition` (`Id`, ordered accessory definitions).
 - Runtime **`Character`** (Simulation) holds definition, accessories, and a flat **`Effects`** cache (see [accessories.md](accessories.md)).
 - Instantiation from a definition creates accessory instances (cloning effects), then **`AddAccessory`** each so the effect cache stays consistent.
 - **`GameContent.DefaultCharacter`** is the definition used for normal spawns (humans, rivals, refill). App obtains `GameContent` from the active integrator and passes it into the session/world; consumers treat it as ordinary content, not as an “integration” object.
-- Shipped short-term **generic** character is JSON under **`config/characters/generic.json`** (includes the Gun accessory). Loaded by App into the registry (see [definition-settings.md](definition-settings.md)).
+- Shipped short-term **generic** character is JSON under **`src/CompuQuest.Minimap/config/characters/generic.json`** (includes the Gun accessory; copied to `extensions/CompuQuest.Minimap/` on build). Loaded by App into the registry (see [definition-settings.md](definition-settings.md)).

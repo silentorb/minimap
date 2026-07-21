@@ -1,3 +1,4 @@
+using CompuQuest.Minimap;
 using Minimap.Extensive;
 using Minimap.Simulation.Types;
 using Xunit;
@@ -6,6 +7,13 @@ namespace Minimap.App.Tests;
 
 public class DefinitionSettingsTests
 {
+    private static ExtensionRegistry RegistryWithShootFactory()
+    {
+        var registry = new ExtensionRegistry();
+        registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
+        return registry;
+    }
+
     [Fact]
     public void LoadAccessoryFromJson_Gun_ReturnsShootEffect()
     {
@@ -24,7 +32,7 @@ public class DefinitionSettingsTests
             }
             """;
 
-        var def = DefinitionSettings.LoadAccessoryFromJson(json);
+        var def = DefinitionSettings.LoadAccessoryFromJson(json, RegistryWithShootFactory());
 
         Assert.Equal("gun", def.Id);
         var shoot = Assert.IsType<ShootEffect>(Assert.Single(def.EffectTemplates));
@@ -43,14 +51,14 @@ public class DefinitionSettingsTests
                   "id": "odd",
                   "effects": [ { "type": "explode" } ]
                 }
-                """));
+                """, RegistryWithShootFactory()));
     }
 
     [Fact]
     public void LoadAccessoryFromJson_MissingId_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionSettings.LoadAccessoryFromJson("""{ "effects": [] }"""));
+            DefinitionSettings.LoadAccessoryFromJson("""{ "effects": [] }""", RegistryWithShootFactory()));
     }
 
     [Fact]
@@ -85,17 +93,27 @@ public class DefinitionSettingsTests
     public void LoadAccessoriesFromDirectory_MissingDir_ReturnsEmpty()
     {
         var missing = Path.Combine(Path.GetTempPath(), $"defs-missing-{Guid.NewGuid():N}");
-        Assert.Empty(DefinitionSettings.LoadAccessoriesFromDirectory(missing));
+        Assert.Empty(DefinitionSettings.LoadAccessoriesFromDirectory(missing, RegistryWithShootFactory()));
+    }
+
+    [Fact]
+    public void ContentDirectoryForAssembly_UsesAssemblyNameBesideDll()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap.dll");
+        var content = DefinitionSettings.ContentDirectoryForAssembly(path);
+        Assert.Equal(
+            Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap"),
+            content);
     }
 
     [Fact]
     public void RegisterFromConfigDirectory_LoadsShippedGunAndGeneric()
     {
         var repoRoot = FindRepoRoot();
-        var registry = new ExtensionRegistry();
+        var registry = RegistryWithShootFactory();
 
         DefinitionSettings.RegisterFromConfigDirectory(
-            Path.Combine(repoRoot, "config"),
+            Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config"),
             registry);
 
         var gun = Assert.Single(registry.AccessoryDefinitions);
@@ -135,7 +153,7 @@ public class DefinitionSettingsTests
                 { "id": "generic", "accessories": ["gun"] }
                 """);
 
-            var registry = new ExtensionRegistry();
+            var registry = RegistryWithShootFactory();
             DefinitionSettings.RegisterFromConfigDirectory(root, registry);
 
             Assert.Equal("gun", Assert.Single(registry.AccessoryDefinitions).Id);

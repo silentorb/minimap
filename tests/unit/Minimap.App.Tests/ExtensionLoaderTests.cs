@@ -37,9 +37,13 @@ public class ExtensionLoaderTests
     {
         var repoRoot = FindRepoRoot();
         var dllPath = Path.Combine(repoRoot, "extensions", "CompuQuest.Minimap.dll");
+        var contentDir = Path.Combine(repoRoot, "extensions", "CompuQuest.Minimap");
         Assert.True(
             File.Exists(dllPath),
             $"Expected built extension at {dllPath}. Build CompuQuest.Minimap first.");
+        Assert.True(
+            Directory.Exists(contentDir),
+            $"Expected extension content at {contentDir}. Build CompuQuest.Minimap first.");
 
         var settings = new ExtensionsSettings
         {
@@ -56,24 +60,6 @@ public class ExtensionLoaderTests
         Assert.Equal("generic", result.Content.DefaultCharacter.Id);
         Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
         Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "generic");
-    }
-
-    [Fact]
-    public void Load_with_default_integrator_uses_json_definitions_without_extension_dll()
-    {
-        var repoRoot = FindRepoRoot();
-        var settings = new ExtensionsSettings
-        {
-            SearchPaths = new List<string> { "extensions" },
-            Extensions = new List<string>(),
-            Integrator = "default",
-        };
-
-        var result = ExtensionLoader.Load(settings, Path.Combine(repoRoot, "config"));
-
-        Assert.Equal("default", result.Integrator.Id);
-        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
-        Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
     }
 
     [Fact]

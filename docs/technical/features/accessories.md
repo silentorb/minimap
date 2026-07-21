@@ -4,12 +4,12 @@ Accessory definitions, instances, and character effect cache. Implements [../../
 
 ## Requirements
 
-- Types in **`Minimap.Simulation.Types`**:
-  - **`AccessoryEffect`** — base for independent effects; behavior-specific data lives on effect types, not on `Accessory`.
-  - **`ShootEffect`** — fire interval, missile speed, damage, **`FriendlyFire`** (default **true**), and runtime `CooldownRemaining` (no intrinsic aim).
+- Contracts in **`Minimap.Simulation.Types`** (see that project’s `AGENTS.md`):
+  - **`AccessoryEffect`** — abstract base; concrete sealed effects live in content extensions (default: CompuQuest).
+  - **`IShootEffect`** — shoot params + runtime cooldown (no intrinsic aim). Simulation fire logic depends on this contract.
   - **`AccessoryDefinition`** — `Id` + effect templates.
   - **`Accessory`** — definition ref + effect instances only.
-- **`IExtensionRegistry`** catalogs accessory definitions in **registration order** (`AddAccessoryDefinition` / `AccessoryDefinitions`).
+- **`IExtensionRegistry`** catalogs accessory definitions in **registration order** (`AddAccessoryDefinition` / `AccessoryDefinitions`) and **accessory effect factories** (`AddAccessoryEffectFactory`) used when loading definition JSON.
 - **`Character.AddAccessory` / `RemoveAccessory`**: append or drop the accessory; sync the same effect **object references** onto / off of **`Character.Effects`**.
-- Simulation systems (e.g. shoot) read **`character.Effects`**, not accessory trees.
-- Shipped **Gun** is JSON under **`config/accessories/gun.json`** (`ShootEffect` with combat doc values: interval **1.25** s, speed **200**, damage **25**, friendly fire **on**). Loaded by App into the registry (see [definition-settings.md](definition-settings.md)).
+- Simulation systems (e.g. shoot) read **`character.Effects`**, not accessory trees; shoot uses **`IShootEffect`**.
+- Shipped **Gun** is JSON under **`src/CompuQuest.Minimap/config/accessories/gun.json`** (copied to `extensions/CompuQuest.Minimap/` on build; CompuQuest `ShootEffect` with combat doc values: interval **1.25** s, speed **200**, damage **25**, friendly fire **on**). Loaded by App into the registry (see [definition-settings.md](definition-settings.md)).

@@ -12,7 +12,7 @@ public class GameplaySimulationFunctionalTests
             new AccessoryDefinition(
                 "gun",
                 [
-                    new ShootEffect(
+                    new TestShootEffect(
                         CombatTuning.FireIntervalSeconds,
                         CombatTuning.MissileSpeed,
                         CombatTuning.MissileDamage),

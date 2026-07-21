@@ -28,9 +28,10 @@ public static class ExtensionLoader
                 settings.SearchPaths,
                 configDirectory);
             LoadAssembly(path, registry);
+            DefinitionSettings.RegisterFromConfigDirectory(
+                DefinitionSettings.ContentDirectoryForAssembly(path),
+                registry);
         }
-
-        DefinitionSettings.RegisterFromConfigDirectory(configDirectory, registry);
 
         var integrator = registry.RequireIntegrator(settings.Integrator);
         var content = integrator.CreateGameContent(registry);

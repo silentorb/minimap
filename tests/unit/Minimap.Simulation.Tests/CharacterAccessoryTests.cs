@@ -12,7 +12,7 @@ public class CharacterAccessoryTests
         Assert.Single(c.Accessories);
         Assert.Equal("gun", c.Accessories[0].Definition.Id);
         Assert.Single(c.Effects);
-        Assert.IsType<ShootEffect>(c.Effects[0]);
+        Assert.IsType<TestShootEffect>(c.Effects[0]);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class CharacterAccessoryTests
         var gen = new AllFloorGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
 
-        var effect = Assert.IsType<ShootEffect>(player.Effects[0]);
+        var effect = Assert.IsType<TestShootEffect>(player.Effects[0]);
         Assert.Equal(0f, effect.CooldownRemaining);
 
         driver.SetAimInput(new SimVec2(1f, 0f));

@@ -1,3 +1,4 @@
+using CompuQuest.Minimap;
 using Minimap.Simulation;
 using Minimap.Simulation.Types;
 using Xunit;
