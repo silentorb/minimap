@@ -7,12 +7,13 @@ namespace Minimap.App;
 /// <summary>Loads extension assemblies and builds a registry with the built-in default integrator.</summary>
 public static class ExtensionLoader
 {
-    public sealed record LoadResult(
+    /// <summary>Success payload from a completed extension load (failures throw).</summary>
+    public sealed record LoadedExtensions(
         ExtensionRegistry Registry,
         IIntegrator Integrator,
         GameContent Content);
 
-    public static LoadResult Load(ExtensionsSettings settings, string configDirectory)
+    public static LoadedExtensions Load(ExtensionsSettings settings, string configDirectory)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentException.ThrowIfNullOrWhiteSpace(configDirectory);
@@ -31,10 +32,10 @@ public static class ExtensionLoader
 
         var integrator = registry.RequireIntegrator(settings.Integrator);
         var content = integrator.CreateGameContent(registry);
-        return new LoadResult(registry, integrator, content);
+        return new LoadedExtensions(registry, integrator, content);
     }
 
-    public static LoadResult LoadFromFile(string settingsPath)
+    public static LoadedExtensions LoadFromFile(string settingsPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
         var settings = ExtensionsSettings.LoadFromFile(settingsPath);

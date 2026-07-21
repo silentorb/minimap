@@ -36,6 +36,7 @@ Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.cspr
 - Prefer changing game logic and scenes in this repo; keep Godot editor–managed files (`*.tscn`, `project.godot`) consistent with how Godot serializes them.
 - Match existing script language and style in the files you touch (GDScript vs C#).
 - **Bug regressions:** When fixing a user-reported bug the suite missed, add a regression test at the lowest sound layer—or escalate instead of brittle/flaky coverage. See [`.cursor/rules/bug-regression-tests.mdc`](.cursor/rules/bug-regression-tests.mdc) and [docs/technical/features/testing.md](docs/technical/features/testing.md) (**Bug regressions / debugging**).
+- **Error handling:** Prefer explicit outcomes for expected failures; use exceptions only for truly exceptional cases or documented fail-fast abort boundaries. Non-trivial paths need a deliberate failure strategy. See [`.cursor/rules/error-handling.mdc`](.cursor/rules/error-handling.mdc) and [docs/technical/features/error-handling.md](docs/technical/features/error-handling.md).
 
 ## Environment
 

@@ -144,7 +144,17 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             return;
 
         _playContext.ApplyFromLobby(_lobby.BuildRoster());
-        GetTree().ChangeSceneToFile(WorldScenePath);
+        ChangeSceneOrThrow(WorldScenePath);
+    }
+
+    private void ChangeSceneOrThrow(string path)
+    {
+        var error = GetTree().ChangeSceneToFile(path);
+        if (error == Error.Ok)
+            return;
+
+        GD.PushError($"ChangeSceneToFile failed for '{path}': {error}");
+        throw new InvalidOperationException($"ChangeSceneToFile failed for '{path}' with {error}.");
     }
 
     private void RefreshPanels()

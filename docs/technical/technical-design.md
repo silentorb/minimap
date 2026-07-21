@@ -7,6 +7,7 @@
 - Mostly developed by AI agents
 - Heavily requirements-driven, documented under the `./docs` directory. **`./docs` is the source of truth for functionality**: game rules and feel live under `docs/game/`; architecture and contracts live under `docs/technical/`. Code and tests implement those documents. When behavior changes, update the docs in the same change (or first). If code and docs disagree, docs win and code is fixed.
 - Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks. User-reported gaps that the suite missed get a regression test when a sound one exists at the lowest practical layer; otherwise escalate rather than adding brittle or flaky coverage (see [features/testing.md](features/testing.md) **Bug regressions / debugging**).
+- Prefer **explicit error outcomes** for expected failures; use **exceptions** only for truly exceptional cases or documented fail-fast abort boundaries (see [features/error-handling.md](features/error-handling.md)).
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
 - **C# project boundaries**:

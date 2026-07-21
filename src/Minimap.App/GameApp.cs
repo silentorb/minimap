@@ -22,6 +22,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     [Export] public int AiPerFaction { get; set; } = 3;
     [Export] public int LocalPlayerCount { get; set; } = 1;
 
+    private readonly WorldSceneBoot _boot = new();
     private GameSession? _session;
     private WorldView? _worldView;
     private PlayerHudPanel? _hudPanel;
@@ -39,56 +40,71 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     public bool GameplayPaused => _gameplayPaused;
     public ReconnectOverlay? ReconnectOverlay => _reconnectOverlay;
     public GameOverOverlay? GameOverOverlay => _gameOverOverlay;
+    internal WorldSceneBoot Boot => _boot;
 
     public override void _Ready()
     {
-        _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
-        if (_playContext.Roster.IsEmpty)
-            _playContext.ApplyDefaultSoloKeyboard();
-
-        var count = _playContext.Roster.IsEmpty
-            ? Math.Clamp(LocalPlayerCount, 1, 4)
-            : _playContext.Roster.PlayerCount;
-
-        var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
-        var extensions = ExtensionLoader.LoadFromFile(
-            ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
-        var scenarioPath = ResolveScenarioPath();
-        _playContext.ScenarioPath = scenarioPath;
-        var scenario = ScenarioSettings.LoadFromFile(ProjectSettings.GlobalizePath(scenarioPath));
-
-        var spawn = new SpawnConfig
+        try
         {
-            PlayerFactionId = PlayerFactionId,
-            RivalFactionId = RivalFactionId,
-            AiPerFaction = AiPerFaction,
-            HumanPlayerCount = count,
-        };
+            _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
+            if (_playContext.Roster.IsEmpty)
+                _playContext.ApplyDefaultSoloKeyboard();
 
-        _session = GameSession.Create(
-            core.Map.Radius.X,
-            core.Map.Radius.Y,
-            WorldSeed,
-            HexSize,
-            spawn,
-            scenario,
-            count,
-            extensions.Content);
+            var count = _playContext.Roster.IsEmpty
+                ? Math.Clamp(LocalPlayerCount, 1, 4)
+                : _playContext.Roster.PlayerCount;
 
-        _worldView = GetNode<WorldView>("WorldView");
-        _worldView.HexSize = HexSize;
-        _worldView.Bind(_session.World, _session.Rng, _session.HumanPawns);
+            var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
+            var extensions = ExtensionLoader.LoadFromFile(
+                ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+            var scenarioPath = ResolveScenarioPath();
+            _playContext.ScenarioPath = scenarioPath;
+            var scenario = ScenarioSettings.LoadFromFile(ProjectSettings.GlobalizePath(scenarioPath));
+            _boot.MarkSettingsLoaded();
 
-        _hudPanel = GetNode<PlayerHudPanel>("PlayerHudPanel");
-        _hudPanel.Apply(_session.BuildHudModels());
+            var spawn = new SpawnConfig
+            {
+                PlayerFactionId = PlayerFactionId,
+                RivalFactionId = RivalFactionId,
+                AiPerFaction = AiPerFaction,
+                HumanPlayerCount = count,
+            };
 
-        _input = new LocalInputAggregator(_playContext.Roster, _worldView);
-        _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
-        _reconnectOverlay.DropPlayerRequested += OnDropDisconnectedPlayer;
-        _gameOverOverlay = GetNode<GameOverOverlay>("GameOverOverlay");
-        _gameOverOverlay.ContinueRequested += OnGameOverContinue;
-        Input.JoyConnectionChanged += OnJoyConnectionChanged;
+            _session = GameSession.Create(
+                core.Map.Radius.X,
+                core.Map.Radius.Y,
+                WorldSeed,
+                HexSize,
+                spawn,
+                scenario,
+                count,
+                extensions.Content);
+            _boot.MarkSessionBound();
+
+            _worldView = GetNode<WorldView>("WorldView");
+            _worldView.HexSize = HexSize;
+            _worldView.Bind(_session.World, _session.Rng, _session.HumanPawns);
+
+            _hudPanel = GetNode<PlayerHudPanel>("PlayerHudPanel");
+            _hudPanel.Apply(_session.BuildHudModels());
+
+            _input = new LocalInputAggregator(_playContext.Roster, _worldView);
+            _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
+            _reconnectOverlay.DropPlayerRequested += OnDropDisconnectedPlayer;
+            _gameOverOverlay = GetNode<GameOverOverlay>("GameOverOverlay");
+            _gameOverOverlay.ContinueRequested += OnGameOverContinue;
+            Input.JoyConnectionChanged += OnJoyConnectionChanged;
+            _boot.MarkViewsBound();
+        }
+        catch (Exception ex)
+        {
+            _boot.Abort(ex.Message);
+            GD.PushError($"World boot failed: {ex.Message}");
+            CallDeferred(MethodName.QuitAfterBootFailure);
+        }
     }
+
+    private void QuitAfterBootFailure() => GetTree().Quit(1);
 
     private string ResolveScenarioPath()
     {
@@ -117,6 +133,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     public override void _Process(double delta)
     {
+        if (!_boot.TryTick())
+            return;
+
         if (_session is null || _worldView is null || _hudPanel is null || _input is null)
             return;
 
@@ -144,6 +163,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (!_boot.TryTick())
+            return;
+
         if (!_reconnect.IsWaiting || _reconnectOverlay is null || _playContext is null)
             return;
 
@@ -163,6 +185,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     internal void CheckJoypadConnections()
     {
+        if (!_boot.TryTick())
+            return;
+
         if (_playContext is null || _session is null || _reconnectOverlay is null)
             return;
 
@@ -184,6 +209,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     internal void BeginReconnectWait(int playerIndex)
     {
+        if (!_boot.TryTick())
+            return;
+
         if (_playContext is null || _reconnectOverlay is null)
             return;
 
@@ -205,6 +233,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     internal bool HandleReconnectInput(InputDeviceId device, Key? key, JoyButton? button)
     {
+        if (!_boot.TryTick())
+            return false;
+
         if (_playContext is null || _reconnectOverlay is null || _session is null)
             return false;
         if (!_reconnect.IsWaiting)
@@ -238,6 +269,9 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     private void OnDropDisconnectedPlayer()
     {
+        if (!_boot.TryTick())
+            return;
+
         if (_session is null || _playContext is null || _reconnectOverlay is null)
             return;
         if (_reconnect.WaitingPlayerIndex is not int waiting)
@@ -249,7 +283,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         if (_session.Players.Count == 0)
         {
             _gameplayPaused = false;
-            GetTree().ChangeSceneToFile(LobbyScenePath);
+            ChangeSceneOrThrow(LobbyScenePath);
             return;
         }
 
@@ -259,11 +293,14 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     private void OnGameOverContinue()
     {
+        if (!_boot.TryTick())
+            return;
+
         if (_playContext is null)
             return;
 
         var nextScene = _playContext.EnteredFromLobby ? LobbyScenePath : WorldScenePath;
-        GetTree().ChangeSceneToFile(nextScene);
+        ChangeSceneOrThrow(nextScene);
     }
 
     internal void EndReconnectWait()
@@ -271,6 +308,16 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         _reconnect.ClearWait();
         _reconnectOverlay?.HideOverlay();
         _gameplayPaused = false;
+    }
+
+    private void ChangeSceneOrThrow(string path)
+    {
+        var error = GetTree().ChangeSceneToFile(path);
+        if (error == Error.Ok)
+            return;
+
+        GD.PushError($"ChangeSceneToFile failed for '{path}': {error}");
+        throw new InvalidOperationException($"ChangeSceneToFile failed for '{path}' with {error}.");
     }
 
     public void SimulateJoypadDisconnectForTests(int playerIndex) =>

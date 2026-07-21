@@ -307,16 +307,13 @@ public partial class WorldView : Node2D, IMovementKeyTarget
 
     public Vector2? TryGetPlayerPosition(int playerIndex)
     {
-        if (playerIndex >= 0 && playerIndex < _humanPawns.Count)
-        {
-            var pawn = _humanPawns[playerIndex];
-            if (_world is not null && _world.Characters.Contains(pawn))
-                return new Vector2(pawn.Position.X, pawn.Position.Y);
-        }
-
-        if (_characterNodes.Count == 0)
+        if (playerIndex < 0 || playerIndex >= _humanPawns.Count)
             return null;
-        var first = _characterNodes.OrderBy(kv => kv.Key).FirstOrDefault();
-        return first.Value?.Position;
+
+        var pawn = _humanPawns[playerIndex];
+        if (_world is null || !_world.Characters.Contains(pawn))
+            return null;
+
+        return new Vector2(pawn.Position.X, pawn.Position.Y);
     }
 }

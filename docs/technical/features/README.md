@@ -7,6 +7,7 @@
 
 | File | Read when… |
 |------|------------|
+| [error-handling.md](error-handling.md) | Adding or changing **APIs**, loaders, boot paths, RPC, or any **multi-step** logic where failures must be chosen (throw vs explicit outcome vs abort). |
 | [testing.md](testing.md) | Working on **automated tests**: unit vs functional layout, **xUnit**, protobuf gRPC Godot automation, `dotnet test`, **Godot-dependent** tests (`GODOT_BIN`), or **bug-driven regression** policy (failing test first / escalate brittle coverage). |
 | [../technical-design.md](../technical-design.md) | **Architecture**, docs-as-SoT, simulation vs. client boundaries, **Godot directory layout**, TDD, or global-state rules. |
 | [../../game/game-design.md](../../game/game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |

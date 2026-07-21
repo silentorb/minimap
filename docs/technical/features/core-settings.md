@@ -8,6 +8,7 @@ Shipped JSON configuration for developer-oriented (and user-editable) core game 
 - This file is distinct from a future **user settings** file (preferences that are not core bootstrap parameters).
 - **Minimap.App** exposes load APIs: `CoreSettings.LoadFromJson` and `CoreSettings.LoadFromFile`. Simulation and Client do not perform file I/O for settings.
 - `GameApp` loads core settings on ready via an exportable path (default `res://config/core.json`) and applies map radii when creating `GameSession`.
+- **Boot failure**: on any exception during world ready (including core settings load), `GameApp` aborts via `WorldSceneBoot`, `GD.PushError`, and quits—do not leave a half-initialized world interactive.
 - **Vector convention:** paired numeric settings prefer a 2D vector. In JSON they are a length-2 numeric array `[n, n]`, deserialized to `SimVec2I`.
 - Current schema:
 
