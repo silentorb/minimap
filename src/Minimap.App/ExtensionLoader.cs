@@ -28,8 +28,8 @@ public static class ExtensionLoader
                 settings.SearchPaths,
                 configDirectory);
             LoadAssembly(path, registry);
-            DefinitionSettings.RegisterFromConfigDirectory(
-                DefinitionSettings.ContentDirectoryForAssembly(path),
+            DefinitionConfig.RegisterFromConfigDirectory(
+                DefinitionConfig.ContentDirectoryForAssembly(path),
                 registry);
         }
 

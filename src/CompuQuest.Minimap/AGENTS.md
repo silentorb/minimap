@@ -16,4 +16,6 @@ Sample/content **extension** library: default home for concrete accessory effect
 - Shared contracts that belong in **Minimap.Simulation.Types** or **Minimap.Extensive**
 - Assumptions that this assembly is referenced by the Godot main assembly at runtime (it is loaded dynamically)
 
-Depends on **Extensive** + **Simulation**. See [extensions.md](../../docs/technical/features/extensions.md), [definition-settings.md](../../docs/technical/features/definition-settings.md).
+Depends on **Extensive** + **Simulation**. See [extensions.md](../../docs/technical/features/extensions.md), [definition-config.md](../../docs/technical/features/definition-config.md), [depiction.md](../../docs/technical/features/depiction.md).
+
+CompuQuest-owned Godot art (Kenney 1-Bit Pack tilesheet + SpriteFrames) lives under host **`assets/compuquest/`** so it can be imported as `res://`; definition JSON remains under `config/`.

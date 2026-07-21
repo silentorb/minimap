@@ -6,7 +6,7 @@ Host-side settings and extension **file I/O**, plus ModuleInitializer hooks so C
 
 ## What may live here
 
-- Settings load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionSettings`, `ExtensionsSettings`)
+- Settings/config load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionConfig`, `ExtensionsSettings`)
 - Extension loading (`ExtensionLoader`, `ExtensionPathResolver`) and registering Client hooks (`AppHostRegistration` → `ExtensionPreflight`, `WorldHostHooks`)
 - CLI bootstrap parsing (`CliArgs`)
 

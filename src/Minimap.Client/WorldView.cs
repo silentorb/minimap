@@ -1,12 +1,16 @@
 using Godot;
 using Minimap.Automation;
 using Minimap.Simulation;
+using Minimap.Simulation.Types;
 
 namespace Minimap.Client;
 
 /// <summary>World visuals + keyboard capture. Does not own or tick the simulation.</summary>
 public partial class WorldView : Node2D, IMovementKeyTarget
 {
+    /// <summary>Scale for 16×16 Kenney tiles so pawns stay readable vs hex cells (~20px ColorRect).</summary>
+    private const float SpriteFramesScale = 1.25f;
+
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
 
     private GameWorld? _world;
@@ -188,8 +192,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
                 node = _playerScene.Instantiate<Node2D>();
                 _playerLayer.AddChild(node);
                 _characterNodes[character.Id] = node;
-                var cr = node.GetNode<ColorRect>("ColorRect");
-                cr.Color = FactionColor(character.FactionId, character.Id);
+                ApplyCharacterDepiction(node, character);
             }
 
             var p = character.Position;
@@ -243,6 +246,49 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             _missileNodes[id].QueueFree();
             _missileNodes.Remove(id);
         }
+    }
+
+    private static void ApplyCharacterDepiction(Node2D node, Character character)
+    {
+        var colorRect = node.GetNode<ColorRect>("ColorRect");
+        var sprite = node.GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        var depiction = character.Definition.DepictionConfig;
+
+        if (sprite is not null &&
+            depiction is not null &&
+            depiction.Kind == DepictionKinds.SpriteFrames &&
+            TryApplySpriteFrames(sprite, depiction))
+        {
+            colorRect.Visible = false;
+            sprite.Visible = true;
+            sprite.Modulate = FactionColor(character.FactionId, character.Id);
+            return;
+        }
+
+        colorRect.Visible = true;
+        colorRect.Color = FactionColor(character.FactionId, character.Id);
+        if (sprite is not null)
+            sprite.Visible = false;
+    }
+
+    private static bool TryApplySpriteFrames(AnimatedSprite2D sprite, DepictionConfig depiction)
+    {
+        var frames = GD.Load<SpriteFrames>(depiction.ResourcePath);
+        if (frames is null)
+            return false;
+
+        sprite.SpriteFrames = frames;
+        sprite.Scale = new Vector2(SpriteFramesScale, SpriteFramesScale);
+
+        var animation = depiction.DefaultAnimation;
+        if (string.IsNullOrWhiteSpace(animation) || !frames.HasAnimation(animation))
+            animation = "default";
+
+        if (!frames.HasAnimation(animation))
+            return false;
+
+        sprite.Play(animation);
+        return true;
     }
 
     private void FitCameraToMap()

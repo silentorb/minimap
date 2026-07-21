@@ -10,6 +10,7 @@
 | [../game-design.md](../game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
+| [depiction.md](depiction.md) | Changing **depiction** on character/accessory definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
 | [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
 | [ai.md](ai.md) | Changing **AI** wander / floor goals, AI combat behavior, or AI spawn counts per faction. |

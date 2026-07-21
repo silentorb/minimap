@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Minimap.App.Tests;
 
-public class DefinitionSettingsTests
+public class DefinitionConfigTests
 {
     private static ExtensionRegistry RegistryWithShootFactory()
     {
@@ -32,7 +32,7 @@ public class DefinitionSettingsTests
             }
             """;
 
-        var def = DefinitionSettings.LoadAccessoryFromJson(json, RegistryWithShootFactory());
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
 
         Assert.Equal("gun", def.Id);
         var shoot = Assert.IsType<ShootEffect>(Assert.Single(def.EffectTemplates));
@@ -40,13 +40,49 @@ public class DefinitionSettingsTests
         Assert.Equal(200f, shoot.MissileSpeed);
         Assert.Equal(25f, shoot.MissileDamage);
         Assert.True(shoot.FriendlyFire);
+        Assert.Null(def.DepictionConfig);
+    }
+
+    [Fact]
+    public void LoadAccessoryFromJson_WithDepiction_ParsesDepictionConfig()
+    {
+        const string json = """
+            {
+              "id": "gun",
+              "effects": [],
+              "depiction": {
+                "kind": "sprite_frames",
+                "path": "res://assets/compuquest/kenney-1bit/depict/gun.tres",
+                "animation": "default"
+              }
+            }
+            """;
+
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
+        var depiction = Assert.IsType<DepictionConfig>(def.DepictionConfig);
+        Assert.Equal(DepictionKinds.SpriteFrames, depiction.Kind);
+        Assert.Equal("res://assets/compuquest/kenney-1bit/depict/gun.tres", depiction.ResourcePath);
+        Assert.Equal("default", depiction.DefaultAnimation);
+    }
+
+    [Fact]
+    public void LoadAccessoryFromJson_DepictionMissingKind_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            DefinitionConfig.LoadAccessoryFromJson("""
+                {
+                  "id": "gun",
+                  "effects": [],
+                  "depiction": { "path": "res://x.tres" }
+                }
+                """, RegistryWithShootFactory()));
     }
 
     [Fact]
     public void LoadAccessoryFromJson_UnknownEffectType_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionSettings.LoadAccessoryFromJson("""
+            DefinitionConfig.LoadAccessoryFromJson("""
                 {
                   "id": "odd",
                   "effects": [ { "type": "explode" } ]
@@ -58,7 +94,7 @@ public class DefinitionSettingsTests
     public void LoadAccessoryFromJson_MissingId_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionSettings.LoadAccessoryFromJson("""{ "effects": [] }""", RegistryWithShootFactory()));
+            DefinitionConfig.LoadAccessoryFromJson("""{ "effects": [] }""", RegistryWithShootFactory()));
     }
 
     [Fact]
@@ -70,12 +106,37 @@ public class DefinitionSettingsTests
             ["gun"] = gun,
         };
 
-        var def = DefinitionSettings.LoadCharacterFromJson(
+        var def = DefinitionConfig.LoadCharacterFromJson(
             """{ "id": "generic", "accessories": ["gun"] }""",
             byId);
 
         Assert.Equal("generic", def.Id);
         Assert.Same(gun, Assert.Single(def.Accessories));
+        Assert.Null(def.DepictionConfig);
+    }
+
+    [Fact]
+    public void LoadCharacterFromJson_WithDepiction_ParsesDepictionConfig()
+    {
+        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
+
+        var def = DefinitionConfig.LoadCharacterFromJson(
+            """
+            {
+              "id": "generic",
+              "accessories": [],
+              "depiction": {
+                "kind": "sprite_frames",
+                "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres"
+              }
+            }
+            """,
+            byId);
+
+        var depiction = Assert.IsType<DepictionConfig>(def.DepictionConfig);
+        Assert.Equal(DepictionKinds.SpriteFrames, depiction.Kind);
+        Assert.Equal("res://assets/compuquest/kenney-1bit/depict/generic.tres", depiction.ResourcePath);
+        Assert.Null(depiction.DefaultAnimation);
     }
 
     [Fact]
@@ -84,7 +145,7 @@ public class DefinitionSettingsTests
         var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
 
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionSettings.LoadCharacterFromJson(
+            DefinitionConfig.LoadCharacterFromJson(
                 """{ "id": "generic", "accessories": ["gun"] }""",
                 byId));
     }
@@ -93,14 +154,14 @@ public class DefinitionSettingsTests
     public void LoadAccessoriesFromDirectory_MissingDir_ReturnsEmpty()
     {
         var missing = Path.Combine(Path.GetTempPath(), $"defs-missing-{Guid.NewGuid():N}");
-        Assert.Empty(DefinitionSettings.LoadAccessoriesFromDirectory(missing, RegistryWithShootFactory()));
+        Assert.Empty(DefinitionConfig.LoadAccessoriesFromDirectory(missing, RegistryWithShootFactory()));
     }
 
     [Fact]
     public void ContentDirectoryForAssembly_UsesAssemblyNameBesideDll()
     {
         var path = Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap.dll");
-        var content = DefinitionSettings.ContentDirectoryForAssembly(path);
+        var content = DefinitionConfig.ContentDirectoryForAssembly(path);
         Assert.Equal(
             Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap"),
             content);
@@ -112,25 +173,35 @@ public class DefinitionSettingsTests
         var repoRoot = FindRepoRoot();
         var registry = RegistryWithShootFactory();
 
-        DefinitionSettings.RegisterFromConfigDirectory(
+        DefinitionConfig.RegisterFromConfigDirectory(
             Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config"),
             registry);
 
         var gun = Assert.Single(registry.AccessoryDefinitions);
         Assert.Equal("gun", gun.Id);
         Assert.IsType<ShootEffect>(Assert.Single(gun.EffectTemplates));
+        Assert.NotNull(gun.DepictionConfig);
+        Assert.Equal(DepictionKinds.SpriteFrames, gun.DepictionConfig.Kind);
+        Assert.Equal(
+            "res://assets/compuquest/kenney-1bit/depict/gun.tres",
+            gun.DepictionConfig.ResourcePath);
 
         var generic = Assert.Single(registry.CharacterDefinitions);
         Assert.Equal("generic", generic.Id);
         Assert.Equal("gun", Assert.Single(generic.Accessories).Id);
+        Assert.NotNull(generic.DepictionConfig);
+        Assert.Equal(DepictionKinds.SpriteFrames, generic.DepictionConfig.Kind);
+        Assert.Equal(
+            "res://assets/compuquest/kenney-1bit/depict/generic.tres",
+            generic.DepictionConfig.ResourcePath);
     }
 
     [Fact]
     public void RegisterFromConfigDirectory_TempDirs_RegistersFiles()
     {
         var root = Path.Combine(Path.GetTempPath(), $"defs-{Guid.NewGuid():N}");
-        var accessories = Path.Combine(root, DefinitionSettings.AccessoriesDirectoryName);
-        var characters = Path.Combine(root, DefinitionSettings.CharactersDirectoryName);
+        var accessories = Path.Combine(root, DefinitionConfig.AccessoriesDirectoryName);
+        var characters = Path.Combine(root, DefinitionConfig.CharactersDirectoryName);
         Directory.CreateDirectory(accessories);
         Directory.CreateDirectory(characters);
 
@@ -154,7 +225,7 @@ public class DefinitionSettingsTests
                 """);
 
             var registry = RegistryWithShootFactory();
-            DefinitionSettings.RegisterFromConfigDirectory(root, registry);
+            DefinitionConfig.RegisterFromConfigDirectory(root, registry);
 
             Assert.Equal("gun", Assert.Single(registry.AccessoryDefinitions).Id);
             Assert.Equal("generic", Assert.Single(registry.CharacterDefinitions).Id);

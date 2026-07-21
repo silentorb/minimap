@@ -5,7 +5,10 @@ public sealed class AccessoryDefinition
 {
     private readonly List<AccessoryEffect> _effectTemplates;
 
-    public AccessoryDefinition(string id, IEnumerable<AccessoryEffect> effectTemplates)
+    public AccessoryDefinition(
+        string id,
+        IEnumerable<AccessoryEffect> effectTemplates,
+        DepictionConfig? depictionConfig = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Accessory definition id must be non-empty.", nameof(id));
@@ -13,11 +16,14 @@ public sealed class AccessoryDefinition
 
         Id = id;
         _effectTemplates = effectTemplates.ToList();
+        DepictionConfig = depictionConfig;
     }
 
     public string Id { get; }
 
     public IReadOnlyList<AccessoryEffect> EffectTemplates => _effectTemplates;
+
+    public DepictionConfig? DepictionConfig { get; }
 
     /// <summary>Create a runtime accessory with cloned effect instances.</summary>
     public Accessory CreateInstance()

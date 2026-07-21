@@ -15,7 +15,8 @@
 | [navigation.md](navigation.md) | Working on **navmesh**, Godot **NavigationAgent2D** / crowd avoidance, **Minimap.Simulation.Navigation**, or AI path steering. |
 | [characters.md](characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |
 | [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, or `Character` effect cache add/remove. |
-| [definition-settings.md](definition-settings.md) | Changing **accessory/character JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionSettings` load APIs. |
+| [definition-config.md](definition-config.md) | Changing **accessory/character JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
+| [depiction.md](depiction.md) | Working on **DepictionConfig**, SpriteFrames depictions, or CompuQuest Kenney art under `assets/compuquest/`. |
 | [characters-and-factions.md](characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
 | [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, or App→Client HUD wiring. |
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |

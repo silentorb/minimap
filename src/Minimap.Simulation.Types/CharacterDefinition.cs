@@ -5,7 +5,10 @@ public sealed class CharacterDefinition
 {
     private readonly List<AccessoryDefinition> _accessories;
 
-    public CharacterDefinition(string id, IEnumerable<AccessoryDefinition> accessories)
+    public CharacterDefinition(
+        string id,
+        IEnumerable<AccessoryDefinition> accessories,
+        DepictionConfig? depictionConfig = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Character definition id must be non-empty.", nameof(id));
@@ -13,9 +16,12 @@ public sealed class CharacterDefinition
 
         Id = id;
         _accessories = accessories.ToList();
+        DepictionConfig = depictionConfig;
     }
 
     public string Id { get; }
 
     public IReadOnlyList<AccessoryDefinition> Accessories => _accessories;
+
+    public DepictionConfig? DepictionConfig { get; }
 }

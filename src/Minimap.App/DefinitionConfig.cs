@@ -1,12 +1,11 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Minimap.Extensive;
 using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
 /// <summary>Loads accessory and character definitions from JSON under extension content directories.</summary>
-public static class DefinitionSettings
+public static class DefinitionConfig
 {
     public const string AccessoriesDirectoryName = "accessories";
     public const string CharactersDirectoryName = "characters";
@@ -26,13 +25,6 @@ public static class DefinitionSettings
             throw new InvalidOperationException($"Could not resolve assembly name for '{assemblyPath}'.");
         return Path.Combine(directory, name);
     }
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
 
     public static IReadOnlyList<AccessoryDefinition> LoadAccessoriesFromDirectory(
         string directory,
@@ -59,7 +51,7 @@ public static class DefinitionSettings
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         ArgumentNullException.ThrowIfNull(registry);
 
-        using var document = ParseAccessoryDocument(json, sourcePath);
+        using var document = ParseDocument(json, "accessory", sourcePath);
         var root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object)
         {
@@ -88,7 +80,8 @@ public static class DefinitionSettings
             index++;
         }
 
-        return new AccessoryDefinition(id, effects);
+        var depiction = ParseDepictionProperty(root, sourcePath);
+        return new AccessoryDefinition(id, effects, depiction);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -127,32 +120,39 @@ public static class DefinitionSettings
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         ArgumentNullException.ThrowIfNull(accessoriesById);
 
-        CharacterFile? file;
-        try
+        using var document = ParseDocument(json, "character", sourcePath);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
         {
-            file = JsonSerializer.Deserialize<CharacterFile>(json, JsonOptions);
-        }
-        catch (JsonException ex)
-        {
-            throw new InvalidOperationException(
-                FormatParseError("character", sourcePath), ex);
-        }
-
-        if (file is null)
             throw new InvalidOperationException(
                 FormatEmptyObjectError("character", sourcePath));
+        }
 
-        if (string.IsNullOrWhiteSpace(file.Id))
+        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
             throw new InvalidOperationException(
                 FormatRequiredFieldError("character", "id", sourcePath));
+        }
 
-        if (file.Accessories is null)
+        if (!root.TryGetProperty("accessories", out var accessoriesElement) ||
+            accessoriesElement.ValueKind != JsonValueKind.Array)
+        {
             throw new InvalidOperationException(
                 FormatRequiredFieldError("character", "accessories", sourcePath));
+        }
 
         var accessories = new List<AccessoryDefinition>();
-        foreach (var accessoryId in file.Accessories)
+        foreach (var accessoryIdElement in accessoriesElement.EnumerateArray())
         {
+            if (accessoryIdElement.ValueKind != JsonValueKind.String)
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        "Character definition accessories must be non-empty ids.",
+                        sourcePath));
+            }
+
+            var accessoryId = accessoryIdElement.GetString();
             if (string.IsNullOrWhiteSpace(accessoryId))
             {
                 throw new InvalidOperationException(
@@ -165,14 +165,15 @@ public static class DefinitionSettings
             {
                 throw new InvalidOperationException(
                     AppendSource(
-                        $"Character definition '{file.Id}' references unknown accessory '{accessoryId}'.",
+                        $"Character definition '{id}' references unknown accessory '{accessoryId}'.",
                         sourcePath));
             }
 
             accessories.Add(accessory);
         }
 
-        return new CharacterDefinition(file.Id, accessories);
+        var depiction = ParseDepictionProperty(root, sourcePath);
+        return new CharacterDefinition(id, accessories, depiction);
     }
 
     public static CharacterDefinition LoadCharacterFromFile(
@@ -207,7 +208,7 @@ public static class DefinitionSettings
             registry.AddCharacterDefinition(character);
     }
 
-    private static JsonDocument ParseAccessoryDocument(string json, string? sourcePath)
+    private static JsonDocument ParseDocument(string json, string kind, string? sourcePath)
     {
         try
         {
@@ -220,8 +221,61 @@ public static class DefinitionSettings
         catch (JsonException ex)
         {
             throw new InvalidOperationException(
-                FormatParseError("accessory", sourcePath), ex);
+                FormatParseError(kind, sourcePath), ex);
         }
+    }
+
+    /// <summary>
+    /// Parses optional <c>depiction</c> object. Missing or null → null.
+    /// Malformed object / empty required fields fail fast.
+    /// </summary>
+    private static DepictionConfig? ParseDepictionProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("depiction", out var depictionElement))
+            return null;
+
+        if (depictionElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return null;
+
+        if (depictionElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Definition depiction must be a JSON object or null.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(depictionElement, "kind", out var kind) ||
+            string.IsNullOrWhiteSpace(kind))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Definition depiction must include kind.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(depictionElement, "path", out var path) ||
+            string.IsNullOrWhiteSpace(path))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Definition depiction must include path.", sourcePath));
+        }
+
+        string? animation = null;
+        if (depictionElement.TryGetProperty("animation", out var animationElement))
+        {
+            if (animationElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                animation = null;
+            }
+            else if (animationElement.ValueKind == JsonValueKind.String)
+            {
+                animation = animationElement.GetString();
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    AppendSource("Definition depiction animation must be a string or null.", sourcePath));
+            }
+        }
+
+        return new DepictionConfig(kind, path, animation);
     }
 
     private static AccessoryEffect ParseEffect(
@@ -280,13 +334,4 @@ public static class DefinitionSettings
 
     private static string AppendSource(string message, string? sourcePath) =>
         string.IsNullOrWhiteSpace(sourcePath) ? message : $"{message} ({sourcePath})";
-
-    private sealed class CharacterFile
-    {
-        [JsonPropertyName("id")]
-        public string? Id { get; init; }
-
-        [JsonPropertyName("accessories")]
-        public List<string>? Accessories { get; init; }
-    }
 }
