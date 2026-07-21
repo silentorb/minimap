@@ -12,6 +12,7 @@ Simulation character model and faction APIs. Implements [../../game/features/fac
   - `CharacterDefinition Definition`
   - Accessories and flat **`Effects`** cache (see [accessories.md](accessories.md))
   - Move intent consumed by world movement
+- **Movement collision:** each living character is a circle of `PlayerRadius`. `ApplyMovement` slides against hex wall polygons **and** other living characters (same radius); characters cannot occupy overlapping circles. Dead characters are not obstacles.
 - `GameWorld` holds a **mutable roster** of characters (not a fixed 1–4 array).
 - Spawns take a **`CharacterDefinition`** (normally `GameContent.DefaultCharacter`) and attach definition accessories via `AddAccessory`.
 - **`FactionRules.AreHostile(int a, int b)`** → `a != b`. No other faction constants in this helper.

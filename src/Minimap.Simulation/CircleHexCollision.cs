@@ -1,23 +1,26 @@
 namespace Minimap.Simulation;
 
-/// <summary>Circle (player) vs convex hex (wall cell) overlap and DOOM-style slide movement.</summary>
+/// <summary>Circle (player) vs convex hex (wall cell) and other circles; DOOM-style slide movement.</summary>
 public static class CircleHexCollision
 {
     private const float Epsilon = 1e-5f;
 
     /// <summary>
-    /// Move a circle by <paramref name="displacement"/>, sliding along hex walls on angled contact.
-    /// Clips the into-wall component before applying motion (DOOM-style), so glancing hits keep tangential progress.
+    /// Move a circle by <paramref name="displacement"/>, sliding along hex walls and other circles on angled contact.
+    /// Clips the into-obstacle component before applying motion (DOOM-style), so glancing hits keep tangential progress.
     /// </summary>
+    /// <param name="circleCenters">Other solid circles (e.g. living characters); each uses <paramref name="circleRadius"/>.</param>
     public static SimVec2 MoveAndSlide(
         SimVec2 position,
         SimVec2 displacement,
         float radius,
         IReadOnlyList<SimVec2[]> walls,
+        IReadOnlyList<SimVec2>? circleCenters = null,
+        float circleRadius = 0f,
         int maxIterations = 4)
     {
         var pos = position;
-        Depenetrate(ref pos, radius, walls);
+        Depenetrate(ref pos, radius, walls, circleCenters, circleRadius);
 
         var remaining = displacement;
         for (var iter = 0; iter < maxIterations; iter++)
@@ -26,13 +29,13 @@ public static class CircleHexCollision
                 break;
 
             var target = pos + remaining;
-            if (!TryGetPenetration(target, radius, walls, out var normal, out _))
+            if (!TryGetPenetration(target, radius, walls, circleCenters, circleRadius, out var normal, out _))
             {
                 pos = target;
                 break;
             }
 
-            // Cancel only the into-wall component, then retry with clipped motion (no double-apply).
+            // Cancel only the into-obstacle component, then retry with clipped motion (no double-apply).
             var into = SimVec2.Dot(remaining, normal);
             if (into >= 0f)
                 break;
@@ -40,7 +43,7 @@ public static class CircleHexCollision
             remaining -= normal * into;
         }
 
-        Depenetrate(ref pos, radius, walls);
+        Depenetrate(ref pos, radius, walls, circleCenters, circleRadius);
         return pos;
     }
 
@@ -48,6 +51,16 @@ public static class CircleHexCollision
         SimVec2 center,
         float radius,
         IReadOnlyList<SimVec2[]> walls,
+        out SimVec2 normal,
+        out float depth) =>
+        TryGetPenetration(center, radius, walls, null, 0f, out normal, out depth);
+
+    public static bool TryGetPenetration(
+        SimVec2 center,
+        float radius,
+        IReadOnlyList<SimVec2[]> walls,
+        IReadOnlyList<SimVec2>? circleCenters,
+        float circleRadius,
         out SimVec2 normal,
         out float depth)
     {
@@ -67,19 +80,69 @@ public static class CircleHexCollision
             }
         }
 
+        if (circleCenters is not null && circleRadius > 0f)
+        {
+            for (var i = 0; i < circleCenters.Count; i++)
+            {
+                if (!TryCircleCircle(center, radius, circleCenters[i], circleRadius, out var n, out var d))
+                    continue;
+                if (!found || d > depth)
+                {
+                    found = true;
+                    depth = d;
+                    normal = n;
+                }
+            }
+        }
+
         return found;
     }
 
-    private static void Depenetrate(ref SimVec2 pos, float radius, IReadOnlyList<SimVec2[]> walls)
+    private static void Depenetrate(
+        ref SimVec2 pos,
+        float radius,
+        IReadOnlyList<SimVec2[]> walls,
+        IReadOnlyList<SimVec2>? circleCenters,
+        float circleRadius)
     {
         for (var i = 0; i < 8; i++)
         {
-            if (!TryGetPenetration(pos, radius, walls, out var normal, out var depth))
+            if (!TryGetPenetration(pos, radius, walls, circleCenters, circleRadius, out var normal, out var depth))
                 return;
             if (depth <= Epsilon)
                 return;
             pos += normal * (depth + Epsilon);
         }
+    }
+
+    /// <summary>True if two solid circles overlap; normal pushes <paramref name="center"/> away from <paramref name="otherCenter"/>.</summary>
+    public static bool TryCircleCircle(
+        SimVec2 center,
+        float radius,
+        SimVec2 otherCenter,
+        float otherRadius,
+        out SimVec2 normal,
+        out float penetration)
+    {
+        normal = SimVec2.Zero;
+        penetration = 0f;
+        var delta = center - otherCenter;
+        var distSq = delta.LengthSquared;
+        var minDist = radius + otherRadius;
+        if (distSq >= minDist * minDist)
+            return false;
+
+        if (distSq < Epsilon * Epsilon)
+        {
+            normal = new SimVec2(1f, 0f);
+            penetration = minDist;
+            return true;
+        }
+
+        var dist = MathF.Sqrt(distSq);
+        normal = delta * (1f / dist);
+        penetration = minDist - dist;
+        return penetration > Epsilon;
     }
 
     /// <summary>True if the circle overlaps a solid convex polygon; normal pushes the circle out.</summary>

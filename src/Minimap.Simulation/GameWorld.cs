@@ -10,6 +10,7 @@ public sealed class GameWorld
     private readonly List<Missile> _missiles = new();
     private readonly List<WaveSpawner> _spawners = new();
     private readonly List<SimVec2[]> _wallPolygons = new();
+    private readonly List<SimVec2> _characterObstacleCenters = new();
     private readonly Random _random;
     private CharacterDefinition? _spawnCharacterDefinition;
     private int _nextCharacterId;
@@ -323,17 +324,31 @@ public sealed class GameWorld
         {
             if (!character.IsAlive)
                 continue;
-            var input = character.MoveIntent;
-            if (input.LengthSquared < 1e-10f)
-                continue;
 
-            var dir = input.Normalized();
-            var displacement = dir * (MoveSpeed * dt);
+            var input = character.MoveIntent;
+            var displacement = SimVec2.Zero;
+            if (input.LengthSquared >= 1e-10f)
+                displacement = input.Normalized() * (MoveSpeed * dt);
+
+            CollectCharacterObstacles(character.Id);
             character.Position = CircleHexCollision.MoveAndSlide(
                 character.Position,
                 displacement,
                 PlayerRadius,
-                _wallPolygons);
+                _wallPolygons,
+                _characterObstacleCenters,
+                PlayerRadius);
+        }
+    }
+
+    private void CollectCharacterObstacles(int excludeCharacterId)
+    {
+        _characterObstacleCenters.Clear();
+        foreach (var other in _characters)
+        {
+            if (!other.IsAlive || other.Id == excludeCharacterId)
+                continue;
+            _characterObstacleCenters.Add(other.Position);
         }
     }
 

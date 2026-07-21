@@ -79,6 +79,52 @@ public class MovementCollisionTests
                 out var pen) && pen > 0.05f);
     }
 
+    [Fact]
+    public void Head_on_into_other_character_stalls_without_overlap()
+    {
+        var gen = new AllFloorGenerator();
+        var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
+        var blocker = w.AddCharacter(2, new SimVec2(40f, 0f));
+        pawn.Position = new SimVec2(0f, 0f);
+        blocker.Position = new SimVec2(w.PlayerRadius * 2f + 8f, 0f);
+
+        pawn.MoveIntent = new SimVec2(1f, 0f);
+        for (var i = 0; i < 120; i++)
+            w.TickMovement(1f / 60f);
+
+        var delta = pawn.Position - blocker.Position;
+        var minDist = w.PlayerRadius * 2f;
+        Assert.True(
+            delta.LengthSquared >= (minDist - 0.05f) * (minDist - 0.05f),
+            $"Expected no overlap; dist={MathF.Sqrt(delta.LengthSquared)} min={minDist}");
+        var blockedX = pawn.Position.X;
+        w.TickMovement(1f / 60f);
+        Assert.Equal(blockedX, pawn.Position.X, precision: 2);
+    }
+
+    [Fact]
+    public void Angled_approach_slides_around_other_character()
+    {
+        var gen = new AllFloorGenerator();
+        var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
+        var blocker = w.AddCharacter(2, new SimVec2(0f, 0f));
+        pawn.Position = new SimVec2(-(w.PlayerRadius * 2f + 6f), -8f);
+        blocker.Position = new SimVec2(0f, 0f);
+        var before = pawn.Position;
+
+        pawn.MoveIntent = new SimVec2(1f, 1f);
+        for (var i = 0; i < 120; i++)
+            w.TickMovement(1f / 60f);
+
+        var after = pawn.Position;
+        Assert.True(after.Y > before.Y + 1f, $"Expected slide past other character in Y; before={before} after={after}");
+        var delta = after - blocker.Position;
+        var minDist = w.PlayerRadius * 2f;
+        Assert.True(
+            delta.LengthSquared >= (minDist - 0.05f) * (minDist - 0.05f),
+            $"Expected no overlap; dist={MathF.Sqrt(delta.LengthSquared)} min={minDist}");
+    }
+
     private sealed class AllFloorGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)
