@@ -17,7 +17,7 @@ public class HexGridTests
     }
 
     [Fact]
-    public void Ellipse_includes_horizontal_and_vertical_screen_extremes()
+    public void Rectangle_includes_screen_extremes_and_corners()
     {
         const int radiusX = 8;
         const int radiusY = 6;
@@ -27,8 +27,11 @@ public class HexGridTests
         // Pointy-top: pure screen-vertical extremes sit on X≈0 with R = ±radiusY.
         Assert.True(g.Contains(new HexAxial(radiusY / 2, -radiusY)));
         Assert.True(g.Contains(new HexAxial(-radiusY / 2, radiusY)));
-        // Corner of axial box is outside the ellipse.
-        Assert.False(g.Contains(new HexAxial(radiusX, radiusY)));
+        // Screen-space corners of the AABB (were outside the old ellipse).
+        Assert.True(g.Contains(new HexAxial(5, 6)));
+        Assert.True(g.Contains(new HexAxial(-5, -6)));
+        // Beyond horizontal half-extent.
+        Assert.False(g.Contains(new HexAxial(radiusX + 1, 0)));
     }
 
     [Fact]

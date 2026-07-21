@@ -15,7 +15,7 @@
 | [ai.md](ai.md) | Changing **AI** wander, AI combat behavior, or AI spawn counts per faction. |
 | [combat.md](combat.md) | Changing **missiles**, autoshoot, fire rate, or shared player/AI shooting feel. |
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
-| [map-layout.md](map-layout.md) | Changing **map shape or size** (ellipse extents, single-screen arena). |
+| [map-layout.md](map-layout.md) | Changing **map shape or size** (rectangle extents, single-screen arena). |
 | [player-hud.md](player-hud.md) | Changing **player HUD** slots, names, or on-screen health display. |
 | [lobby.md](lobby.md) | Changing **local player lobby**, join panels, or lobby → world start flow. |
 | [scenarios.md](scenarios.md) | Changing **scenario** JSON, wave pacing, spawner counts, or level transitions. |

@@ -1,7 +1,7 @@
 namespace Minimap.Simulation;
 
 /// <summary>
-/// Playable hex map. Default shape is a screen-space ellipse (see docs/technical/features/hex-grid-shape.md).
+/// Playable hex map. Default shape is a screen-space rectangle (see docs/technical/features/hex-grid-shape.md).
 /// </summary>
 public sealed class HexGrid
 {
@@ -21,7 +21,7 @@ public sealed class HexGrid
             throw new ArgumentOutOfRangeException(nameof(radiusY));
         RadiusX = radiusX;
         RadiusY = radiusY;
-        foreach (var h in EnumerateEllipse(radiusX, radiusY, hexSize))
+        foreach (var h in EnumerateRectangle(radiusX, radiusY, hexSize))
             _cells[h] = CellType.Floor;
     }
 
@@ -29,7 +29,7 @@ public sealed class HexGrid
     public int RadiusY { get; }
 
     /// <summary>Legacy alias for equal-axis grids; prefers RadiusX when unequal.</summary>
-    public int Radius => RadiusX == RadiusY ? RadiusX : throw new InvalidOperationException("Grid is elliptical; use RadiusX/RadiusY.");
+    public int Radius => RadiusX == RadiusY ? RadiusX : throw new InvalidOperationException("Grid has unequal axes; use RadiusX/RadiusY.");
 
     public int CellCount => _cells.Count;
 
@@ -49,7 +49,7 @@ public sealed class HexGrid
 
     public IEnumerable<HexAxial> AllHexes() => _cells.Keys;
 
-    public static IEnumerable<HexAxial> EnumerateEllipse(int radiusX, int radiusY, float hexSize = HexWorldLayout.DefaultHexSize)
+    public static IEnumerable<HexAxial> EnumerateRectangle(int radiusX, int radiusY, float hexSize = HexWorldLayout.DefaultHexSize)
     {
         if (radiusX == 0 && radiusY == 0)
         {
@@ -71,9 +71,7 @@ public sealed class HexGrid
             {
                 var h = new HexAxial(q, r);
                 var p = HexWorldLayout.ToWorld(h, hexSize);
-                var nx = p.X / maxX;
-                var ny = p.Y / maxY;
-                if (nx * nx + ny * ny <= 1f + 1e-5f)
+                if (MathF.Abs(p.X) <= maxX + 1e-5f && MathF.Abs(p.Y) <= maxY + 1e-5f)
                     yield return h;
             }
         }

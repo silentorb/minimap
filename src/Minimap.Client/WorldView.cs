@@ -24,6 +24,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private readonly Dictionary<int, Node2D> _missileNodes = new();
     private readonly HashSet<Key> _heldKeys = new();
     private readonly List<Character> _humanPawns = new();
+    private bool _sizeChangedHooked;
 
     public void Bind(GameWorld world, Random rng, IReadOnlyList<Character> humanPawns)
     {
@@ -55,8 +56,14 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         if (timer is not null)
             timer.Timeout += OnEvolutionTick;
 
+        if (!_sizeChangedHooked)
+        {
+            GetViewport().SizeChanged += FitCameraToMap;
+            _sizeChangedHooked = true;
+        }
+
         SyncAll();
-        RecenterCamera();
+        FitCameraToMap();
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -87,7 +94,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         _humanPawns.Clear();
         _humanPawns.AddRange(humanPawns);
         SyncAll();
-        RecenterCamera();
+        FitCameraToMap();
     }
 
     public SimVec2 ReadMoveInput() => ReadScreenAxisInput();
@@ -231,21 +238,46 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         }
     }
 
-    private void RecenterCamera()
+    private void FitCameraToMap()
     {
         if (_world is null)
             return;
+
         var cam = GetNode<Camera2D>("Camera2D");
-        Vector2 sum = Vector2.Zero;
+        var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
         var n = 0;
         foreach (var h in _world.Grid.AllHexes())
         {
-            sum += HexLayout.ToWorld(h, HexSize);
+            var p = HexLayout.ToWorld(h, HexSize);
+            min = new Vector2(MathF.Min(min.X, p.X), MathF.Min(min.Y, p.Y));
+            max = new Vector2(MathF.Max(max.X, p.X), MathF.Max(max.Y, p.Y));
             n++;
         }
 
-        if (n > 0)
-            cam.Position = sum / n;
+        if (n == 0)
+            return;
+
+        // Hex centers plus vertex radius so cell edges stay on-screen.
+        const float padding = 8f;
+        var margin = HexSize + padding;
+        min -= new Vector2(margin, margin);
+        max += new Vector2(margin, margin);
+
+        var mapSize = max - min;
+        if (mapSize.X < 1f)
+            mapSize.X = 1f;
+        if (mapSize.Y < 1f)
+            mapSize.Y = 1f;
+
+        cam.Position = (min + max) * 0.5f;
+
+        var view = GetViewport().GetVisibleRect().Size;
+        if (view.X < 1f || view.Y < 1f)
+            return;
+
+        var zoom = MathF.Min(view.X / mapSize.X, view.Y / mapSize.Y);
+        cam.Zoom = new Vector2(zoom, zoom);
     }
 
     private SimVec2 ReadScreenAxisInput()
