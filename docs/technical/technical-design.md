@@ -10,13 +10,13 @@
 - Prefer **explicit error outcomes** for expected failures; use **exceptions** only for truly exceptional cases or documented fail-fast abort boundaries (see [features/error-handling.md](features/error-handling.md)).
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
-- **C# project boundaries**:
-  - **Minimap.Simulation.Types** — shared **contracts** only (minimal boilerplate: ctors, getters/setters, trivial abstracts). No sealed gameplay implementations. See `src/Minimap.Simulation.Types/AGENTS.md`. Depended on by Simulation and Extensive
-  - **Minimap.Simulation** — authoritative logic/state; no Godot; no user input or output
-  - **Minimap.Extensive** — extension contracts, registry, and default integrator (no Godot, no file I/O)
-  - **Minimap.Client** — Godot rendering, input capture, HUD; may reference Simulation sparingly
-  - **Minimap.App** — thin front-facing integration that wires Simulation and Client (session creation, attach player controllers, feed HUD models); loads extension assemblies from config
-  - **CompuQuest.Minimap** — sample/content extension library (loadable DLL; depends on Extensive + Simulation; build-only host dependency, not linked into the Godot assembly). Default home for concrete accessory effects
+- **C# project boundaries** (details in each project’s `AGENTS.md`):
+  - **Minimap.Simulation.Types** — shared contracts only; see `src/Minimap.Simulation.Types/AGENTS.md`
+  - **Minimap.Simulation** — authoritative logic/state; see `src/Minimap.Simulation/AGENTS.md`
+  - **Minimap.Extensive** — extension contracts, registry, and default integrator; see `src/Minimap.Extensive/AGENTS.md`
+  - **Minimap.Client** — Godot rendering, input capture, HUD; see `src/Minimap.Client/AGENTS.md`
+  - **Minimap.App** — thin composition that wires Simulation and Client; see `src/Minimap.App/AGENTS.md`
+  - **CompuQuest.Minimap** — sample/content extension library; see `src/CompuQuest.Minimap/AGENTS.md`
 
 # Godot project layout
 
