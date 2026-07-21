@@ -17,7 +17,7 @@ Do **not** introduce a shared `Result<T>` library unless a later design change e
 | Layer | Guidance |
 |-------|----------|
 | **Simulation / Types / Extensive** | Throw on API misuse and broken invariants. Prefer `Try*` / nullable for expected misses (lookups, collision). No Godot logging. |
-| **App load / boot** | Fail-fast remains valid for missing/invalid config and extensions when the product contract is abort. Prefer a **single catch boundary** that surfaces (`GD.PushError`) and exits rather than scattering uncaught throws across `_Ready`. Lobby (`LobbySceneBoot`) and world (`WorldSceneBoot` / `GameApp`) both abort, push error, and quit(1) on boot failure. Scene changes via `ChangeSceneToFile` must check `Error.Ok` and surface failure (push error + throw)—do not ignore the return code. |
+| **App load / boot** | Fail-fast remains valid for missing/invalid config and extensions when the product contract is abort. Prefer a **single catch boundary** that surfaces (`GD.PushError`) and exits rather than scattering uncaught throws across `_Ready`. Lobby (`LobbySceneBoot` / `LobbyApp`) and world (`WorldSceneBoot` / `WorldApp`) both abort, push error, and quit(1) on boot failure. Scene changes via `ChangeSceneToFile` must check `Error.Ok` and surface failure (push error + throw)—do not ignore the return code. |
 | **Client gameplay** | Soft early-return / null for missing **optional** nodes is fine. Required scene wiring should fail loudly at attach time, not mid-frame. Lookups such as `TryGetPlayerPosition` return null on miss—no silent fallback to another entity. |
 | **Automation / gRPC** | Keep Ok/Error on the wire for business failures. Do not invent a parallel exception API for playbook/RPC outcomes. |
 

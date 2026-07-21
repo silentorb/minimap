@@ -17,7 +17,7 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
   - accessory definitions
   - character definitions
 - **`IIntegrator.CreateGameContent(IExtensionRegistry)`** returns `GameContent`. **`DefaultIntegrator`** sets `DefaultCharacter` to the **first registered** character definition (fails if none).
-- **Minimap.App** loads settings and assemblies: `ExtensionsSettings`, `ExtensionLoader`. After load, App calls `CreateGameContent` and passes **`GameContent`** into `GameSession`. Simulation and Client do not load extension DLLs.
+- **Minimap.App** loads settings and assemblies: `ExtensionsSettings`, `ExtensionLoader`. After load, App calls `CreateGameContent` and feeds **`GameContent`** to Client via `WorldHostHooks` for Simulation `GameSession` create. Simulation has no I/O; Client does not load extension DLLs (hooks only).
 - Shipped config: **`config/extensions.json`** (Godot path `res://config/extensions.json`).
 - Schema:
 
@@ -36,7 +36,7 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
 - `LobbyApp` (Client) also preflight-loads the same config on ready via `ExtensionPreflight` (App registers `ExtensionLoader`) so a bad extension set fails before the player starts a game.
 - Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (**not** linked into the Godot host assembly). Depends on **Extensive** and **Simulation**. The host project (`minimap.csproj`) has a **build-only** `ProjectReference` (`ReferenceOutputAssembly=false`) so Godot Play / `dotnet build` builds it and copies output to repo-root `extensions/`. Registers integrator id **`compuquest`**, the **`shoot`** accessory effect factory, and ships accessory/character JSON under `src/CompuQuest.Minimap/config/` (copied to `extensions/CompuQuest.Minimap/` on build; see [definition-settings.md](definition-settings.md)); `ExtensionLoader` registers each extension’s content directory after that DLL’s `Register` and before `CreateGameContent`.
 - Lobby boot binds panels **before** extension preflight (`LobbySceneBoot`). A failed load **aborts** the lobby (no input / no further play) and quits; it must not leave a corrupted interactive scene.
-- World boot (`GameApp` / `WorldSceneBoot`) likewise fail-fast loads extensions (and core/scenario settings). On any exception during ready, abort (no tick / no reconnect), `GD.PushError`, and quit the process—same boundary pattern as lobby.
+- World boot (`WorldApp` / `WorldSceneBoot`) likewise fail-fast loads extensions (and core/scenario settings) via host hooks. On any exception during ready, abort (no tick / no reconnect), `GD.PushError`, and quit the process—same boundary pattern as lobby.
 
 ## Non-goals (for now)
 

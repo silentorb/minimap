@@ -11,7 +11,7 @@
   - **`Minimap.Simulation.Navigation`** — Godot-backed navmesh / crowd steering; see [`src/Minimap.Simulation.Navigation/AGENTS.md`](src/Minimap.Simulation.Navigation/AGENTS.md).
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator; see [`src/Minimap.Extensive/AGENTS.md`](src/Minimap.Extensive/AGENTS.md).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD; see [`src/Minimap.Client/AGENTS.md`](src/Minimap.Client/AGENTS.md).
-  - **`Minimap.App`** — thin composition between Simulation and Client; see [`src/Minimap.App/AGENTS.md`](src/Minimap.App/AGENTS.md).
+  - **`Minimap.App`** — settings/extension file I/O and host hooks (not a scene root); see [`src/Minimap.App/AGENTS.md`](src/Minimap.App/AGENTS.md).
   - **`CompuQuest.Minimap`** — content extension library; see [`src/CompuQuest.Minimap/AGENTS.md`](src/CompuQuest.Minimap/AGENTS.md).
   - **`Minimap.Automation.Contracts`** — automation protobuf/gRPC and playbook interfaces; see [`src/Minimap.Automation.Contracts/AGENTS.md`](src/Minimap.Automation.Contracts/AGENTS.md).
   - **`Minimap.Automation`** — in-process Godot automation helpers; see [`src/Minimap.Automation/AGENTS.md`](src/Minimap.Automation/AGENTS.md).

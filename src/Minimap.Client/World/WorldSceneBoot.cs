@@ -1,4 +1,4 @@
-namespace Minimap.App;
+namespace Minimap.Client.World;
 
 /// <summary>
 /// Ordered world scene boot (Godot-free): settings → session → views → tick.
@@ -21,7 +21,7 @@ public sealed class WorldSceneBoot
         SettingsLoaded = true;
     }
 
-    /// <summary>Step 2: <see cref="GameSession"/> created.</summary>
+    /// <summary>Step 2: Simulation <c>GameSession</c> and client session created.</summary>
     public void MarkSessionBound()
     {
         ThrowIfAborted();

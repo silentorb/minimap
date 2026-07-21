@@ -2,19 +2,20 @@
 
 ## Purpose
 
-Thin composition between Simulation, Simulation.Navigation, and Client: session creation (`GameSession`, `GameApp`), attach player controllers, wire Godot navigation steering for AI, feed HUD models. Owns loading settings and extension assemblies from config. Sources are compiled into the Godot host assembly.
+Host-side settings and extension **file I/O**, plus ModuleInitializer hooks so Client scene roots can load config without referencing App types. Sources are compiled into the Godot host assembly.
 
 ## What may live here
 
-- Boot / session wiring (`GameApp`, `GameSession`, `WorldSceneBoot`, …), including parenting/rebuilding **Minimap.Simulation.Navigation** and upgrading AI `IMoveSteering`
 - Settings load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionSettings`, `ExtensionsSettings`)
-- Extension loading (`ExtensionLoader`) and registering Client hooks (`AppHostRegistration` → `ExtensionPreflight`)
-- World fail-fast abort boundaries (`GameApp` / `WorldSceneBoot`)
+- Extension loading (`ExtensionLoader`, `ExtensionPathResolver`) and registering Client hooks (`AppHostRegistration` → `ExtensionPreflight`, `WorldHostHooks`)
+- CLI bootstrap parsing (`CliArgs`)
 
 ## What must not live here
 
+- Godot scene roots / `Node` scripts (belong in Client: `LobbyApp`, `WorldApp`)
+- Authoritative playthrough session (`GameSession` belongs in Simulation)
+- Client controllers, HUD, input, reconnect UI
 - Deep gameplay rules (belong in Simulation)
-- `Control` or similar Godot UI classes / lobby scene roots / HUD widgets (belong in Client)
 - Concrete extension content / sealed accessory effects (belong in content extensions)
 
-Simulation and Client do not load extension DLLs or settings files—**App owns that I/O**. See [extensions.md](../../docs/technical/features/extensions.md), [core-settings.md](../../docs/technical/features/core-settings.md).
+Simulation has **no I/O**. Client may do light device/engine I/O but must not load shipped settings/extension files—**App owns that file I/O**. See [extensions.md](../../docs/technical/features/extensions.md), [core-settings.md](../../docs/technical/features/core-settings.md).

@@ -1,21 +1,20 @@
 using Godot;
-using Minimap.Client;
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 using Minimap.Simulation;
 using Minimap.Simulation.Navigation;
 
-namespace Minimap.App;
+namespace Minimap.Client.World;
 
-/// <summary>Godot entry: owns <see cref="GameSession"/>, drives WorldView + player HUD panel.</summary>
-public partial class GameApp : Node2D, IGameAutomationTarget
+/// <summary>World scene root: binds Simulation session + ClientSession, drives views and local play.</summary>
+public partial class WorldApp : Node, IGameAutomationTarget
 {
     private const string LobbyScenePath = "res://scenes/lobby.tscn";
     private const string WorldScenePath = "res://scenes/world.tscn";
 
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
     [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
-    [Export] public string DefaultScenarioPath { get; set; } = CliArgs.DefaultScenarioPath;
+    [Export] public string DefaultScenarioPath { get; set; } = WorldHostHooks.DefaultScenarioResPath;
     [Export] public int WorldSeed { get; set; } = 42;
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
     [Export] public int PlayerFactionId { get; set; } = 1;
@@ -25,6 +24,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     private readonly WorldSceneBoot _boot = new();
     private GameSession? _session;
+    private ClientSession? _clientSession;
     private WorldView? _worldView;
     private PlayerHudPanel? _hudPanel;
     private LocalPlayContextNode? _playContext;
@@ -38,7 +38,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     public WorldView? WorldView => _worldView;
     public GameSession? Session => _session;
-    public int HumanPlayerCount => _session?.Players.Count ?? 0;
+    public int HumanPlayerCount => _clientSession?.Players.Count ?? 0;
     public bool GameplayPaused => _gameplayPaused;
     public ReconnectOverlay? ReconnectOverlay => _reconnectOverlay;
     public GameOverOverlay? GameOverOverlay => _gameOverOverlay;
@@ -56,12 +56,14 @@ public partial class GameApp : Node2D, IGameAutomationTarget
                 ? Math.Clamp(LocalPlayerCount, 1, 4)
                 : _playContext.Roster.PlayerCount;
 
-            var core = CoreSettings.LoadFromFile(ProjectSettings.GlobalizePath(CoreSettingsPath));
-            var extensions = ExtensionLoader.LoadFromFile(
+            var mapRadius = WorldHostHooks.RequireCoreMapRadius(
+                ProjectSettings.GlobalizePath(CoreSettingsPath));
+            var content = WorldHostHooks.RequireGameContent(
                 ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
             var scenarioPath = ResolveScenarioPath();
             _playContext.ScenarioPath = scenarioPath;
-            var scenario = ScenarioSettings.LoadFromFile(ProjectSettings.GlobalizePath(scenarioPath));
+            var scenario = WorldHostHooks.RequireScenario(
+                ProjectSettings.GlobalizePath(scenarioPath));
             _boot.MarkSettingsLoaded();
 
             var spawn = new SpawnConfig
@@ -73,14 +75,15 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             };
 
             _session = GameSession.Create(
-                core.Map.Radius.X,
-                core.Map.Radius.Y,
+                mapRadius.X,
+                mapRadius.Y,
                 WorldSeed,
                 HexSize,
                 spawn,
                 scenario,
                 count,
-                extensions.Content);
+                content);
+            _clientSession = new ClientSession(_session);
             _boot.MarkSessionBound();
 
             _worldView = GetNode<WorldView>("WorldView");
@@ -96,7 +99,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             EnsureGodotSteering();
 
             _hudPanel = GetNode<PlayerHudPanel>("PlayerHudPanel");
-            _hudPanel.Apply(_session.BuildHudModels());
+            _hudPanel.Apply(_clientSession.BuildHudModels());
 
             _input = new LocalInputAggregator(_playContext.Roster, _worldView);
             _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
@@ -118,7 +121,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
     private string ResolveScenarioPath()
     {
-        var cliPath = CliArgs.TryGetScenarioPath(OS.GetCmdlineArgs());
+        var cliPath = WorldHostHooks.TryResolveScenarioPathFromArgs(OS.GetCmdlineArgs());
         if (!string.IsNullOrWhiteSpace(cliPath))
             return cliPath;
 
@@ -150,23 +153,27 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         if (!_boot.TryTick())
             return;
 
-        if (_session is null || _worldView is null || _hudPanel is null || _input is null)
+        if (_session is null || _clientSession is null || _worldView is null
+            || _hudPanel is null || _input is null)
             return;
 
         if (_gameplayPaused)
             return;
 
-        for (var i = 0; i < _session.Players.Count; i++)
+        for (var i = 0; i < _clientSession.Players.Count; i++)
         {
-            _session.SetMoveInput(i, _input.ReadMove(i));
-            _session.SetAimInput(i, _input.ReadAim(i));
+            _clientSession.SetMoveInput(i, _input.ReadMove(i));
+            _clientSession.SetAimInput(i, _input.ReadAim(i));
         }
 
         EnsureGodotSteering();
         _session.Tick((float)delta);
 
         if (_session.LastScenarioTickResult.LevelRegenerated)
+        {
+            _clientSession.OnLevelRegenerated();
             _worldView.OnLevelRegenerated(_session.HumanPawns);
+        }
 
         if (_session.IsGameOver && !_gameOverShown && _gameOverOverlay is not null)
         {
@@ -176,7 +183,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         }
 
         _worldView.SyncFrame();
-        _hudPanel.Apply(_session.BuildHudModels());
+        _hudPanel.Apply(_clientSession.BuildHudModels());
     }
 
     private void OnTerrainChanged()
@@ -277,7 +284,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         if (!_boot.TryTick())
             return false;
 
-        if (_playContext is null || _reconnectOverlay is null || _session is null)
+        if (_playContext is null || _reconnectOverlay is null || _clientSession is null)
             return false;
         if (!_reconnect.IsWaiting)
             return false;
@@ -313,22 +320,22 @@ public partial class GameApp : Node2D, IGameAutomationTarget
         if (!_boot.TryTick())
             return;
 
-        if (_session is null || _playContext is null || _reconnectOverlay is null)
+        if (_clientSession is null || _playContext is null || _reconnectOverlay is null)
             return;
         if (_reconnect.WaitingPlayerIndex is not int waiting)
             return;
 
-        _session.DropHumanPlayer(waiting);
+        _clientSession.DropHumanPlayer(waiting);
         _playContext.Roster.RemovePlayerAt(waiting);
 
-        if (_session.Players.Count == 0)
+        if (_clientSession.Players.Count == 0)
         {
             _gameplayPaused = false;
             ChangeSceneOrThrow(LobbyScenePath);
             return;
         }
 
-        _hudPanel?.Apply(_session.BuildHudModels());
+        _hudPanel?.Apply(_clientSession.BuildHudModels());
         EndReconnectWait();
     }
 

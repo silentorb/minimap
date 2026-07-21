@@ -5,10 +5,10 @@ Cross-scene local multiplayer roster. Related: [lobby.md](lobby.md), [local-inpu
 ## Requirements
 
 - Godot autoload **`LocalPlayContextNode`** (`res://src/Minimap.Client/LocalPlayContextNode.cs`).
-- Persists **player count** and **device sets** from lobby → world via `LocalPlayRoster` (`Minimap.App`).
+- Persists **player count** and **device sets** from lobby → world via `LocalPlayRoster` (`Minimap.Client.LocalPlay`).
 - **`Clear()`** when lobby scene loads (fresh join session).
 - **`ApplyDefaultSoloKeyboard()`** when world loads with empty roster (direct `world.tscn` / automation default).
-- **`GameApp`** reads roster on `_Ready` to set `HumanPlayerCount` and wire `LocalInputAggregator`.
+- **`WorldApp`** reads roster on `_Ready` to set human player count and wire `LocalInputAggregator`.
 
 ## Non-goals (for now)
 

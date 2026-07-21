@@ -15,7 +15,7 @@ Simulation character model and faction APIs. Implements [../../game/features/fac
 - `GameWorld` holds a **mutable roster** of characters (not a fixed 1–4 array).
 - Spawns take a **`CharacterDefinition`** (normally `GameContent.DefaultCharacter`) and attach definition accessories via `AddAccessory`.
 - **`FactionRules.AreHostile(int a, int b)`** → `a != b`. No other faction constants in this helper.
-- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play uses `GameWorld.InitializeScenarioLevel` (humans + wave spawners only). Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.App** attaches Client `PlayerController`s to human-faction characters. Rival AI during play comes from wave spawners (see [../../game/features/waves.md](../../game/features/waves.md)).
+- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play uses `GameWorld.InitializeScenarioLevel` (humans + wave spawners only). Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.Client** (`ClientSession`) attaches `PlayerController`s to human-faction characters. Rival AI during play comes from wave spawners (see [../../game/features/waves.md](../../game/features/waves.md)).
 
 ## Death
 

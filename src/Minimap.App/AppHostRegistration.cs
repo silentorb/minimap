@@ -7,11 +7,17 @@ namespace Minimap.App;
 /// <summary>Registers App-owned I/O hooks that Client scene roots may call.</summary>
 internal static class AppHostRegistration
 {
-    // Intentional: App is a class library for tests but also host composition; register before lobby runs.
+    // Intentional: App is a class library for tests but also host composition; register before scene roots run.
     [ModuleInitializer]
-    [SuppressMessage("Performance", "CA2255:The 'ModuleInitializer' attribute should not be used in libraries", Justification = "Registers ExtensionPreflight before lobby scene roots run; App is host composition.")]
+    [SuppressMessage("Performance", "CA2255:The 'ModuleInitializer' attribute should not be used in libraries", Justification = "Registers Client host hooks before lobby/world scene roots run; App is host composition.")]
     internal static void RegisterClientHooks()
     {
         ExtensionPreflight.LoadFromAbsolutePath = path => ExtensionLoader.LoadFromFile(path);
+        WorldHostHooks.LoadCoreMapRadiusFromAbsolutePath = path =>
+            CoreSettings.LoadFromFile(path).Map.Radius;
+        WorldHostHooks.LoadScenarioFromAbsolutePath = ScenarioSettings.LoadFromFile;
+        WorldHostHooks.LoadGameContentFromAbsolutePath = path =>
+            ExtensionLoader.LoadFromFile(path).Content;
+        WorldHostHooks.TryGetScenarioPathFromArgs = CliArgs.TryGetScenarioPath;
     }
 }

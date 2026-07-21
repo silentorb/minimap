@@ -22,5 +22,6 @@
     <ProjectReference Include="../Minimap.Automation/Minimap.Automation.csproj" />
     <ProjectReference Include="../Minimap.Automation.Contracts/Minimap.Automation.Contracts.csproj" />
     <ProjectReference Include="../Minimap.Simulation/Minimap.Simulation.csproj" />
+    <ProjectReference Include="../Minimap.Simulation.Navigation/Minimap.Simulation.Navigation.csproj" />
   </ItemGroup>
 </Project>

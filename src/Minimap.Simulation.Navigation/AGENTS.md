@@ -17,4 +17,4 @@ Godot-backed navigation for Simulation: navmesh from floor hexes and crowd avoid
 - References to **Minimap.Client**
 - AI brain / `AiController` (stays in **Minimap.Simulation**)
 
-Depends on **Minimap.Simulation** + GodotSharp. **Minimap.App** constructs and parents hosts into the world scene.
+Depends on **Minimap.Simulation** + GodotSharp. **Minimap.Client** (`WorldApp`) constructs and parents hosts into the world scene.

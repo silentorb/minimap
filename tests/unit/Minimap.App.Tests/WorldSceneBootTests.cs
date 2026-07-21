@@ -1,3 +1,4 @@
+using Minimap.Client.World;
 using Xunit;
 
 namespace Minimap.App.Tests;
@@ -88,7 +89,7 @@ public class WorldSceneBootTests
     }
 
     [Fact]
-    public void Simulates_settings_load_failure_like_GameApp_Ready()
+    public void Simulates_settings_load_failure_like_WorldApp_Ready()
     {
         var boot = new WorldSceneBoot();
         try

@@ -1,25 +1,10 @@
-using CompuQuest.Minimap;
-using Minimap.Simulation;
 using Minimap.Simulation.Types;
 using Xunit;
 
-namespace Minimap.App.Tests;
+namespace Minimap.Simulation.Tests;
 
 public class GameSessionGameOverTests
 {
-    private static GameContent TestGameContent()
-    {
-        var gun = new AccessoryDefinition(
-            "gun",
-            [
-                new ShootEffect(
-                    CombatTuning.FireIntervalSeconds,
-                    CombatTuning.MissileSpeed,
-                    CombatTuning.MissileDamage),
-            ]);
-        return new GameContent(new CharacterDefinition("generic", [gun]));
-    }
-
     [Fact]
     public void All_human_players_dead_sets_game_over()
     {
@@ -33,7 +18,7 @@ public class GameSessionGameOverTests
         };
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
         var session = GameSession.Create(
-            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestGameContent());
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestContent.Content);
 
         var pawn = session.HumanPawns[0];
         session.World.ApplyDamage(pawn, CombatTuning.DefaultMaxHealth);
@@ -48,7 +33,7 @@ public class GameSessionGameOverTests
         var scenario = Scenario.Defaults;
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
         var session = GameSession.Create(
-            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestGameContent());
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestContent.Content);
 
         session.Tick(0.016f);
 
@@ -60,7 +45,7 @@ public class GameSessionGameOverTests
     {
         var scenario = Scenario.Defaults;
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
-        var content = TestGameContent();
+        var content = TestContent.Content;
         var session = GameSession.Create(
             4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, content);
 

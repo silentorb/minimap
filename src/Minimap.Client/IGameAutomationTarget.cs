@@ -1,6 +1,6 @@
 namespace Minimap.Client;
 
-/// <summary>Automation hooks for in-world play without referencing App types from RPC host.</summary>
+/// <summary>Automation hooks for in-world play (implemented by WorldApp).</summary>
 public interface IGameAutomationTarget
 {
     int HumanPlayerCount { get; }

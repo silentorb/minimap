@@ -6,7 +6,7 @@ JSON configuration for [scenarios](../../game/features/scenarios.md). Loaded at 
 
 - Default file: **`config/scenarios/default.json`** (Godot path `res://config/scenarios/default.json`).
 - **Minimap.App** exposes `ScenarioSettings.LoadFromJson` and `ScenarioSettings.LoadFromFile`, returning `Minimap.Simulation.Scenario`.
-- **CLI override:** `--scenario=<path>` or `--scenario <path>` (parsed by `CliArgs.TryGetScenarioPath`). `GameApp` uses CLI path when present, else the default file. The resolved path is stored on `LocalPlayContextNode.ScenarioPath` for game-over reload.
+- **CLI override:** `--scenario=<path>` or `--scenario <path>` (parsed by `CliArgs.TryGetScenarioPath`, exposed to Client via `WorldHostHooks`). `WorldApp` uses CLI path when present, else the default file. The resolved path is stored on `LocalPlayContextNode.ScenarioPath` for game-over reload.
 - Schema:
 
 ```json
