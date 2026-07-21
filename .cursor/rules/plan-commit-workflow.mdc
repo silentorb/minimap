@@ -30,6 +30,8 @@ Label each changed path:
 
 Include related pre-existing changes in the same per-repo commit. For unrelated dirty files, note "exclude" or ask before mixing.
 
+**Greedy config inclusion** — Any dirty path under `config/` is **always Include** in the intended minimap commit when committing plan work, even if the tweak is pre-existing or outside the plan’s code scope. Do not classify `config/**` as Unrelated and do not ask before mixing. Only omit a config path if the user explicitly says to leave it out. Still exclude secrets, generated junk, and non-`config/` unrelated dirty files (ask/exclude as today).
+
 ## 3. Per-repo commit plan
 
 Default: **one commit per affected repo** (not one squashed commit across repos).
@@ -39,6 +41,8 @@ For each affected repo specify:
 - files to include
 - files to exclude
 - draft commit message (1–2 sentences, why not what; match recent `git log` style)
+
+When listing Include for minimap, fold in any dirty `config/**` (greedy config inclusion above).
 
 ## 4. Final todo (always last)
 
@@ -63,7 +67,7 @@ Use this shape (repo name matches this workspace):
 
 #### minimap
 
-- Include: …
+- Include: … (always include dirty `config/**` unless user excluded them)
 - Exclude: …
 - Draft message: "…"
 
@@ -79,8 +83,8 @@ If additional git repos appear later (nested or sibling), add a baseline bullet 
 Only when the user explicitly says "commit" / "go ahead and commit" / "commit per the plan":
 
 1. Re-snapshot git state in each affected repo.
-2. Compare to the plan; if scope differs materially, pause and confirm.
-3. Follow the Git Safety Protocol: status + diff + log in parallel, stage only planned files, HEREDOC message, verify after.
+2. Compare to the plan; if scope differs materially, pause and confirm. **Exception:** newly dirty `config/**` is auto-added to the stage list without a scope-differs pause (greedy config inclusion).
+3. Follow the Git Safety Protocol: status + diff + log in parallel, stage only planned files (plus greedy `config/**`), HEREDOC message, verify after.
 4. Repeat per affected repo. Never force-push or amend unless user rules allow.
 
 Do **not** auto-commit when implementation finishes.

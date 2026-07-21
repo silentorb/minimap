@@ -14,6 +14,7 @@
 | [controllers.md](controllers.md) | Working on **IController**, possess/unpossess, PlayerController / AiController, or tick order. |
 | [characters.md](characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |
 | [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, or `Character` effect cache add/remove. |
+| [definition-settings.md](definition-settings.md) | Changing **accessory/character JSON** under `config/accessories/` / `config/characters/`, effect `type` map, or `DefinitionSettings` load APIs. |
 | [characters-and-factions.md](characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
 | [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, or App→Client HUD wiring. |
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |

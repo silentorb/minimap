@@ -1,0 +1,12 @@
+{
+  "id": "gun",
+  "effects": [
+    {
+      "type": "shoot",
+      "fireIntervalSeconds": 1.25,
+      "missileSpeed": 200,
+      "missileDamage": 25,
+      "friendlyFire": true
+    }
+  ]
+}

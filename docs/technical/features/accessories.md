@@ -1,6 +1,6 @@
 # Accessories (technical)
 
-Accessory definitions, instances, and character effect cache. Implements [../../game/features/accessories.md](../../game/features/accessories.md). Related: [characters.md](characters.md), [controllers.md](controllers.md), [extensions.md](extensions.md).
+Accessory definitions, instances, and character effect cache. Implements [../../game/features/accessories.md](../../game/features/accessories.md). Related: [characters.md](characters.md), [controllers.md](controllers.md), [extensions.md](extensions.md), [definition-settings.md](definition-settings.md).
 
 ## Requirements
 
@@ -12,4 +12,4 @@ Accessory definitions, instances, and character effect cache. Implements [../../
 - **`IExtensionRegistry`** catalogs accessory definitions in **registration order** (`AddAccessoryDefinition` / `AccessoryDefinitions`).
 - **`Character.AddAccessory` / `RemoveAccessory`**: append or drop the accessory; sync the same effect **object references** onto / off of **`Character.Effects`**.
 - Simulation systems (e.g. shoot) read **`character.Effects`**, not accessory trees.
-- CompuQuest registers **Gun** (`ShootEffect` with combat doc values: interval **1.25** s, speed **200**, damage **25**, friendly fire **on**).
+- Shipped **Gun** is JSON under **`config/accessories/gun.json`** (`ShootEffect` with combat doc values: interval **1.25** s, speed **200**, damage **25**, friendly fire **on**). Loaded by App into the registry (see [definition-settings.md](definition-settings.md)).

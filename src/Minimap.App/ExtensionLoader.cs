@@ -30,6 +30,8 @@ public static class ExtensionLoader
             LoadAssembly(path, registry);
         }
 
+        DefinitionSettings.RegisterFromConfigDirectory(configDirectory, registry);
+
         var integrator = registry.RequireIntegrator(settings.Integrator);
         var content = integrator.CreateGameContent(registry);
         return new LoadedExtensions(registry, integrator, content);

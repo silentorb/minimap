@@ -59,6 +59,24 @@ public class ExtensionLoaderTests
     }
 
     [Fact]
+    public void Load_with_default_integrator_uses_json_definitions_without_extension_dll()
+    {
+        var repoRoot = FindRepoRoot();
+        var settings = new ExtensionsSettings
+        {
+            SearchPaths = new List<string> { "extensions" },
+            Extensions = new List<string>(),
+            Integrator = "default",
+        };
+
+        var result = ExtensionLoader.Load(settings, Path.Combine(repoRoot, "config"));
+
+        Assert.Equal("default", result.Integrator.Id);
+        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
+        Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
+    }
+
+    [Fact]
     public void LoadFromFile_uses_shipped_extensions_json_when_dll_present()
     {
         var repoRoot = FindRepoRoot();
