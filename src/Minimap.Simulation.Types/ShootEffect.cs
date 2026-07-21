@@ -1,9 +1,9 @@
 namespace Minimap.Simulation.Types;
 
-/// <summary>Autoshoot parameters and per-instance fire cooldown (docs/game/features/combat.md).</summary>
-public sealed class AutoshootEffect : AccessoryEffect
+/// <summary>Gun shoot parameters and per-instance fire cooldown (docs/game/features/combat.md).</summary>
+public sealed class ShootEffect : AccessoryEffect
 {
-    public AutoshootEffect(float fireIntervalSeconds, float missileSpeed, float missileDamage)
+    public ShootEffect(float fireIntervalSeconds, float missileSpeed, float missileDamage)
     {
         if (fireIntervalSeconds <= 0f)
             throw new ArgumentOutOfRangeException(nameof(fireIntervalSeconds));
@@ -23,5 +23,5 @@ public sealed class AutoshootEffect : AccessoryEffect
     public float CooldownRemaining { get; set; }
 
     public override AccessoryEffect Clone() =>
-        new AutoshootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage);
+        new ShootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage);
 }

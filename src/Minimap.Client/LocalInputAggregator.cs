@@ -4,7 +4,7 @@ using Minimap.Simulation;
 
 namespace Minimap.Client;
 
-/// <summary>Merges move input from all devices bound to each local player.</summary>
+/// <summary>Merges move and aim input from all devices bound to each local player.</summary>
 public sealed class LocalInputAggregator
 {
     private const float AxisDeadzone = 0.25f;
@@ -17,7 +17,16 @@ public sealed class LocalInputAggregator
         _worldView = worldView;
     }
 
-    public SimVec2 ReadMove(int playerIndex)
+    public SimVec2 ReadMove(int playerIndex) =>
+        ReadMerged(playerIndex, ReadKeyboardMove, ReadJoypadMove);
+
+    public SimVec2 ReadAim(int playerIndex) =>
+        ReadMerged(playerIndex, ReadKeyboardAim, ReadJoypadAim);
+
+    private SimVec2 ReadMerged(
+        int playerIndex,
+        Func<SimVec2> keyboard,
+        Func<int, SimVec2> joypad)
     {
         if (playerIndex < 0 || playerIndex >= _roster.PlayerCount)
             return SimVec2.Zero;
@@ -28,13 +37,13 @@ public sealed class LocalInputAggregator
         {
             if (device.IsKeyboard)
             {
-                var kb = ReadKeyboardMove();
+                var kb = keyboard();
                 x += kb.X;
                 y += kb.Y;
             }
             else
             {
-                var pad = ReadJoypadMove(device.JoypadDevice);
+                var pad = joypad(device.JoypadDevice);
                 x += pad.X;
                 y += pad.Y;
             }
@@ -48,6 +57,13 @@ public sealed class LocalInputAggregator
         if (_worldView is null)
             return SimVec2.Zero;
         return _worldView.ReadMoveInput();
+    }
+
+    private SimVec2 ReadKeyboardAim()
+    {
+        if (_worldView is null)
+            return SimVec2.Zero;
+        return _worldView.ReadAimInput();
     }
 
     private static SimVec2 ReadJoypadMove(int deviceIndex)
@@ -67,6 +83,16 @@ public sealed class LocalInputAggregator
         if (Input.IsJoyButtonPressed(deviceIndex, JoyButton.DpadUp))
             y -= 1f;
 
+        return ClampAxis(new SimVec2(ApplyDeadzone(x), ApplyDeadzone(y)));
+    }
+
+    private static SimVec2 ReadJoypadAim(int deviceIndex)
+    {
+        if (!Input.GetConnectedJoypads().Contains(deviceIndex))
+            return SimVec2.Zero;
+
+        var x = Input.GetJoyAxis(deviceIndex, JoyAxis.RightX);
+        var y = Input.GetJoyAxis(deviceIndex, JoyAxis.RightY);
         return ClampAxis(new SimVec2(ApplyDeadzone(x), ApplyDeadzone(y)));
     }
 

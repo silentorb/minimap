@@ -2,8 +2,8 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Shared nearest-hostile autoshoot (docs/game/features/combat.md).</summary>
-public static class Autoshoot
+/// <summary>Shared shoot helper: cooldown on ShootEffect; fire direction from controller (docs/game/features/combat.md).</summary>
+public static class Shoot
 {
     public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters)
     {
@@ -27,21 +27,24 @@ public static class Autoshoot
         return best;
     }
 
-    public static AutoshootEffect? FindAutoshootEffect(Character shooter)
+    public static ShootEffect? FindShootEffect(Character shooter)
     {
         foreach (var effect in shooter.Effects)
         {
-            if (effect is AutoshootEffect autoshoot)
-                return autoshoot;
+            if (effect is ShootEffect shoot)
+                return shoot;
         }
 
         return null;
     }
 
-    /// <summary>Decrements cooldown on the character's AutoshootEffect; when ready and a hostile exists, spawns a missile.</summary>
-    public static void Tick(GameWorld world, Character shooter, float dt)
+    /// <summary>
+    /// Decrements cooldown on the character's ShootEffect; when ready and
+    /// <paramref name="fireDirection"/> is non-zero, spawns a missile in that direction.
+    /// </summary>
+    public static void Tick(GameWorld world, Character shooter, float dt, SimVec2 fireDirection)
     {
-        var effect = FindAutoshootEffect(shooter);
+        var effect = FindShootEffect(shooter);
         if (effect is null)
             return;
 
@@ -49,14 +52,10 @@ public static class Autoshoot
         if (effect.CooldownRemaining > 0f)
             return;
 
-        var target = FindNearestHostile(shooter, world.Characters);
-        if (target is null)
+        if (fireDirection.LengthSquared < 1e-10f)
             return;
 
-        var dir = (target.Position - shooter.Position).Normalized();
-        if (dir.LengthSquared < 1e-10f)
-            return;
-
+        var dir = fireDirection.Normalized();
         world.SpawnMissile(
             shooter.Position,
             dir * effect.MissileSpeed,

@@ -1,6 +1,6 @@
 namespace Minimap.Simulation;
 
-/// <summary>AI wander + shared autoshoot (docs/game/features/ai.md).</summary>
+/// <summary>AI wander + nearest-hostile shoot aim (docs/game/features/ai.md).</summary>
 public sealed class AiController : IController
 {
     private readonly Random _random;
@@ -18,7 +18,7 @@ public sealed class AiController : IController
     public void Possess(Character character)
     {
         Pawn = character;
-        var effect = Autoshoot.FindAutoshootEffect(character);
+        var effect = Shoot.FindShootEffect(character);
         if (effect is not null)
             effect.CooldownRemaining = (float)(_random.NextDouble() * effect.FireIntervalSeconds);
         PickNewWalk();
@@ -36,7 +36,17 @@ public sealed class AiController : IController
             PickNewWalk();
 
         Pawn.MoveIntent = _walkDir;
-        Autoshoot.Tick(world, Pawn, dt);
+
+        var fireDir = SimVec2.Zero;
+        var target = Shoot.FindNearestHostile(Pawn, world.Characters);
+        if (target is not null)
+        {
+            var d = target.Position - Pawn.Position;
+            if (d.LengthSquared >= 1e-10f)
+                fireDir = d;
+        }
+
+        Shoot.Tick(world, Pawn, dt, fireDir);
     }
 
     private void PickNewWalk()

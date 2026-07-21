@@ -78,7 +78,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         else
             _heldKeys.Remove(k.Keycode);
 
-        if (IsMovementKey(k.Keycode))
+        if (IsGameplayAxisKey(k.Keycode))
             GetViewport().SetInputAsHandled();
     }
 
@@ -97,7 +97,9 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         FitCameraToMap();
     }
 
-    public SimVec2 ReadMoveInput() => ReadScreenAxisInput();
+    public SimVec2 ReadMoveInput() => ReadAxisFromKeys(Key.D, Key.A, Key.S, Key.W);
+
+    public SimVec2 ReadAimInput() => ReadAxisFromKeys(Key.Right, Key.Left, Key.Down, Key.Up);
 
     private void OnEvolutionTick()
     {
@@ -280,23 +282,28 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         cam.Zoom = new Vector2(zoom, zoom);
     }
 
-    private SimVec2 ReadScreenAxisInput()
+    private SimVec2 ReadAxisFromKeys(Key right, Key left, Key down, Key up)
     {
         var x = 0f;
         var y = 0f;
-        if (_heldKeys.Contains(Key.Right) || Input.IsKeyPressed(Key.Right))
+        if (_heldKeys.Contains(right) || Input.IsKeyPressed(right))
             x += 1f;
-        if (_heldKeys.Contains(Key.Left) || Input.IsKeyPressed(Key.Left))
+        if (_heldKeys.Contains(left) || Input.IsKeyPressed(left))
             x -= 1f;
-        if (_heldKeys.Contains(Key.Down) || Input.IsKeyPressed(Key.Down))
+        if (_heldKeys.Contains(down) || Input.IsKeyPressed(down))
             y += 1f;
-        if (_heldKeys.Contains(Key.Up) || Input.IsKeyPressed(Key.Up))
+        if (_heldKeys.Contains(up) || Input.IsKeyPressed(up))
             y -= 1f;
         return new SimVec2(x, y);
     }
 
     private static bool IsMovementKey(Key key) =>
+        key is Key.W or Key.A or Key.S or Key.D;
+
+    private static bool IsAimKey(Key key) =>
         key is Key.Up or Key.Down or Key.Left or Key.Right;
+
+    private static bool IsGameplayAxisKey(Key key) => IsMovementKey(key) || IsAimKey(key);
 
     private static Color ColorFor(CellType t) =>
         t switch

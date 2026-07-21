@@ -12,7 +12,7 @@ public class CharacterAccessoryTests
         Assert.Single(c.Accessories);
         Assert.Equal("gun", c.Accessories[0].Definition.Id);
         Assert.Single(c.Effects);
-        Assert.IsType<AutoshootEffect>(c.Effects[0]);
+        Assert.IsType<ShootEffect>(c.Effects[0]);
     }
 
     [Fact]
@@ -33,29 +33,28 @@ public class CharacterAccessoryTests
     }
 
     [Fact]
-    public void Autoshoot_does_not_fire_without_autoshoot_effect()
+    public void Shoot_does_not_fire_without_shoot_effect()
     {
         var gen = new AllFloorGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(
             3, 3, 1, gen, definition: TestContent.Bare);
         w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
 
-        driver.SetMoveInput(SimVec2.Zero);
+        driver.SetAimInput(new SimVec2(1f, 0f));
         w.Tick(0.016f);
         Assert.Empty(w.Missiles);
     }
 
     [Fact]
-    public void Autoshoot_cooldown_lives_on_effect()
+    public void Shoot_cooldown_lives_on_effect()
     {
         var gen = new AllFloorGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
 
-        var effect = Assert.IsType<AutoshootEffect>(player.Effects[0]);
+        var effect = Assert.IsType<ShootEffect>(player.Effects[0]);
         Assert.Equal(0f, effect.CooldownRemaining);
 
-        driver.SetMoveInput(SimVec2.Zero);
+        driver.SetAimInput(new SimVec2(1f, 0f));
         w.Tick(0.016f);
         Assert.True(w.Missiles.Count >= 1);
         Assert.Equal(effect.FireIntervalSeconds, effect.CooldownRemaining);

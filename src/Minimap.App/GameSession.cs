@@ -79,6 +79,13 @@ public sealed class GameSession
         _players[playerIndex].SetMoveInput(direction);
     }
 
+    public void SetAimInput(int playerIndex, SimVec2 direction)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetAimInput(direction);
+    }
+
     public void Tick(float dt)
     {
         if (_isGameOver)

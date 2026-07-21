@@ -3,10 +3,10 @@ using Minimap.Automation.Contracts;
 
 namespace Minimap.Functional.Godot.Playbooks;
 
-/// <summary>Holds arrow-right and asserts player0 visual X advances.</summary>
-public sealed class ArrowRightMovesPlayerPlaybook : IPlaybook
+/// <summary>Holds D (WASD move) and asserts player0 visual X advances.</summary>
+public sealed class HoldDMovesPlayerPlaybook : IPlaybook
 {
-    public string Id => "ArrowRightMovesPlayer";
+    public string Id => "HoldDMovesPlayer";
 
     public async Task<PlaybookResult> RunAsync(
         IPlaybookContext context,
@@ -21,9 +21,9 @@ public sealed class ArrowRightMovesPlayerPlaybook : IPlaybook
         if (!before.SceneLoaded || !before.IsWorldRoot)
             return PlaybookResult.Fail("World was not ready before movement.", Diagnostics(before));
 
-        await context.SetMovementKeyAsync((int)Key.Right, pressed: true, cancellationToken);
+        await context.SetMovementKeyAsync((int)Key.D, pressed: true, cancellationToken);
         await context.WaitFramesAsync(30, cancellationToken);
-        await context.SetMovementKeyAsync((int)Key.Right, pressed: false, cancellationToken);
+        await context.SetMovementKeyAsync((int)Key.D, pressed: false, cancellationToken);
 
         var after = await context.GetWorldSnapshotAsync(cancellationToken);
         if (after.Player0X <= before.Player0X)

@@ -74,20 +74,50 @@ public class FactionAndCombatTests
     }
 
     [Fact]
-    public void Autoshoot_fires_toward_hostile()
+    public void Shoot_with_aim_fires_along_aim_direction()
     {
         var gen = new AllFloorGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
+        // Closer hostile to the left — aim right must not auto-aim at them.
+        w.AddCharacter(2, player.Position + new SimVec2(-20f, 0f));
 
-        driver.SetMoveInput(SimVec2.Zero);
-        // Fire interval is 1.25s; cooldown starts at 0 so first tick should fire
+        driver.SetAimInput(new SimVec2(1f, 0f));
         w.Tick(0.016f);
         Assert.True(w.Missiles.Count >= 1);
         var m = w.Missiles[0];
         Assert.True(m.Velocity.X > 0f);
         Assert.Equal(CombatTuning.MissileDamage, m.Damage);
         Assert.Equal(CombatTuning.MissileSpeed, m.Velocity.Length, precision: 1);
+    }
+
+    [Fact]
+    public void Shoot_with_zero_aim_does_not_fire()
+    {
+        var gen = new AllFloorGenerator();
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
+        w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
+
+        driver.SetAimInput(SimVec2.Zero);
+        w.Tick(0.016f);
+        Assert.Empty(w.Missiles);
+    }
+
+    [Fact]
+    public void Ai_shoots_toward_nearest_hostile()
+    {
+        var gen = new AllFloorGenerator();
+        var w = GameWorld.Create(3, 3, 1, gen);
+        w.SetSpawnCharacterDefinition(TestContent.Generic);
+        var shooter = w.AddCharacter(1, SimVec2.Zero);
+        w.AddCharacter(2, new SimVec2(40f, 0f));
+        var ai = new AiController(new Random(1));
+        w.AttachController(ai, shooter);
+        var effect = Shoot.FindShootEffect(shooter)!;
+        effect.CooldownRemaining = 0f;
+
+        w.Tick(0.016f);
+        Assert.True(w.Missiles.Count >= 1);
+        Assert.True(w.Missiles[0].Velocity.X > 0f);
     }
 
     [Fact]

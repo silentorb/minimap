@@ -12,7 +12,7 @@ Note: Minimap is a working title
 - Realtime cartesian movement (screen-axis input); hex walls are solid colliders with wall-slide
 - Characters belong to factions; hostiles are other factions ([features/factions.md](features/factions.md))
 - Health, damage, and missile combat ([features/health.md](features/health.md), [features/damage.md](features/damage.md), [features/combat.md](features/combat.md))
-- AI characters wander and autoshoot hostiles ([features/ai.md](features/ai.md))
+- AI characters wander and shoot hostiles ([features/ai.md](features/ai.md))
 - Dense, close quarters tactics
 - Minimally procedurally generated world
 - World transforms over the course of each playthrough

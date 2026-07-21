@@ -143,7 +143,10 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             return;
 
         for (var i = 0; i < _session.Players.Count; i++)
+        {
             _session.SetMoveInput(i, _input.ReadMove(i));
+            _session.SetAimInput(i, _input.ReadAim(i));
+        }
 
         _session.Tick((float)delta);
 

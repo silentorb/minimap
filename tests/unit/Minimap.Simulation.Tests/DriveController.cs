@@ -6,6 +6,7 @@ namespace Minimap.Simulation.Tests;
 internal sealed class DriveController : IController
 {
     private SimVec2 _moveInput;
+    private SimVec2 _aimInput;
 
     public Character? Pawn { get; private set; }
 
@@ -15,12 +16,14 @@ internal sealed class DriveController : IController
 
     public void SetMoveInput(SimVec2 direction) => _moveInput = direction;
 
+    public void SetAimInput(SimVec2 direction) => _aimInput = direction;
+
     public void Tick(GameWorld world, float dt)
     {
         if (Pawn is null || !Pawn.IsAlive)
             return;
         Pawn.MoveIntent = _moveInput;
-        Autoshoot.Tick(world, Pawn, dt);
+        Shoot.Tick(world, Pawn, dt, _aimInput);
     }
 }
 

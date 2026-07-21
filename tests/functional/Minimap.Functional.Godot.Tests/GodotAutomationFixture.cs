@@ -13,7 +13,7 @@ public class GodotAutomationCollection : ICollectionFixture<GodotAutomationFixtu
 public sealed class GodotAutomationFixture : IAsyncLifetime
 {
     public const string WorldBootstrapId = "Minimap.Functional.Godot.Playbooks.WorldBootstrap";
-    public const string ArrowRightMovesPlayerId = "Minimap.Functional.Godot.Playbooks.ArrowRightMovesPlayer";
+    public const string HoldDMovesPlayerId = "Minimap.Functional.Godot.Playbooks.HoldDMovesPlayer";
     public const string LobbyBootstrapId = "Minimap.Functional.Godot.Playbooks.LobbyBootstrap";
     public const string LobbyClaimReadyStartId = "Minimap.Functional.Godot.Playbooks.LobbyClaimReadyStart";
     public const string LobbyBackUnclaimsId = "Minimap.Functional.Godot.Playbooks.LobbyBackUnclaims";

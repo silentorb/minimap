@@ -4,13 +4,14 @@ Input devices for local human players. Related: [lobby.md](lobby.md), [player-hu
 
 ## Requirements
 
-- Target **universal gamepad** support using Godot’s joypad names (`JoyButton.A`, `JoyButton.B`, `JoyButton.Start`, left stick, D-pad) — not vendor-specific labels.
+- Target **universal gamepad** support using Godot’s joypad names (`JoyButton.A`, `JoyButton.B`, `JoyButton.Start`, left stick, right stick, D-pad) — not vendor-specific labels.
 - **Keyboard** may be used instead of a gamepad for one player.
 - Each local player may bind **multiple devices** under the hood (one-to-many: one player aggregates input from every device in their set). The lobby UI only assigns the activating device on claim; there is no UI yet to attach extra devices (e.g. foot switches mapped to keyboard).
 - **Lobby activate** (claim slot, reconnect): `JoyButton.A` or `JoyButton.Start`; keyboard **Enter** or **Space**.
 - **Lobby ready**: `JoyButton.Start` while Claimed; keyboard Enter/Space.
 - **Lobby back**: `JoyButton.B`; keyboard **Escape**.
-- **In-world movement**: merge move axes from all devices bound to that player (arrow keys; left stick + D-pad on joypads).
+- **In-world movement**: merge move axes from all devices bound to that player (**WASD**; left stick + D-pad on joypads).
+- **In-world aim / fire**: merge aim axes from all devices bound to that player (**arrow keys**; right stick on joypads). Holding a non-zero aim direction fires on cooldown per [combat.md](combat.md) — no separate fire button.
 - **Direct world start** (no lobby): default **solo keyboard** on player 1 for developers and automation.
 
 ### Disconnect / reconnect
@@ -24,7 +25,6 @@ Input devices for local human players. Related: [lobby.md](lobby.md), [player-hu
 
 - UI to attach multiple devices per player in the lobby
 - Networked or remote input
-- Per-player fire buttons (autoshoot remains shared)
 
 ## Xbox crosswalk (informative)
 

@@ -11,7 +11,7 @@ public class GameSessionGameOverTests
         var gun = new AccessoryDefinition(
             "gun",
             [
-                new AutoshootEffect(
+                new ShootEffect(
                     CombatTuning.FireIntervalSeconds,
                     CombatTuning.MissileSpeed,
                     CombatTuning.MissileDamage),

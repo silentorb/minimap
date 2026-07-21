@@ -2,13 +2,13 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation.Tests;
 
-/// <summary>Shared test character/accessory definitions (Gun + AutoshootEffect).</summary>
+/// <summary>Shared test character/accessory definitions (Gun + ShootEffect).</summary>
 internal static class TestContent
 {
     public static AccessoryDefinition Gun { get; } = new(
         "gun",
         [
-            new AutoshootEffect(
+            new ShootEffect(
                 fireIntervalSeconds: CombatTuning.FireIntervalSeconds,
                 missileSpeed: CombatTuning.MissileSpeed,
                 missileDamage: CombatTuning.MissileDamage),

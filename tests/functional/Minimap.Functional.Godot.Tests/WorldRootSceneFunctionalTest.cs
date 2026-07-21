@@ -18,11 +18,11 @@ public class WorldRootSceneFunctionalTest(GodotAutomationFixture fixture)
     }
 
     [Fact]
-    public async Task Arrow_right_moves_player_visual_after_frames()
+    public async Task Hold_D_moves_player_visual_after_frames()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
         {
-            PlaybookId = GodotAutomationFixture.ArrowRightMovesPlayerId,
+            PlaybookId = GodotAutomationFixture.HoldDMovesPlayerId,
         });
         Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
     }
