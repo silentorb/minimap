@@ -5,7 +5,8 @@ extends EditorPlugin
 const EMBED_SIZE_MODE_STRETCH := 2
 
 func _enter_tree() -> void:
-	EditorSettings.get_singleton().set_project_metadata(
+	# GDScript: use EditorInterface (EditorSettings.get_singleton() is C++-only).
+	EditorInterface.get_editor_settings().set_project_metadata(
 		"game_view",
 		"embed_size_mode",
 		EMBED_SIZE_MODE_STRETCH
