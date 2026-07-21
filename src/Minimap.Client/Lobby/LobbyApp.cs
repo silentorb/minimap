@@ -1,9 +1,7 @@
 using Godot;
-using Minimap.Client;
-using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 
-namespace Minimap.App;
+namespace Minimap.Client.Lobby;
 
 /// <summary>Local multiplayer lobby: claim slots, ready up, start world.</summary>
 public partial class LobbyApp : Control, ILobbySnapshotSource
@@ -36,7 +34,8 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             RefreshPanels();
 
             // Fail fast if extension config / DLLs are invalid before the player starts a game.
-            ExtensionLoader.LoadFromFile(ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+            ExtensionPreflight.RequireLoadFromAbsolutePath(
+                ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
             _boot.MarkExtensionsLoaded();
         }
         catch (Exception ex)

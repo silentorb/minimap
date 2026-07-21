@@ -1,4 +1,4 @@
-namespace Minimap.App;
+namespace Minimap.Client.Lobby;
 
 /// <summary>
 /// Ordered lobby scene boot (Godot-free): bind panels → extension preflight → accept input.

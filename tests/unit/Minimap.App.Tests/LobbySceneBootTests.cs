@@ -1,3 +1,4 @@
+using Minimap.Client.Lobby;
 using Xunit;
 
 namespace Minimap.App.Tests;
