@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Thin composition between Simulation and Client: session creation (`GameSession`, `GameApp`), attach player controllers, feed HUD models. Owns loading settings and extension assemblies from config. Sources are compiled into the Godot host assembly.
+Thin composition between Simulation, Simulation.Navigation, and Client: session creation (`GameSession`, `GameApp`), attach player controllers, wire Godot navigation steering for AI, feed HUD models. Owns loading settings and extension assemblies from config. Sources are compiled into the Godot host assembly.
 
 ## What may live here
 
-- Boot / session wiring (`GameApp`, `LobbyApp`, `GameSession`, `WorldSceneBoot`, …)
+- Boot / session wiring (`GameApp`, `LobbyApp`, `GameSession`, `WorldSceneBoot`, …), including parenting/rebuilding **Minimap.Simulation.Navigation** and upgrading AI `IMoveSteering`
 - Settings load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionSettings`, `ExtensionsSettings`)
 - Extension loading (`ExtensionLoader`) and lobby/world fail-fast abort boundaries
 - Pure App state such as `LobbyStateMachine` / `LocalPlayRoster`

@@ -26,6 +26,9 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private readonly List<Character> _humanPawns = new();
     private bool _sizeChangedHooked;
 
+    /// <summary>Raised after terrain visuals sync (evolution or level regen).</summary>
+    public event Action? TerrainChanged;
+
     public void Bind(GameWorld world, Random rng, IReadOnlyList<Character> humanPawns)
     {
         _world = world;
@@ -95,6 +98,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         _humanPawns.AddRange(humanPawns);
         SyncAll();
         FitCameraToMap();
+        TerrainChanged?.Invoke();
     }
 
     public SimVec2 ReadMoveInput() => ReadAxisFromKeys(Key.D, Key.A, Key.S, Key.W);
@@ -108,6 +112,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         WorldEvolution.Tick(_world, _rng);
         SyncHexes();
         SyncCharacters();
+        TerrainChanged?.Invoke();
     }
 
     private void SyncAll()

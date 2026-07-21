@@ -1,19 +1,22 @@
 namespace Minimap.Simulation;
 
-/// <summary>AI wander + nearest-hostile shoot aim (docs/game/features/ai.md).</summary>
+/// <summary>AI floor-goal wander + nearest-hostile shoot aim (docs/game/features/ai.md).</summary>
 public sealed class AiController : IController
 {
     private readonly Random _random;
-    private SimVec2 _walkDir;
+    private IMoveSteering _steering;
     private float _retargetTimer;
 
-    public AiController(Random random)
+    public AiController(Random random, IMoveSteering? steering = null)
     {
-        _random = random;
-        PickNewWalk();
+        _random = random ?? throw new ArgumentNullException(nameof(random));
+        _steering = steering ?? new DirectMoveSteering();
+        _retargetTimer = 0f;
     }
 
     public Character? Pawn { get; private set; }
+
+    public IMoveSteering Steering => _steering;
 
     public void Possess(Character character)
     {
@@ -21,10 +24,27 @@ public sealed class AiController : IController
         var effect = Shoot.FindShootEffect(character);
         if (effect is not null)
             effect.CooldownRemaining = (float)(_random.NextDouble() * effect.FireIntervalSeconds);
-        PickNewWalk();
+        _steering.ClearGoal();
+        _retargetTimer = 0f;
     }
 
-    public void Unpossess() => Pawn = null;
+    public void Unpossess()
+    {
+        _steering.ClearGoal();
+        _steering.Dispose();
+        _steering = new DirectMoveSteering();
+        Pawn = null;
+    }
+
+    /// <summary>Swap move steering (e.g. App upgrades Direct → Godot crowd). Disposes the previous steering.</summary>
+    public void ReplaceSteering(IMoveSteering steering)
+    {
+        ArgumentNullException.ThrowIfNull(steering);
+        var previous = _steering;
+        _steering = steering;
+        previous.Dispose();
+        _retargetTimer = 0f;
+    }
 
     public void Tick(GameWorld world, float dt)
     {
@@ -33,9 +53,9 @@ public sealed class AiController : IController
 
         _retargetTimer -= dt;
         if (_retargetTimer <= 0f)
-            PickNewWalk();
+            PickNewWander(world);
 
-        Pawn.MoveIntent = _walkDir;
+        Pawn.MoveIntent = _steering.SampleMoveIntent(Pawn, dt);
 
         var fireDir = SimVec2.Zero;
         var target = Shoot.FindNearestHostile(Pawn, world.Characters);
@@ -49,17 +69,13 @@ public sealed class AiController : IController
         Shoot.Tick(world, Pawn, dt, fireDir);
     }
 
-    private void PickNewWalk()
+    private void PickNewWander(GameWorld world)
     {
-        _retargetTimer = 0.6f + (float)_random.NextDouble() * 1.2f;
-        // ~20% chance to pause briefly
-        if (_random.NextDouble() < 0.2)
-        {
-            _walkDir = SimVec2.Zero;
-            return;
-        }
-
-        var angle = (float)(_random.NextDouble() * Math.PI * 2.0);
-        _walkDir = new SimVec2(MathF.Cos(angle), MathF.Sin(angle));
+        _retargetTimer = AiWanderGoals.NextRetargetDelay(_random);
+        var goal = AiWanderGoals.PickFloorGoalOrPause(world, _random);
+        if (goal is null)
+            _steering.ClearGoal();
+        else
+            _steering.SetGoal(goal.Value);
     }
 }

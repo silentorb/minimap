@@ -13,6 +13,7 @@
 - **C# project boundaries** (details in each project’s `AGENTS.md`):
   - **Minimap.Simulation.Types** — shared contracts only; see `src/Minimap.Simulation.Types/AGENTS.md`
   - **Minimap.Simulation** — authoritative logic/state; see `src/Minimap.Simulation/AGENTS.md`
+  - **Minimap.Simulation.Navigation** — Godot-backed navmesh / crowd steering implementing Simulation navigation interfaces; see `src/Minimap.Simulation.Navigation/AGENTS.md`
   - **Minimap.Extensive** — extension contracts, registry, and default integrator; see `src/Minimap.Extensive/AGENTS.md`
   - **Minimap.Client** — Godot rendering, input capture, HUD; see `src/Minimap.Client/AGENTS.md`
   - **Minimap.App** — thin composition that wires Simulation and Client; see `src/Minimap.App/AGENTS.md`
@@ -31,6 +32,6 @@ It is not an exhaustive list of all the directories in this project.
 | `./entities` | All scenes for game elements within a root scene |
 | `./extensions` | Built extension DLLs and copied per-extension content dirs for local load (see [extensions](features/extensions.md)) |
 | `./scenes` | All root scenes |
-| `./src` | Source code (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
+| `./src` | Source code (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Simulation.Navigation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | `./tests` | Test suite |
 | `./ui` | All user interface scenes and related resources |

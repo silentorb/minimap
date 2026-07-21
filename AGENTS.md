@@ -8,13 +8,14 @@
 - **C# modules**:
   - **`Minimap.Simulation.Types`** — shared contracts only; see [`src/Minimap.Simulation.Types/AGENTS.md`](src/Minimap.Simulation.Types/AGENTS.md).
   - **`Minimap.Simulation`** — authoritative game logic and state; see [`src/Minimap.Simulation/AGENTS.md`](src/Minimap.Simulation/AGENTS.md).
+  - **`Minimap.Simulation.Navigation`** — Godot-backed navmesh / crowd steering; see [`src/Minimap.Simulation.Navigation/AGENTS.md`](src/Minimap.Simulation.Navigation/AGENTS.md).
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator; see [`src/Minimap.Extensive/AGENTS.md`](src/Minimap.Extensive/AGENTS.md).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD; see [`src/Minimap.Client/AGENTS.md`](src/Minimap.Client/AGENTS.md).
   - **`Minimap.App`** — thin composition between Simulation and Client; see [`src/Minimap.App/AGENTS.md`](src/Minimap.App/AGENTS.md).
   - **`CompuQuest.Minimap`** — content extension library; see [`src/CompuQuest.Minimap/AGENTS.md`](src/CompuQuest.Minimap/AGENTS.md).
   - **`Minimap.Automation.Contracts`** — automation protobuf/gRPC and playbook interfaces; see [`src/Minimap.Automation.Contracts/AGENTS.md`](src/Minimap.Automation.Contracts/AGENTS.md).
   - **`Minimap.Automation`** — in-process Godot automation helpers; see [`src/Minimap.Automation/AGENTS.md`](src/Minimap.Automation/AGENTS.md).
-  - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Extensive + Automation.Contracts.
+  - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Simulation.Navigation + Extensive + Automation.Contracts.
 
 ## Layout
 
@@ -26,7 +27,7 @@ Godot-related directories (see [docs/technical/technical-design.md](docs/technic
 | [`entities/`](entities/) | Scenes for elements used inside a root scene |
 | [`extensions/`](extensions/) | Built extension DLLs for local load |
 | [`scenes/`](scenes/) | Root scenes (e.g. `world.tscn`) |
-| [`src/`](src/) | C# (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
+| [`src/`](src/) | C# (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Simulation.Navigation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | [`tests/`](tests/) | Test projects |
 | [`ui/`](ui/) | UI scenes and related resources |
 

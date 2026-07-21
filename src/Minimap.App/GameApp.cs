@@ -3,6 +3,7 @@ using Minimap.Client;
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 using Minimap.Simulation;
+using Minimap.Simulation.Navigation;
 
 namespace Minimap.App;
 
@@ -30,6 +31,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     private LocalInputAggregator? _input;
     private ReconnectOverlay? _reconnectOverlay;
     private GameOverOverlay? _gameOverOverlay;
+    private GodotNavigationHost? _navigation;
     private readonly ReconnectState _reconnect = new();
     private bool _gameplayPaused;
     private bool _gameOverShown;
@@ -84,6 +86,14 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             _worldView = GetNode<WorldView>("WorldView");
             _worldView.HexSize = HexSize;
             _worldView.Bind(_session.World, _session.Rng, _session.HumanPawns);
+            _worldView.TerrainChanged += OnTerrainChanged;
+
+            _navigation = GodotNavigationHost.Create(
+                _worldView,
+                _session.World,
+                _session.World.PlayerRadius,
+                _session.World.MoveSpeed);
+            EnsureGodotSteering();
 
             _hudPanel = GetNode<PlayerHudPanel>("PlayerHudPanel");
             _hudPanel.Apply(_session.BuildHudModels());
@@ -127,8 +137,12 @@ public partial class GameApp : Node2D, IGameAutomationTarget
     public override void _ExitTree()
     {
         Input.JoyConnectionChanged -= OnJoyConnectionChanged;
+        if (_worldView is not null)
+            _worldView.TerrainChanged -= OnTerrainChanged;
         if (_gameOverOverlay is not null)
             _gameOverOverlay.ContinueRequested -= OnGameOverContinue;
+        _navigation?.Dispose();
+        _navigation = null;
     }
 
     public override void _Process(double delta)
@@ -148,6 +162,7 @@ public partial class GameApp : Node2D, IGameAutomationTarget
             _session.SetAimInput(i, _input.ReadAim(i));
         }
 
+        EnsureGodotSteering();
         _session.Tick((float)delta);
 
         if (_session.LastScenarioTickResult.LevelRegenerated)
@@ -162,6 +177,29 @@ public partial class GameApp : Node2D, IGameAutomationTarget
 
         _worldView.SyncFrame();
         _hudPanel.Apply(_session.BuildHudModels());
+    }
+
+    private void OnTerrainChanged()
+    {
+        if (_session is null || _navigation is null)
+            return;
+        _navigation.Rebuild(_session.World);
+        EnsureGodotSteering();
+    }
+
+    private void EnsureGodotSteering()
+    {
+        if (_session is null || _navigation is null)
+            return;
+
+        foreach (var controller in _session.World.Controllers)
+        {
+            if (controller is not AiController ai)
+                continue;
+            if (ai.Steering is GodotCrowdSteering)
+                continue;
+            ai.ReplaceSteering(_navigation.CreateCrowdSteering());
+        }
     }
 
     public override void _UnhandledInput(InputEvent @event)
