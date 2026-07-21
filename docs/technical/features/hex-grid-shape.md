@@ -18,4 +18,5 @@ Rectangular playable hex map. Implements [../../game/features/map-layout.md](../
 ## Client presentation
 
 - Project display: base viewport **1280×720**, `window/stretch/mode=canvas_items`, `window/stretch/aspect=expand` so UI fills the OS window without letterboxing.
-- `WorldView` fits `Camera2D` (position + uniform zoom) to the map AABB versus the visible viewport, and re-fits on viewport resize.
+- `WorldView` recenters `Camera2D` on the map hex average; it does **not** dynamically zoom to fit or cover the viewport (hex world scale stays fixed).
+- Editor Play (Godot 4.4+): floating **embedded** Game windows default to **Fixed Size**, which keeps a centered 1280×720 panel and ignores project stretch. This repo enables **Stretch to Fit** via [`addons/minimap_editor_defaults`](../../../addons/minimap_editor_defaults/) so Play respects stretch settings. If Play still shows a fixed centered panel, set the Game bar sizing to **Stretch to Fit** (or disable Embed Game on Next Play).

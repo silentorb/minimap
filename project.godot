@@ -35,6 +35,10 @@ project/assembly_name="minimap"
 
 run/main_run_args.linuxbsd="--rendering-driver vulkan --rendering-method forward_plus --single-window"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/minimap_editor_defaults/plugin.cfg")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
