@@ -10,7 +10,8 @@ public sealed class Missile
         float radius,
         float damage,
         int ownerFactionId,
-        int? ownerCharacterId)
+        int? ownerCharacterId,
+        bool friendlyFire = true)
     {
         Id = id;
         Position = position;
@@ -19,6 +20,7 @@ public sealed class Missile
         Damage = damage;
         OwnerFactionId = ownerFactionId;
         OwnerCharacterId = ownerCharacterId;
+        FriendlyFire = friendlyFire;
     }
 
     public int Id { get; }
@@ -28,4 +30,5 @@ public sealed class Missile
     public float Damage { get; }
     public int OwnerFactionId { get; }
     public int? OwnerCharacterId { get; }
+    public bool FriendlyFire { get; }
 }

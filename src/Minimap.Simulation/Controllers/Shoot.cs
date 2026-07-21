@@ -61,7 +61,8 @@ public static class Shoot
             dir * effect.MissileSpeed,
             effect.MissileDamage,
             shooter.FactionId,
-            shooter.Id);
+            shooter.Id,
+            effect.FriendlyFire);
         effect.CooldownRemaining = effect.FireIntervalSeconds;
     }
 }

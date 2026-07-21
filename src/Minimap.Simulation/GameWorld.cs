@@ -103,7 +103,8 @@ public sealed class GameWorld
         SimVec2 velocity,
         float damage,
         int ownerFactionId,
-        int? ownerCharacterId)
+        int? ownerCharacterId,
+        bool friendlyFire = true)
     {
         var m = new Missile(
             _nextMissileId++,
@@ -112,7 +113,8 @@ public sealed class GameWorld
             MissileRadius,
             damage,
             ownerFactionId,
-            ownerCharacterId);
+            ownerCharacterId,
+            friendlyFire);
         _missiles.Add(m);
         return m;
     }
@@ -355,7 +357,7 @@ public sealed class GameWorld
                     continue;
                 if (m.OwnerCharacterId is int oid && oid == character.Id)
                     continue;
-                if (!FactionRules.AreHostile(m.OwnerFactionId, character.FactionId))
+                if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, character.FactionId))
                     continue;
 
                 var delta = character.Position - m.Position;

@@ -49,7 +49,7 @@ public class FactionAndCombatTests
     }
 
     [Fact]
-    public void Missile_does_not_damage_same_faction()
+    public void Missile_damages_same_faction_when_friendly_fire()
     {
         var gen = new AllFloorGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
@@ -62,6 +62,32 @@ public class FactionAndCombatTests
             CombatTuning.MissileDamage,
             player.FactionId,
             player.Id);
+
+        for (var i = 0; i < 30; i++)
+            w.TickMovement(1f / 60f);
+        driver.SetMoveInput(SimVec2.Zero);
+        for (var i = 0; i < 30; i++)
+            w.Tick(1f / 60f);
+
+        Assert.Contains(ally, w.Characters);
+        Assert.Equal(before - CombatTuning.MissileDamage, ally.Health);
+    }
+
+    [Fact]
+    public void Missile_does_not_damage_same_faction_when_friendly_fire_off()
+    {
+        var gen = new AllFloorGenerator();
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
+        var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
+        var before = ally.Health;
+
+        w.SpawnMissile(
+            player.Position,
+            new SimVec2(CombatTuning.MissileSpeed, 0f),
+            CombatTuning.MissileDamage,
+            player.FactionId,
+            player.Id,
+            friendlyFire: false);
 
         for (var i = 0; i < 30; i++)
             w.TickMovement(1f / 60f);

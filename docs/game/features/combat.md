@@ -10,7 +10,7 @@ Missiles and shooting. Related: [damage.md](damage.md), [health.md](health.md), 
   - **Player**: twin-stick aim — fire in the aim-stick / aim-key direction while that vector is non-zero. No separate fire button.
   - **AI**: aim toward the **nearest living hostile** (different faction), or do not fire when none exists.
 - **Fire interval**: about **1.25** seconds between shots — cooldown lives on the **`ShootEffect`**, not on the controller.
-- Missiles that hit a hostile apply damage per [damage.md](damage.md) (default Gun damage **25**). Missiles that hit walls are destroyed. Same-faction overlap does not damage.
+- Missiles that hit a living character (other than the shooter) apply damage per [damage.md](damage.md) (default Gun damage **25**). **`ShootEffect` / Gun defaults to friendly fire**, so same-faction overlap damages. Missiles that hit walls are destroyed.
 
 ## Non-goals (for now)
 

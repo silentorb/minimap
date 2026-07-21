@@ -3,7 +3,11 @@ namespace Minimap.Simulation.Types;
 /// <summary>Gun shoot parameters and per-instance fire cooldown (docs/game/features/combat.md).</summary>
 public sealed class ShootEffect : AccessoryEffect
 {
-    public ShootEffect(float fireIntervalSeconds, float missileSpeed, float missileDamage)
+    public ShootEffect(
+        float fireIntervalSeconds,
+        float missileSpeed,
+        float missileDamage,
+        bool friendlyFire = true)
     {
         if (fireIntervalSeconds <= 0f)
             throw new ArgumentOutOfRangeException(nameof(fireIntervalSeconds));
@@ -15,13 +19,15 @@ public sealed class ShootEffect : AccessoryEffect
         FireIntervalSeconds = fireIntervalSeconds;
         MissileSpeed = missileSpeed;
         MissileDamage = missileDamage;
+        FriendlyFire = friendlyFire;
     }
 
     public float FireIntervalSeconds { get; }
     public float MissileSpeed { get; }
     public float MissileDamage { get; }
+    public bool FriendlyFire { get; }
     public float CooldownRemaining { get; set; }
 
     public override AccessoryEffect Clone() =>
-        new ShootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage);
+        new ShootEffect(FireIntervalSeconds, MissileSpeed, MissileDamage, FriendlyFire);
 }
