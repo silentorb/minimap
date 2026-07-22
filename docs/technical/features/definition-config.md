@@ -1,6 +1,6 @@
 # Definition config
 
-JSON configuration for accessory and character definitions (and the pattern for later similar game-data catalogs). Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md).
+JSON configuration for accessory and character definitions (and the pattern for later similar game-data catalogs). Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md), [ui-icons.md](ui-icons.md).
 
 ## Requirements
 
@@ -13,8 +13,9 @@ JSON configuration for accessory and character definitions (and the pattern for 
   2. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry, including any C#-registered defs and earlier extensions)
 - Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`). The host does **not** hardcode concrete effect classes.
 - Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
-- Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory ids, malformed `depiction`, or duplicate ids fail fast (same boot/preflight boundary as extensions).
+- Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory ids, malformed `depiction` or `icon`, or duplicate ids fail fast (same boot/preflight boundary as extensions).
 - Optional **`depiction`** object on accessory and character JSON maps to **`DepictionConfig`** (see [depiction.md](depiction.md)). App does not validate that Godot resources exist at load time.
+- Optional **`icon`** object on accessory and character JSON maps to **`IconConfig`** (see [ui-icons.md](ui-icons.md)). App does not validate that Godot resources exist at load time.
 
 ### Accessory schema
 
@@ -34,11 +35,14 @@ JSON configuration for accessory and character definitions (and the pattern for 
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/gun.tres",
     "animation": "default"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg"
   }
 }
 ```
 
-- `id` and `effects` are required. `depiction` is optional.
+- `id` and `effects` are required. `depiction` and `icon` are optional.
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`shoot`** → CompuQuest `ShootEffect` (`IShootEffect`) — requires `fireIntervalSeconds`, `missileSpeed`, `missileDamage`; `friendlyFire` optional (default **true**).
 
@@ -52,11 +56,14 @@ JSON configuration for accessory and character definitions (and the pattern for 
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
     "animation": "default"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/person.svg"
   }
 }
 ```
 
-- `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` is optional.
+- `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` and `icon` are optional.
 
 ### Later similar catalogs
 

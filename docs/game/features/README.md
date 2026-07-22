@@ -11,6 +11,7 @@
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
 | [depiction.md](depiction.md) | Changing **depiction** on character/accessory definitions, Kenney / SpriteFrames presentation, or how pawns look. |
+| [ui-icons.md](ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
 | [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
 | [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
 | [ai.md](ai.md) | Changing **AI** wander / floor goals, AI combat behavior, or AI spawn counts per faction. |

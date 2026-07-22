@@ -11,5 +11,5 @@ How content definitions describe presentation without coupling simulation to God
 
 ## Non-goals (for now)
 
-- Accessory visuals attached to the pawn or HUD
+- Accessory visuals attached to the pawn (equip overlay). Data-record / HUD icons are [ui-icons](ui-icons.md), not depiction.
 - Player-facing art picker / customization UI

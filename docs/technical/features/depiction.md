@@ -13,6 +13,6 @@ Opaque visual presentation references on content definitions. Implements [../../
 
 ## Non-goals (for now)
 
-- Drawing accessory depictions (equip overlay, HUD icons)
+- Drawing accessory depictions as equip overlay on the pawn (data-record / HUD icons: [ui-icons.md](ui-icons.md))
 - Death VFX / additional depiction kinds beyond the discriminator
 - Validating `res://` existence inside App loaders

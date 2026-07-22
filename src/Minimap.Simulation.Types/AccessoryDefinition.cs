@@ -8,7 +8,8 @@ public sealed class AccessoryDefinition
     public AccessoryDefinition(
         string id,
         IEnumerable<AccessoryEffect> effectTemplates,
-        DepictionConfig? depictionConfig = null)
+        DepictionConfig? depictionConfig = null,
+        IconConfig? iconConfig = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Accessory definition id must be non-empty.", nameof(id));
@@ -17,6 +18,7 @@ public sealed class AccessoryDefinition
         Id = id;
         _effectTemplates = effectTemplates.ToList();
         DepictionConfig = depictionConfig;
+        IconConfig = iconConfig;
     }
 
     public string Id { get; }
@@ -24,6 +26,8 @@ public sealed class AccessoryDefinition
     public IReadOnlyList<AccessoryEffect> EffectTemplates => _effectTemplates;
 
     public DepictionConfig? DepictionConfig { get; }
+
+    public IconConfig? IconConfig { get; }
 
     /// <summary>Create a runtime accessory with cloned effect instances.</summary>
     public Accessory CreateInstance()

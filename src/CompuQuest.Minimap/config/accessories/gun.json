@@ -13,5 +13,8 @@
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/gun.tres",
     "animation": "default"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg"
   }
 }

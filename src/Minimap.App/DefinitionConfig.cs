@@ -81,7 +81,8 @@ public static class DefinitionConfig
         }
 
         var depiction = ParseDepictionProperty(root, sourcePath);
-        return new AccessoryDefinition(id, effects, depiction);
+        var icon = ParseIconProperty(root, sourcePath);
+        return new AccessoryDefinition(id, effects, depiction, icon);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -173,7 +174,8 @@ public static class DefinitionConfig
         }
 
         var depiction = ParseDepictionProperty(root, sourcePath);
-        return new CharacterDefinition(id, accessories, depiction);
+        var icon = ParseIconProperty(root, sourcePath);
+        return new CharacterDefinition(id, accessories, depiction, icon);
     }
 
     public static CharacterDefinition LoadCharacterFromFile(
@@ -276,6 +278,34 @@ public static class DefinitionConfig
         }
 
         return new DepictionConfig(kind, path, animation);
+    }
+
+    /// <summary>
+    /// Parses optional <c>icon</c> object. Missing or null → null.
+    /// Malformed object / empty required fields fail fast.
+    /// </summary>
+    private static IconConfig? ParseIconProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("icon", out var iconElement))
+            return null;
+
+        if (iconElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return null;
+
+        if (iconElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Definition icon must be a JSON object or null.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(iconElement, "path", out var path) ||
+            string.IsNullOrWhiteSpace(path))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Definition icon must include path.", sourcePath));
+        }
+
+        return new IconConfig(path);
     }
 
     private static AccessoryEffect ParseEffect(

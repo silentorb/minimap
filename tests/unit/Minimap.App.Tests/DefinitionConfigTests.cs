@@ -41,6 +41,7 @@ public class DefinitionConfigTests
         Assert.Equal(25f, shoot.MissileDamage);
         Assert.True(shoot.FriendlyFire);
         Assert.Null(def.DepictionConfig);
+        Assert.Null(def.IconConfig);
     }
 
     [Fact]
@@ -66,6 +67,26 @@ public class DefinitionConfigTests
     }
 
     [Fact]
+    public void LoadAccessoryFromJson_WithIcon_ParsesIconConfig()
+    {
+        const string json = """
+            {
+              "id": "gun",
+              "effects": [],
+              "icon": {
+                "path": "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg"
+              }
+            }
+            """;
+
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
+        var icon = Assert.IsType<IconConfig>(def.IconConfig);
+        Assert.Equal(
+            "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg",
+            icon.ResourcePath);
+    }
+
+    [Fact]
     public void LoadAccessoryFromJson_DepictionMissingKind_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
@@ -74,6 +95,19 @@ public class DefinitionConfigTests
                   "id": "gun",
                   "effects": [],
                   "depiction": { "path": "res://x.tres" }
+                }
+                """, RegistryWithShootFactory()));
+    }
+
+    [Fact]
+    public void LoadAccessoryFromJson_IconMissingPath_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            DefinitionConfig.LoadAccessoryFromJson("""
+                {
+                  "id": "gun",
+                  "effects": [],
+                  "icon": {}
                 }
                 """, RegistryWithShootFactory()));
     }
@@ -113,6 +147,7 @@ public class DefinitionConfigTests
         Assert.Equal("generic", def.Id);
         Assert.Same(gun, Assert.Single(def.Accessories));
         Assert.Null(def.DepictionConfig);
+        Assert.Null(def.IconConfig);
     }
 
     [Fact]
@@ -137,6 +172,29 @@ public class DefinitionConfigTests
         Assert.Equal(DepictionKinds.SpriteFrames, depiction.Kind);
         Assert.Equal("res://assets/compuquest/kenney-1bit/depict/generic.tres", depiction.ResourcePath);
         Assert.Null(depiction.DefaultAnimation);
+    }
+
+    [Fact]
+    public void LoadCharacterFromJson_WithIcon_ParsesIconConfig()
+    {
+        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
+
+        var def = DefinitionConfig.LoadCharacterFromJson(
+            """
+            {
+              "id": "generic",
+              "accessories": [],
+              "icon": {
+                "path": "res://assets/compuquest/game-icons/delapouite/person.svg"
+              }
+            }
+            """,
+            byId);
+
+        var icon = Assert.IsType<IconConfig>(def.IconConfig);
+        Assert.Equal(
+            "res://assets/compuquest/game-icons/delapouite/person.svg",
+            icon.ResourcePath);
     }
 
     [Fact]
@@ -185,6 +243,10 @@ public class DefinitionConfigTests
         Assert.Equal(
             "res://assets/compuquest/kenney-1bit/depict/gun.tres",
             gun.DepictionConfig.ResourcePath);
+        Assert.NotNull(gun.IconConfig);
+        Assert.Equal(
+            "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg",
+            gun.IconConfig.ResourcePath);
 
         var generic = Assert.Single(registry.CharacterDefinitions);
         Assert.Equal("generic", generic.Id);
@@ -194,6 +256,10 @@ public class DefinitionConfigTests
         Assert.Equal(
             "res://assets/compuquest/kenney-1bit/depict/generic.tres",
             generic.DepictionConfig.ResourcePath);
+        Assert.NotNull(generic.IconConfig);
+        Assert.Equal(
+            "res://assets/compuquest/game-icons/delapouite/person.svg",
+            generic.IconConfig.ResourcePath);
     }
 
     [Fact]

@@ -17,6 +17,7 @@
 | [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, or `Character` effect cache add/remove. |
 | [definition-config.md](definition-config.md) | Changing **accessory/character JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
 | [depiction.md](depiction.md) | Working on **DepictionConfig**, SpriteFrames depictions, or CompuQuest Kenney art under `assets/compuquest/`. |
+| [ui-icons.md](ui-icons.md) | Working on **IconConfig**, definition `icon` JSON, or CompuQuest game-icons under `assets/compuquest/game-icons/`. |
 | [characters-and-factions.md](characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
 | [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, or App→Client HUD wiring. |
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |

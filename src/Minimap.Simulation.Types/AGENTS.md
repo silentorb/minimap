@@ -7,7 +7,7 @@ This project **exclusively houses contracts** shared across Simulation, Extensiv
 ## What may live here
 
 - Interfaces and abstract bases (e.g. `AccessoryEffect`, `IShootEffect`)
-- Definition / content bag types that Simulation and extensions both need (`AccessoryDefinition`, `CharacterDefinition`, `DepictionConfig`, `GameContent`, …)
+- Definition / content bag types that Simulation and extensions both need (`AccessoryDefinition`, `CharacterDefinition`, `DepictionConfig`, `IconConfig`, `GameContent`, …)
 - **Minimal boilerplate only**: constructors with invariant checks, property getters/setters, trivial abstract members such as `Clone()`
 
 ## What must not live here
