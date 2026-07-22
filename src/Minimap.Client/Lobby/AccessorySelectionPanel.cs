@@ -175,7 +175,7 @@ public partial class AccessorySelectionPanel : VBoxContainer
             || _availableGrid is null || _ownedGrid is null)
             return;
 
-        _pointsLabel.Text = $"Accessory points: {_state.RemainingPoints}/{_state.AccessoryPoints}";
+        _pointsLabel.Text = $"Points available: {_state.RemainingPoints}";
 
         var ownedIds = _state.Owned.Select(a => a.Id).ToHashSet(StringComparer.Ordinal);
         _availableOrder.Clear();
@@ -186,9 +186,42 @@ public partial class AccessorySelectionPanel : VBoxContainer
         }
 
         RebuildGrid(_availableGrid, _availableButtons, _availableOrder, owned: false);
-        RebuildGrid(_ownedGrid, _ownedButtons, _state.Owned, owned: true);
+        RebuildOwnedGrid();
         UpdateDescription();
         RefreshFocusVisual();
+    }
+
+    private void RebuildOwnedGrid()
+    {
+        if (_state is null || _ownedGrid is null)
+            return;
+
+        foreach (var child in _ownedGrid.GetChildren())
+            child.QueueFree();
+        _ownedButtons.Clear();
+
+        for (var i = 0; i < _state.Owned.Count; i++)
+        {
+            var accessory = _state.Owned[i];
+            var index = i;
+            var locked = _state.IsLocked(accessory);
+            var button = CreateIconButton(accessory, locked);
+            if (_interactive)
+            {
+                button.Pressed += () =>
+                {
+                    _focusOwned = true;
+                    _focusIndex = index;
+                    HandleActivate();
+                };
+            }
+
+            if (locked)
+                button.Modulate = new Color(0.65f, 0.65f, 0.7f);
+
+            _ownedGrid.AddChild(button);
+            _ownedButtons.Add(button);
+        }
     }
 
     private void RebuildGrid(
@@ -205,22 +238,7 @@ public partial class AccessorySelectionPanel : VBoxContainer
         {
             var accessory = items[i];
             var index = i;
-            var button = new Button
-            {
-                CustomMinimumSize = new Vector2(IconSize + 8, IconSize + 8),
-                FocusMode = _interactive ? FocusModeEnum.All : FocusModeEnum.None,
-                Disabled = !_interactive,
-                TooltipText = accessory.DisplayName ?? accessory.Id,
-            };
-
-            var icon = TryLoadIcon(accessory);
-            if (icon is not null)
-                button.Icon = icon;
-            else
-                button.Text = (accessory.DisplayName ?? accessory.Id).Length > 0
-                    ? (accessory.DisplayName ?? accessory.Id)[..1].ToUpperInvariant()
-                    : "?";
-
+            var button = CreateIconButton(accessory, locked: false);
             if (_interactive)
             {
                 var capturedOwned = owned;
@@ -235,6 +253,29 @@ public partial class AccessorySelectionPanel : VBoxContainer
             grid.AddChild(button);
             buttons.Add(button);
         }
+    }
+
+    private Button CreateIconButton(AccessoryDefinition accessory, bool locked)
+    {
+        var button = new Button
+        {
+            CustomMinimumSize = new Vector2(IconSize + 8, IconSize + 8),
+            FocusMode = _interactive ? FocusModeEnum.All : FocusModeEnum.None,
+            Disabled = !_interactive,
+            TooltipText = locked
+                ? $"{accessory.DisplayName ?? accessory.Id} (locked)"
+                : accessory.DisplayName ?? accessory.Id,
+        };
+
+        var icon = TryLoadIcon(accessory);
+        if (icon is not null)
+            button.Icon = icon;
+        else
+            button.Text = (accessory.DisplayName ?? accessory.Id).Length > 0
+                ? (accessory.DisplayName ?? accessory.Id)[..1].ToUpperInvariant()
+                : "?";
+
+        return button;
     }
 
     private static Texture2D? TryLoadIcon(AccessoryDefinition accessory)
@@ -273,8 +314,16 @@ public partial class AccessorySelectionPanel : VBoxContainer
     {
         foreach (var button in _availableButtons)
             button.Modulate = Colors.White;
-        foreach (var button in _ownedButtons)
-            button.Modulate = Colors.White;
+
+        if (_state is not null)
+        {
+            for (var i = 0; i < _ownedButtons.Count && i < _state.Owned.Count; i++)
+            {
+                _ownedButtons[i].Modulate = _state.IsLocked(_state.Owned[i])
+                    ? new Color(0.65f, 0.65f, 0.7f)
+                    : Colors.White;
+            }
+        }
 
         var buttons = _focusOwned ? _ownedButtons : _availableButtons;
         if (_interactive && _focusIndex >= 0 && _focusIndex < buttons.Count)
@@ -287,8 +336,16 @@ public partial class AccessorySelectionPanel : VBoxContainer
     {
         foreach (var button in _availableButtons)
             button.Modulate = Colors.White;
-        foreach (var button in _ownedButtons)
-            button.Modulate = Colors.White;
+        if (_state is not null)
+        {
+            for (var i = 0; i < _ownedButtons.Count && i < _state.Owned.Count; i++)
+            {
+                _ownedButtons[i].Modulate = _state.IsLocked(_state.Owned[i])
+                    ? new Color(0.65f, 0.65f, 0.7f)
+                    : Colors.White;
+            }
+        }
+
         if (_descriptionLabel is not null)
             _descriptionLabel.Text = string.Empty;
     }
@@ -318,8 +375,12 @@ public partial class AccessorySelectionPanel : VBoxContainer
         var name = focused.DisplayName ?? focused.Id;
         var cost = focused.PointCost;
         var body = focused.Description ?? string.Empty;
+        var locked = _focusOwned && _state.IsLocked(focused);
+        var header = locked
+            ? $"{name} (locked — cannot unchoose)"
+            : $"{name} (cost {cost})";
         _descriptionLabel.Text = string.IsNullOrWhiteSpace(body)
-            ? $"{name} (cost {cost})"
-            : $"{name} (cost {cost})\n{body}";
+            ? header
+            : $"{header}\n{body}";
     }
 }
