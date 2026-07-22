@@ -1,5 +1,9 @@
 {
   "id": "gun",
+  "displayName": "Gun",
+  "description": "Fire missiles at foes. Classic and reliable.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
   "effects": [
     {
       "type": "shoot",

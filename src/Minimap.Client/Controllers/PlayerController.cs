@@ -8,6 +8,14 @@ public sealed class PlayerController : IController
     private SimVec2 _moveInput;
     private SimVec2 _aimInput;
 
+    public PlayerController(Player player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        Player = player;
+    }
+
+    public Player Player { get; }
+
     public Character? Pawn { get; private set; }
 
     public void Possess(Character character) => Pawn = character;

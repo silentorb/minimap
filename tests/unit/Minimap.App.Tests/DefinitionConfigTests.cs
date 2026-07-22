@@ -226,18 +226,21 @@ public class DefinitionConfigTests
     }
 
     [Fact]
-    public void RegisterFromConfigDirectory_LoadsShippedGunAndGeneric()
+    public void RegisterFromConfigDirectory_LoadsShippedCompuQuestContent()
     {
         var repoRoot = FindRepoRoot();
         var registry = RegistryWithShootFactory();
+        registry.RegisterTags(["player_selectable"]);
 
         DefinitionConfig.RegisterFromConfigDirectory(
             Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config"),
             registry);
 
-        var gun = Assert.Single(registry.AccessoryDefinitions);
-        Assert.Equal("gun", gun.Id);
+        Assert.Equal(3, registry.AccessoryDefinitions.Count);
+        var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
         Assert.IsType<ShootEffect>(Assert.Single(gun.EffectTemplates));
+        Assert.Equal(1, gun.PointCost);
+        Assert.True(gun.HasTag(registry.Tags.GetOrCreate("player_selectable")));
         Assert.NotNull(gun.DepictionConfig);
         Assert.Equal(DepictionKinds.SpriteFrames, gun.DepictionConfig.Kind);
         Assert.Equal(
@@ -248,9 +251,12 @@ public class DefinitionConfigTests
             "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg",
             gun.IconConfig.ResourcePath);
 
-        var generic = Assert.Single(registry.CharacterDefinitions);
-        Assert.Equal("generic", generic.Id);
-        Assert.Equal("gun", Assert.Single(generic.Accessories).Id);
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "use_computer");
+
+        Assert.Equal(2, registry.CharacterDefinitions.Count);
+        var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
+        Assert.Empty(generic.Accessories);
         Assert.NotNull(generic.DepictionConfig);
         Assert.Equal(DepictionKinds.SpriteFrames, generic.DepictionConfig.Kind);
         Assert.Equal(
@@ -260,6 +266,9 @@ public class DefinitionConfigTests
         Assert.Equal(
             "res://assets/compuquest/game-icons/delapouite/person.svg",
             generic.IconConfig.ResourcePath);
+
+        var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
+        Assert.Equal("gun", Assert.Single(zombie.Accessories).Id);
     }
 
     [Fact]

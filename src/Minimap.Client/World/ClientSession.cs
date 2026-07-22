@@ -68,24 +68,28 @@ public sealed class ClientSession
 
     private void AttachHumanPlayers()
     {
-        foreach (var human in _session.HumanPawns)
+        foreach (var player in _session.Players)
         {
-            var controller = new PlayerController();
-            _session.World.AttachController(controller, human);
+            var controller = new PlayerController(player);
+            if (player.Character is not null)
+                _session.World.AttachController(controller, player.Character);
             _players.Add(controller);
         }
     }
 
     private void ReattachHumanPlayers()
     {
-        var humans = _session.HumanPawns;
-        for (var i = 0; i < _players.Count && i < humans.Count; i++)
+        for (var i = 0; i < _players.Count && i < _session.Players.Count; i++)
         {
             var controller = _players[i];
+            var character = _session.Players[i].Character;
+            if (character is null)
+                continue;
+
             if (controller.Pawn is not null)
                 controller.Unpossess();
 
-            _session.World.AttachController(controller, humans[i]);
+            _session.World.AttachController(controller, character);
         }
     }
 }

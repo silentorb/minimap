@@ -14,11 +14,19 @@ public static class WorldHostHooks
     /// <summary>Absolute filesystem path to core.json → map radius.</summary>
     public static Func<string, SimVec2I>? LoadCoreMapRadiusFromAbsolutePath { get; set; }
 
+    /// <summary>Absolute filesystem path to core.json → starting accessory points.</summary>
+    public static Func<string, int>? LoadCoreAccessoryPointsFromAbsolutePath { get; set; }
+
     /// <summary>Absolute filesystem path to scenario JSON → <see cref="Scenario"/>.</summary>
     public static Func<string, Scenario>? LoadScenarioFromAbsolutePath { get; set; }
 
     /// <summary>Absolute filesystem path to extensions.json → <see cref="GameContent"/>.</summary>
     public static Func<string, GameContent>? LoadGameContentFromAbsolutePath { get; set; }
+
+    /// <summary>
+    /// Absolute filesystem path to extensions.json → loaded extensions (registry + integrator + content).
+    /// </summary>
+    public static Func<string, ExtensionLoadResult>? LoadExtensionsFromAbsolutePath { get; set; }
 
     /// <summary>Godot cmdline args → optional scenario resource path override.</summary>
     public static Func<IReadOnlyList<string>, string?>? TryGetScenarioPathFromArgs { get; set; }
@@ -29,6 +37,15 @@ public static class WorldHostHooks
         var load = LoadCoreMapRadiusFromAbsolutePath
             ?? throw new InvalidOperationException(
                 "World host hooks are not registered. Minimap.App must set WorldHostHooks.LoadCoreMapRadiusFromAbsolutePath.");
+        return load(absolutePath);
+    }
+
+    public static int RequireCoreAccessoryPoints(string absolutePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
+        var load = LoadCoreAccessoryPointsFromAbsolutePath
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.LoadCoreAccessoryPointsFromAbsolutePath.");
         return load(absolutePath);
     }
 
@@ -50,9 +67,36 @@ public static class WorldHostHooks
         return load(absolutePath);
     }
 
+    public static ExtensionLoadResult RequireExtensions(string absolutePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
+        var load = LoadExtensionsFromAbsolutePath
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.LoadExtensionsFromAbsolutePath.");
+        return load(absolutePath);
+    }
+
     public static string? TryResolveScenarioPathFromArgs(IReadOnlyList<string> args)
     {
         ArgumentNullException.ThrowIfNull(args);
         return TryGetScenarioPathFromArgs?.Invoke(args);
     }
+}
+
+/// <summary>Client-facing snapshot of a successful extension load.</summary>
+public sealed class ExtensionLoadResult
+{
+    public ExtensionLoadResult(
+        GameContent content,
+        IReadOnlyList<AccessoryDefinition> playerSelectableAccessories)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(playerSelectableAccessories);
+        Content = content;
+        PlayerSelectableAccessories = playerSelectableAccessories;
+    }
+
+    public GameContent Content { get; }
+
+    public IReadOnlyList<AccessoryDefinition> PlayerSelectableAccessories { get; }
 }

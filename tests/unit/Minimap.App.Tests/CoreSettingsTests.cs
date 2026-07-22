@@ -6,9 +6,10 @@ namespace Minimap.App.Tests;
 public class CoreSettingsTests
 {
     [Fact]
-    public void Defaults_MatchDocumentedRadii()
+    public void Defaults_MatchDocumentedRadiiAndAccessoryPoints()
     {
         Assert.Equal(new SimVec2I(8, 6), CoreSettings.Defaults.Map.Radius);
+        Assert.Equal(2, CoreSettings.Defaults.Player.AccessoryPoints);
     }
 
     [Fact]
@@ -18,6 +19,9 @@ public class CoreSettingsTests
             {
               "map": {
                 "radius": [8, 6]
+              },
+              "player": {
+                "accessoryPoints": 2
               }
             }
             """;
@@ -25,6 +29,7 @@ public class CoreSettingsTests
         var settings = CoreSettings.LoadFromJson(json);
 
         Assert.Equal(new SimVec2I(8, 6), settings.Map.Radius);
+        Assert.Equal(2, settings.Player.AccessoryPoints);
     }
 
     [Fact]
@@ -102,6 +107,29 @@ public class CoreSettingsTests
             if (File.Exists(path))
                 File.Delete(path);
         }
+    }
+
+    [Fact]
+    public void LoadFromJson_NegativeAccessoryPoints_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            CoreSettings.LoadFromJson("""
+                {
+                  "map": { "radius": [8, 6] },
+                  "player": { "accessoryPoints": -1 }
+                }
+                """));
+    }
+
+    [Fact]
+    public void LoadFromJson_MissingPlayer_UsesDefaultAccessoryPoints()
+    {
+        var settings = CoreSettings.LoadFromJson("""
+            {
+              "map": { "radius": [8, 6] }
+            }
+            """);
+        Assert.Equal(2, settings.Player.AccessoryPoints);
     }
 
     [Fact]

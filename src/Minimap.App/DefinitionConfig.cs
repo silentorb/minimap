@@ -82,7 +82,19 @@ public static class DefinitionConfig
 
         var depiction = ParseDepictionProperty(root, sourcePath);
         var icon = ParseIconProperty(root, sourcePath);
-        return new AccessoryDefinition(id, effects, depiction, icon);
+        var tags = ParseTagsProperty(root, registry.Tags, sourcePath);
+        var pointCost = ParsePointCostProperty(root, sourcePath);
+        TryGetStringProperty(root, "displayName", out var displayName);
+        TryGetStringProperty(root, "description", out var description);
+        return new AccessoryDefinition(
+            id,
+            effects,
+            depiction,
+            icon,
+            tags,
+            pointCost,
+            displayName,
+            description);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -225,6 +237,66 @@ public static class DefinitionConfig
             throw new InvalidOperationException(
                 FormatParseError(kind, sourcePath), ex);
         }
+    }
+
+    private static IReadOnlyList<TagId> ParseTagsProperty(
+        JsonElement root,
+        TagRegistry tags,
+        string? sourcePath)
+    {
+        if (!root.TryGetProperty("tags", out var tagsElement))
+            return Array.Empty<TagId>();
+
+        if (tagsElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return Array.Empty<TagId>();
+
+        if (tagsElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory tags must be a JSON array of strings.", sourcePath));
+        }
+
+        var result = new List<TagId>();
+        var index = 0;
+        foreach (var element in tagsElement.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(element.GetString()))
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Accessory tags[{index}] must be a non-empty string.",
+                        sourcePath));
+            }
+
+            result.Add(tags.GetOrCreate(element.GetString()!));
+            index++;
+        }
+
+        return result;
+    }
+
+    private static int ParsePointCostProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("pointCost", out var costElement))
+            return 0;
+
+        if (costElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return 0;
+
+        if (costElement.ValueKind != JsonValueKind.Number || !costElement.TryGetInt32(out var cost))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory pointCost must be a non-negative integer.", sourcePath));
+        }
+
+        if (cost < 0)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory pointCost must be a non-negative integer.", sourcePath));
+        }
+
+        return cost;
     }
 
     /// <summary>

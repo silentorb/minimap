@@ -3,6 +3,7 @@ using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 using Minimap.Simulation;
 using Minimap.Simulation.Navigation;
+using Minimap.Simulation.Types;
 
 namespace Minimap.Client.World;
 
@@ -56,8 +57,9 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 ? Math.Clamp(LocalPlayerCount, 1, 4)
                 : _playContext.Roster.PlayerCount;
 
-            var mapRadius = WorldHostHooks.RequireCoreMapRadius(
-                ProjectSettings.GlobalizePath(CoreSettingsPath));
+            var corePath = ProjectSettings.GlobalizePath(CoreSettingsPath);
+            var mapRadius = WorldHostHooks.RequireCoreMapRadius(corePath);
+            var accessoryPoints = WorldHostHooks.RequireCoreAccessoryPoints(corePath);
             var content = WorldHostHooks.RequireGameContent(
                 ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
             var scenarioPath = ResolveScenarioPath();
@@ -74,6 +76,10 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 HumanPlayerCount = count,
             };
 
+            var selectedByPlayer = _playContext.Roster.Players
+                .Select(p => (IReadOnlyList<AccessoryDefinition>)p.SelectedAccessories.ToList())
+                .ToList();
+
             _session = GameSession.Create(
                 mapRadius.X,
                 mapRadius.Y,
@@ -82,7 +88,9 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 spawn,
                 scenario,
                 count,
-                content);
+                content,
+                accessoryPoints,
+                selectedByPlayer);
             _clientSession = new ClientSession(_session);
             _boot.MarkSessionBound();
 

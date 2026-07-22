@@ -8,6 +8,7 @@ public sealed class CompuQuestExtension : IExtension
     public void Register(IExtensionRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
+        registry.RegisterTags([CompuQuestIntegrator.PlayerSelectableTag]);
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddIntegrator(new CompuQuestIntegrator());
     }

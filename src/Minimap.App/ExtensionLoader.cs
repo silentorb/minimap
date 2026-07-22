@@ -4,7 +4,7 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
-/// <summary>Loads extension assemblies and builds a registry with the built-in default integrator.</summary>
+/// <summary>Loads extension assemblies and builds playthrough content via the configured integrator.</summary>
 public static class ExtensionLoader
 {
     /// <summary>Success payload from a completed extension load (failures throw).</summary>
@@ -19,7 +19,6 @@ public static class ExtensionLoader
         ArgumentException.ThrowIfNullOrWhiteSpace(configDirectory);
 
         var registry = new ExtensionRegistry();
-        registry.AddIntegrator(new DefaultIntegrator());
 
         foreach (var entry in settings.Extensions)
         {

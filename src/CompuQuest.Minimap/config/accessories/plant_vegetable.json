@@ -1,0 +1,11 @@
+{
+  "id": "plant_vegetable",
+  "displayName": "Plant Vegetable",
+  "description": "Grow a humble vegetable. Not much else to it yet.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "effects": [],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"
+  }
+}

@@ -3,12 +3,12 @@ using Minimap.Simulation.Types;
 namespace Minimap.Simulation;
 
 /// <summary>
-/// Authoritative playthrough session (headless): world, scenario pacing, human pawns, game-over.
+/// Authoritative playthrough session (headless): world, scenario pacing, players, game-over.
 /// Neighbors feed constructed data in; Client attaches controllers separately.
 /// </summary>
 public sealed class GameSession
 {
-    private readonly List<Character> _humanPawns = new();
+    private readonly List<Player> _players = new();
     private readonly SpawnConfig _spawnConfig;
     private readonly ScenarioRunner _scenarioRunner = new();
     private bool _isGameOver;
@@ -32,7 +32,12 @@ public sealed class GameSession
     public Scenario Scenario { get; }
     public GameContent Content { get; }
     public ScenarioRunner ScenarioRunner => _scenarioRunner;
-    public IReadOnlyList<Character> HumanPawns => _humanPawns;
+    public IReadOnlyList<Player> Players => _players;
+
+    /// <summary>Characters currently bound to <see cref="Players"/> (order matches).</summary>
+    public IReadOnlyList<Character> HumanPawns =>
+        _players.Select(p => p.Character).Where(c => c is not null).Cast<Character>().ToList();
+
     public bool IsGameOver => _isGameOver;
     public ScenarioTickResult LastScenarioTickResult { get; private set; }
 
@@ -44,7 +49,9 @@ public sealed class GameSession
         SpawnConfig spawn,
         Scenario scenario,
         int localPlayerCount,
-        GameContent content)
+        GameContent content,
+        int accessoryPoints = 0,
+        IReadOnlyList<IReadOnlyList<AccessoryDefinition>>? selectedAccessoriesByPlayer = null)
     {
         ArgumentNullException.ThrowIfNull(content);
 
@@ -58,7 +65,7 @@ public sealed class GameSession
         };
 
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
-        world.InitializeScenarioLevel(scenario, config, content.DefaultCharacter);
+        world.SetSpawnCharacterDefinition(content.DefaultCharacter);
 
         var session = new GameSession(
             world,
@@ -66,7 +73,10 @@ public sealed class GameSession
             scenario,
             config,
             content);
-        session.CaptureHumanPawns(config.PlayerFactionId, count);
+
+        session.CreatePlayers(count, accessoryPoints, selectedAccessoriesByPlayer);
+        session.SpawnPlayers(config);
+        world.PlaceSpawners(scenario.SpawnerCount, content.WorldSpawnerPool);
         return session;
     }
 
@@ -75,9 +85,15 @@ public sealed class GameSession
         if (_isGameOver)
             return;
 
-        LastScenarioTickResult = _scenarioRunner.Tick(World, Scenario, _spawnConfig, dt);
+        LastScenarioTickResult = _scenarioRunner.Tick(
+            World,
+            Scenario,
+            _spawnConfig,
+            Content.WorldSpawnerPool,
+            dt);
+
         if (LastScenarioTickResult.LevelRegenerated)
-            CaptureHumanPawns(_spawnConfig.PlayerFactionId, _humanPawns.Count);
+            RelinkPlayerCharacters(_spawnConfig.PlayerFactionId);
 
         World.Tick(dt);
 
@@ -85,42 +101,74 @@ public sealed class GameSession
             _isGameOver = true;
     }
 
-    /// <summary>Drop a human pawn mid-game (disconnect flow). Caller unbinds any client controller first.</summary>
+    /// <summary>Drop a human player mid-game (disconnect flow). Caller unbinds any client controller first.</summary>
     public bool DropHumanPlayer(int playerIndex)
     {
-        if (playerIndex < 0 || playerIndex >= _humanPawns.Count)
+        if (playerIndex < 0 || playerIndex >= _players.Count)
             return false;
 
-        var pawn = _humanPawns[playerIndex];
-        _humanPawns.RemoveAt(playerIndex);
-        World.ForceRemoveCharacter(pawn);
+        var player = _players[playerIndex];
+        var pawn = player.Character;
+        player.Character = null;
+        _players.RemoveAt(playerIndex);
+        if (pawn is not null)
+            World.ForceRemoveCharacter(pawn);
         return true;
+    }
+
+    private void CreatePlayers(
+        int count,
+        int accessoryPoints,
+        IReadOnlyList<IReadOnlyList<AccessoryDefinition>>? selectedAccessoriesByPlayer)
+    {
+        _players.Clear();
+        for (var i = 0; i < count; i++)
+        {
+            var player = new Player(i, accessoryPoints);
+            if (selectedAccessoriesByPlayer is not null && i < selectedAccessoriesByPlayer.Count)
+                player.SetSelectedAccessories(selectedAccessoriesByPlayer[i]);
+            _players.Add(player);
+        }
+    }
+
+    private void SpawnPlayers(SpawnConfig spawn)
+    {
+        if (_players.Count == 0)
+            return;
+
+        var hexes = SeededWorldGenerator.PickFloorSpawns(World.Grid, _players.Count, Rng);
+        for (var i = 0; i < _players.Count; i++)
+        {
+            var character = World.AddCharacter(
+                spawn.PlayerFactionId,
+                HexWorldLayout.ToWorld(hexes[i], World.HexSize),
+                Content.DefaultCharacter);
+
+            foreach (var accessoryDef in _players[i].SelectedAccessories)
+                character.AddAccessory(accessoryDef.CreateInstance());
+
+            _players[i].Character = character;
+        }
+    }
+
+    private void RelinkPlayerCharacters(int playerFactionId)
+    {
+        var humans = World.Characters.Where(c => c.FactionId == playerFactionId).ToList();
+        for (var i = 0; i < _players.Count && i < humans.Count; i++)
+            _players[i].Character = humans[i];
     }
 
     private bool AllHumanPawnsDead()
     {
-        if (_humanPawns.Count == 0)
+        if (_players.Count == 0)
             return false;
 
-        foreach (var pawn in _humanPawns)
+        foreach (var player in _players)
         {
-            if (pawn.IsAlive)
+            if (player.Character is { IsAlive: true })
                 return false;
         }
 
         return true;
-    }
-
-    private void CaptureHumanPawns(int playerFactionId, int count)
-    {
-        _humanPawns.Clear();
-        foreach (var character in World.Characters)
-        {
-            if (character.FactionId != playerFactionId)
-                continue;
-            _humanPawns.Add(character);
-            if (_humanPawns.Count >= count)
-                break;
-        }
     }
 }

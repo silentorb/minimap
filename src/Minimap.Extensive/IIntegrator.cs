@@ -9,4 +9,7 @@ public interface IIntegrator
 
     /// <summary>Build playthrough <see cref="GameContent"/> from the registry.</summary>
     GameContent CreateGameContent(IExtensionRegistry registry);
+
+    /// <summary>Accessories players may choose in the lobby (content policy).</summary>
+    IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(IExtensionRegistry registry);
 }

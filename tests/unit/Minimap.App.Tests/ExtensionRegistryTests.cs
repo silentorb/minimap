@@ -6,11 +6,27 @@ namespace Minimap.App.Tests;
 
 public class ExtensionRegistryTests
 {
+    private sealed class TestIntegrator : IIntegrator
+    {
+        public string Id { get; init; } = "test";
+
+        public GameContent CreateGameContent(IExtensionRegistry registry)
+        {
+            if (registry.CharacterDefinitions.Count == 0)
+                throw new InvalidOperationException("No characters.");
+            return new GameContent(registry.CharacterDefinitions[0]);
+        }
+
+        public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(
+            IExtensionRegistry registry) =>
+            Array.Empty<AccessoryDefinition>();
+    }
+
     [Fact]
     public void AddIntegrator_registers_by_id()
     {
         var registry = new ExtensionRegistry();
-        registry.AddIntegrator(new DefaultIntegrator());
+        registry.AddIntegrator(new TestIntegrator { Id = "default" });
 
         Assert.True(registry.TryGetIntegrator("default", out var integrator));
         Assert.Equal("default", integrator!.Id);
@@ -21,10 +37,10 @@ public class ExtensionRegistryTests
     public void AddIntegrator_rejects_duplicate_id()
     {
         var registry = new ExtensionRegistry();
-        registry.AddIntegrator(new DefaultIntegrator());
+        registry.AddIntegrator(new TestIntegrator { Id = "default" });
 
         Assert.Throws<InvalidOperationException>(() =>
-            registry.AddIntegrator(new DefaultIntegrator()));
+            registry.AddIntegrator(new TestIntegrator { Id = "default" }));
     }
 
     [Fact]
@@ -84,6 +100,17 @@ public class ExtensionRegistryTests
     }
 
     [Fact]
+    public void RegisterTags_get_or_create_is_idempotent()
+    {
+        var registry = new ExtensionRegistry();
+        registry.RegisterTags(["player_selectable", "player_selectable"]);
+        Assert.True(registry.Tags.TryGet("player_selectable", out var a));
+        Assert.True(registry.Tags.TryGet("player_selectable", out var b));
+        Assert.Equal(a, b);
+        Assert.Equal(1, registry.Tags.Count);
+    }
+
+    [Fact]
     public void CreateGameContent_uses_first_registered_character()
     {
         var registry = new ExtensionRegistry();
@@ -92,7 +119,7 @@ public class ExtensionRegistryTests
         registry.AddCharacterDefinition(first);
         registry.AddCharacterDefinition(second);
 
-        var content = new DefaultIntegrator().CreateGameContent(registry);
+        var content = new TestIntegrator().CreateGameContent(registry);
         Assert.Same(first, content.DefaultCharacter);
     }
 
@@ -101,6 +128,6 @@ public class ExtensionRegistryTests
     {
         var registry = new ExtensionRegistry();
         Assert.Throws<InvalidOperationException>(() =>
-            new DefaultIntegrator().CreateGameContent(registry));
+            new TestIntegrator().CreateGameContent(registry));
     }
 }

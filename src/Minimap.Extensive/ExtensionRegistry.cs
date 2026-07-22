@@ -5,6 +5,7 @@ namespace Minimap.Extensive;
 /// <summary>In-memory registry of typed extension contributions.</summary>
 public sealed class ExtensionRegistry : IExtensionRegistry
 {
+    private readonly TagRegistry _tags = new();
     private readonly Dictionary<string, IIntegrator> _integrators = new(StringComparer.Ordinal);
     private readonly List<AccessoryDefinition> _accessoryDefinitions = new();
     private readonly Dictionary<string, AccessoryDefinition> _accessoryById = new(StringComparer.Ordinal);
@@ -13,12 +14,21 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, AccessoryEffectFactory> _effectFactories =
         new(StringComparer.OrdinalIgnoreCase);
 
+    public TagRegistry Tags => _tags;
+
     public IReadOnlyList<IIntegrator> Integrators =>
         _integrators.Values.OrderBy(i => i.Id, StringComparer.Ordinal).ToList();
 
     public IReadOnlyList<AccessoryDefinition> AccessoryDefinitions => _accessoryDefinitions;
 
     public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
+
+    public void RegisterTags(IEnumerable<string> tagNames)
+    {
+        ArgumentNullException.ThrowIfNull(tagNames);
+        foreach (var name in tagNames)
+            _tags.GetOrCreate(name);
+    }
 
     public void AddIntegrator(IIntegrator integrator)
     {
@@ -67,6 +77,17 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         _accessoryDefinitions.Add(definition);
     }
 
+    public bool TryGetAccessoryDefinition(string id, out AccessoryDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _accessoryById.TryGetValue(id, out definition);
+    }
+
     public void AddCharacterDefinition(CharacterDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -77,6 +98,17 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         }
 
         _characterDefinitions.Add(definition);
+    }
+
+    public bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _characterById.TryGetValue(id, out definition);
     }
 
     public void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory)

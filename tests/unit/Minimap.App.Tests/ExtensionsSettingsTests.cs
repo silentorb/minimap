@@ -1,4 +1,3 @@
-using Minimap.Extensive;
 using Xunit;
 
 namespace Minimap.App.Tests;
@@ -6,9 +5,9 @@ namespace Minimap.App.Tests;
 public class ExtensionsSettingsTests
 {
     [Fact]
-    public void Defaults_use_default_integrator_and_extensions_search_path()
+    public void Defaults_use_compuquest_integrator_and_extensions_search_path()
     {
-        Assert.Equal(DefaultIntegrator.IntegratorId, ExtensionsSettings.Defaults.Integrator);
+        Assert.Equal("compuquest", ExtensionsSettings.Defaults.Integrator);
         Assert.Equal(new[] { "extensions" }, ExtensionsSettings.Defaults.SearchPaths);
         Assert.Empty(ExtensionsSettings.Defaults.Extensions);
     }

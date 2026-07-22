@@ -8,11 +8,12 @@ public sealed class GameWorld
     private readonly List<Character> _characters = new();
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
-    private readonly List<WaveSpawner> _spawners = new();
+    private readonly List<Spawner> _spawners = new();
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly List<SimVec2> _characterObstacleCenters = new();
     private readonly Random _random;
     private CharacterDefinition? _spawnCharacterDefinition;
+    private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _nextCharacterId;
     private int _nextMissileId;
     private int _nextSpawnerId;
@@ -63,7 +64,7 @@ public sealed class GameWorld
     public IReadOnlyList<Character> Characters => _characters;
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
-    public IReadOnlyList<WaveSpawner> Spawners => _spawners;
+    public IReadOnlyList<Spawner> Spawners => _spawners;
 
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
     public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
@@ -123,14 +124,19 @@ public sealed class GameWorld
     public void InitializeScenarioLevel(
         Scenario scenario,
         SpawnConfig spawn,
-        CharacterDefinition characterDefinition)
+        GameContent content)
     {
-        SetSpawnCharacterDefinition(characterDefinition);
+        ArgumentNullException.ThrowIfNull(content);
+        SetSpawnCharacterDefinition(content.DefaultCharacter);
         SpawnHumanPlayers(spawn);
-        PlaceWaveSpawners(scenario.SpawnerCount);
+        PlaceSpawners(scenario.SpawnerCount, content.WorldSpawnerPool);
     }
 
-    public void RegenerateLevel(Scenario scenario, SpawnConfig spawn, int levelIndex)
+    public void RegenerateLevel(
+        Scenario scenario,
+        SpawnConfig spawn,
+        int levelIndex,
+        WeightedPool<SpawnerDefinition>? spawnerPool = null)
     {
         ClearRivalsAndMissiles(spawn.RivalFactionId);
         _spawners.Clear();
@@ -141,7 +147,7 @@ public sealed class GameWorld
         RebuildWallColliders();
 
         RepositionAndHealHumans(spawn);
-        PlaceWaveSpawners(scenario.SpawnerCount);
+        PlaceSpawners(scenario.SpawnerCount, spawnerPool ?? _worldSpawnerPool);
     }
 
     public void SpawnHumanPlayers(SpawnConfig spawn)
@@ -155,20 +161,32 @@ public sealed class GameWorld
             AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[h], HexSize));
     }
 
-    public void PlaceWaveSpawners(int count)
+    /// <summary>
+    /// Place <paramref name="count"/> spawners by weighted-picking from <paramref name="pool"/>.
+    /// Empty pool places nothing.
+    /// </summary>
+    public void PlaceSpawners(int count, WeightedPool<SpawnerDefinition> pool)
     {
+        ArgumentNullException.ThrowIfNull(pool);
+        _worldSpawnerPool = pool;
         _spawners.Clear();
-        if (count <= 0)
+        if (count <= 0 || pool.IsEmpty)
             return;
 
         var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, count, _random);
         for (var i = 0; i < count; i++)
-            _spawners.Add(new WaveSpawner(_nextSpawnerId++, hexes[i]));
+        {
+            if (!pool.TryPick(_random, out var definition) || definition is null)
+                break;
+
+            _spawners.Add(new Spawner(_nextSpawnerId++, hexes[i], definition.CharacterPool));
+        }
     }
 
-    public void SpawnWaveEnemies(WaveSpawner spawner, int count, int rivalFactionId)
+    public void SpawnWaveEnemies(Spawner spawner, int count, int rivalFactionId)
     {
-        if (count <= 0)
+        ArgumentNullException.ThrowIfNull(spawner);
+        if (count <= 0 || spawner.CharacterPool.IsEmpty)
             return;
 
         var candidates = CollectNearbyFloorHexes(spawner.Position, maxDistance: 2);
@@ -181,8 +199,14 @@ public sealed class GameWorld
 
         for (var i = 0; i < count; i++)
         {
+            if (!spawner.CharacterPool.TryPick(_random, out var definition) || definition is null)
+                break;
+
             var hex = candidates[_random.Next(candidates.Count)];
-            var enemy = AddCharacter(rivalFactionId, HexWorldLayout.ToWorld(hex, HexSize));
+            var enemy = AddCharacter(
+                rivalFactionId,
+                HexWorldLayout.ToWorld(hex, HexSize),
+                definition);
             AttachController(new AiController(_random), enemy);
         }
     }

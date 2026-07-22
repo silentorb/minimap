@@ -14,6 +14,8 @@
 | [ui-icons.md](ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
 | [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
 | [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
+| [tags.md](tags.md) | Changing **tags** on definitions (e.g. `player_selectable`) or tag naming policy. |
+| [players.md](players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [ai.md](ai.md) | Changing **AI** wander / floor goals, AI combat behavior, or AI spawn counts per faction. |
 | [combat.md](combat.md) | Changing **missiles**, shoot effect, fire rate, twin-stick aim, or AI nearest-hostile aim. |
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |

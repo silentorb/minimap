@@ -22,6 +22,10 @@ JSON configuration for accessory and character definitions (and the pattern for 
 ```json
 {
   "id": "gun",
+  "displayName": "Gun",
+  "description": "Fire missiles at foes.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
   "effects": [
     {
       "type": "shoot",
@@ -42,7 +46,8 @@ JSON configuration for accessory and character definitions (and the pattern for 
 }
 ```
 
-- `id` and `effects` are required. `depiction` and `icon` are optional.
+- `id` and `effects` are required. `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, and `description` are optional.
+- `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`shoot`** → CompuQuest `ShootEffect` (`IShootEffect`) — requires `fireIntervalSeconds`, `missileSpeed`, `missileDamage`; `friendlyFire` optional (default **true**).
 
@@ -51,7 +56,7 @@ JSON configuration for accessory and character definitions (and the pattern for 
 ```json
 {
   "id": "generic",
-  "accessories": ["gun"],
+  "accessories": [],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
@@ -64,6 +69,7 @@ JSON configuration for accessory and character definitions (and the pattern for 
 ```
 
 - `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` and `icon` are optional.
+- CompuQuest also ships **`zombie`** with `"accessories": ["gun"]` for wave spawns.
 
 ### Later similar catalogs
 

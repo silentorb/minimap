@@ -1,12 +1,12 @@
 {
-  "id": "generic",
-  "accessories": [],
+  "id": "zombie",
+  "accessories": ["gun"],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
     "animation": "default"
   },
   "icon": {
-    "path": "res://assets/compuquest/game-icons/delapouite/person.svg"
+    "path": "res://assets/compuquest/game-icons/delapouite/shambling-zombie.svg"
   }
 }

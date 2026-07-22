@@ -2,13 +2,12 @@
 
 ## Purpose
 
-Extension contracts, in-memory registry, and the default integrator—the extensibility capability assembly (not a bag of content instances).
+Extension contracts and in-memory registry—the extensibility capability assembly (not a bag of content instances).
 
 ## What may live here
 
 - `IExtension`, `IExtensionRegistry`, `IIntegrator`, and related registration APIs
-- In-memory catalogs (integrators, effect factories, definitions)
-- Built-in **`DefaultIntegrator`**
+- In-memory catalogs (integrators, effect factories, definitions, tags)
 
 ## What must not live here
 
@@ -16,5 +15,6 @@ Extension contracts, in-memory registry, and the default integrator—the extens
 - **File I/O** (App loads config and DLLs; see [extensions.md](../../docs/technical/features/extensions.md))
 - Shared simulation contracts / definition bags (those live in **Minimap.Simulation.Types**)
 - Concrete accessory effects or shipped game content (extensions such as CompuQuest)
+- A built-in default integrator (content extensions supply integrators; default shipped id is CompuQuest `compuquest`)
 
 Depends on **Minimap.Simulation.Types**.

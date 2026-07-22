@@ -5,7 +5,7 @@ namespace Minimap.App.Tests;
 public class ExtensionLoaderTests
 {
     [Fact]
-    public void Load_with_empty_extensions_fails_without_character_definitions()
+    public void Load_with_empty_extensions_fails_when_integrator_missing()
     {
         var settings = new ExtensionsSettings
         {
@@ -55,11 +55,16 @@ public class ExtensionLoaderTests
         var result = ExtensionLoader.Load(settings, Path.Combine(repoRoot, "config"));
 
         Assert.Equal("compuquest", result.Integrator.Id);
-        Assert.True(result.Registry.TryGetIntegrator("default", out _));
+        Assert.False(result.Registry.TryGetIntegrator("default", out _));
         Assert.True(result.Registry.TryGetIntegrator("compuquest", out _));
         Assert.Equal("generic", result.Content.DefaultCharacter.Id);
+        Assert.False(result.Content.WorldSpawnerPool.IsEmpty);
         Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
         Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "generic");
+        Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "zombie");
+        Assert.True(result.Registry.Tags.TryGet("player_selectable", out _));
+        var selectable = result.Integrator.GetPlayerSelectableAccessories(result.Registry);
+        Assert.Equal(3, selectable.Count);
     }
 
     [Fact]

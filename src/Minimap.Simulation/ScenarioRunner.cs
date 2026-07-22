@@ -1,3 +1,5 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Simulation;
 
 public enum ScenarioPhase
@@ -17,7 +19,12 @@ public sealed class ScenarioRunner
 
     private float _waveIntervalElapsed;
 
-    public ScenarioTickResult Tick(GameWorld world, Scenario scenario, SpawnConfig spawn, float dt)
+    public ScenarioTickResult Tick(
+        GameWorld world,
+        Scenario scenario,
+        SpawnConfig spawn,
+        WeightedPool<SpawnerDefinition> spawnerPool,
+        float dt)
     {
         if (dt <= 0f)
             return ScenarioTickResult.None;
@@ -58,7 +65,7 @@ public sealed class ScenarioRunner
                 return ScenarioTickResult.None;
 
             case ScenarioPhase.LevelComplete:
-                world.RegenerateLevel(scenario, spawn, LevelIndex);
+                world.RegenerateLevel(scenario, spawn, LevelIndex, spawnerPool);
                 LevelIndex++;
                 WavesCompleted = 0;
                 Phase = ScenarioPhase.Preparation;

@@ -6,9 +6,10 @@ Sample/content **extension** library: default home for concrete accessory effect
 
 ## What may live here
 
-- `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`**)
+- `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`**, tags such as **`player_selectable`**)
 - Sealed gameplay implementations (e.g. `ShootEffect`)
 - Content JSON under `config/` (copied to `extensions/CompuQuest.Minimap/` on build)
+- Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners**, player-selectable accessories via tag filter
 
 ## What must not live here
 

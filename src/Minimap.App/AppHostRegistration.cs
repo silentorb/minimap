@@ -15,9 +15,18 @@ internal static class AppHostRegistration
         ExtensionPreflight.LoadFromAbsolutePath = path => ExtensionLoader.LoadFromFile(path);
         WorldHostHooks.LoadCoreMapRadiusFromAbsolutePath = path =>
             CoreSettings.LoadFromFile(path).Map.Radius;
+        WorldHostHooks.LoadCoreAccessoryPointsFromAbsolutePath = path =>
+            CoreSettings.LoadFromFile(path).Player.AccessoryPoints;
         WorldHostHooks.LoadScenarioFromAbsolutePath = ScenarioSettings.LoadFromFile;
         WorldHostHooks.LoadGameContentFromAbsolutePath = path =>
             ExtensionLoader.LoadFromFile(path).Content;
+        WorldHostHooks.LoadExtensionsFromAbsolutePath = path =>
+        {
+            var loaded = ExtensionLoader.LoadFromFile(path);
+            return new ExtensionLoadResult(
+                loaded.Content,
+                loaded.Integrator.GetPlayerSelectableAccessories(loaded.Registry));
+        };
         WorldHostHooks.TryGetScenarioPathFromArgs = CliArgs.TryGetScenarioPath;
     }
 }

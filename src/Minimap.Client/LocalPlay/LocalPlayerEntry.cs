@@ -1,11 +1,16 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Client.LocalPlay;
 
 /// <summary>One local human player and every device that feeds their input.</summary>
 public sealed class LocalPlayerEntry
 {
     private readonly HashSet<InputDeviceId> _devices = new();
+    private readonly List<AccessoryDefinition> _selectedAccessories = new();
 
     public IReadOnlyCollection<InputDeviceId> Devices => _devices;
+
+    public IReadOnlyList<AccessoryDefinition> SelectedAccessories => _selectedAccessories;
 
     public void AddDevice(InputDeviceId device) => _devices.Add(device);
 
@@ -25,4 +30,13 @@ public sealed class LocalPlayerEntry
         _devices.Remove(InputDeviceId.Joypad(oldDeviceIndex));
         _devices.Add(InputDeviceId.Joypad(newDeviceIndex));
     }
+
+    public void SetSelectedAccessories(IEnumerable<AccessoryDefinition> accessories)
+    {
+        ArgumentNullException.ThrowIfNull(accessories);
+        _selectedAccessories.Clear();
+        _selectedAccessories.AddRange(accessories);
+    }
+
+    public void ClearSelectedAccessories() => _selectedAccessories.Clear();
 }

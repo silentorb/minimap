@@ -1,4 +1,5 @@
 using Minimap.Client.LocalPlay;
+using Minimap.Simulation.Types;
 
 namespace Minimap.Client.Lobby;
 
@@ -9,12 +10,35 @@ public sealed class LobbyStateMachine
 
     private readonly LobbySlotMode[] _modes = new LobbySlotMode[SlotCount];
     private readonly LobbySlotBinding[] _bindings = new LobbySlotBinding[SlotCount];
+    private readonly LobbyAccessorySelectionState?[] _accessorySelections =
+        new LobbyAccessorySelectionState?[SlotCount];
+    private int _accessoryPoints = 2;
+    private IReadOnlyList<AccessoryDefinition> _selectableAccessories =
+        Array.Empty<AccessoryDefinition>();
 
     public LobbyStateMachine()
     {
         for (var i = 0; i < SlotCount; i++)
             _bindings[i] = new LobbySlotBinding();
     }
+
+    public void ConfigureAccessories(
+        int accessoryPoints,
+        IReadOnlyList<AccessoryDefinition> selectableAccessories)
+    {
+        if (accessoryPoints < 0)
+            throw new ArgumentOutOfRangeException(nameof(accessoryPoints));
+        ArgumentNullException.ThrowIfNull(selectableAccessories);
+        _accessoryPoints = accessoryPoints;
+        _selectableAccessories = selectableAccessories;
+    }
+
+    public IReadOnlyList<AccessoryDefinition> SelectableAccessories => _selectableAccessories;
+
+    public int AccessoryPoints => _accessoryPoints;
+
+    public LobbyAccessorySelectionState? GetAccessorySelection(int slotIndex) =>
+        _accessorySelections[slotIndex];
 
     public LobbySlotMode GetMode(int slotIndex) => _modes[slotIndex];
 
@@ -88,6 +112,7 @@ public sealed class LobbyStateMachine
                 continue;
             _modes[i] = LobbySlotMode.Claimed;
             _bindings[i].Add(device);
+            _accessorySelections[i] = new LobbyAccessorySelectionState(_accessoryPoints);
             slotIndex = i;
             return true;
         }
@@ -120,6 +145,7 @@ public sealed class LobbyStateMachine
             case LobbySlotMode.Claimed:
                 _modes[s] = LobbySlotMode.Available;
                 _bindings[s].Clear();
+                _accessorySelections[s] = null;
                 return true;
             default:
                 return false;
@@ -141,6 +167,10 @@ public sealed class LobbyStateMachine
         {
             foreach (var d in _bindings[i].Devices)
                 roster.Players[i].AddDevice(d);
+
+            var selection = _accessorySelections[i];
+            if (selection is not null)
+                roster.Players[i].SetSelectedAccessories(selection.Owned);
         }
 
         return roster;
@@ -152,6 +182,7 @@ public sealed class LobbyStateMachine
         {
             _modes[i] = LobbySlotMode.Available;
             _bindings[i].Clear();
+            _accessorySelections[i] = null;
         }
     }
 }

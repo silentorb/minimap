@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Minimap.Extensive;
 
 namespace Minimap.App;
 
@@ -18,7 +17,7 @@ public sealed class ExtensionsSettings
     {
         SearchPaths = new List<string> { "extensions" },
         Extensions = new List<string>(),
-        Integrator = DefaultIntegrator.IntegratorId,
+        Integrator = "compuquest",
     };
 
     [JsonPropertyName("searchPaths")]

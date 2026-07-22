@@ -1,19 +1,36 @@
 using Godot;
+using Minimap.Simulation.Types;
 
 namespace Minimap.Client.Lobby;
 
-/// <summary>One of four lobby player panels (mostly empty; room for future customization).</summary>
+/// <summary>One of four lobby player panels with optional accessory selection.</summary>
 public partial class LobbyPanel : PanelContainer
 {
     private Label? _title;
     private Label? _status;
     private Control? _customizeArea;
+    private AccessorySelectionPanel? _accessoryPanel;
+
+    public AccessorySelectionPanel? AccessoryPanel => _accessoryPanel;
 
     public override void _Ready()
     {
         _title = GetNode<Label>("Margin/VBox/Title");
         _status = GetNode<Label>("Margin/VBox/Status");
         _customizeArea = GetNode<Control>("Margin/VBox/CustomizeArea");
+
+        _accessoryPanel = new AccessorySelectionPanel
+        {
+            Name = "AccessorySelection",
+            Visible = false,
+        };
+        _accessoryPanel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _accessoryPanel.OffsetLeft = 0;
+        _accessoryPanel.OffsetTop = 0;
+        _accessoryPanel.OffsetRight = 0;
+        _accessoryPanel.OffsetBottom = 0;
+        _customizeArea!.AddChild(_accessoryPanel);
+
         ApplyMode(LobbySlotMode.Available, 0);
     }
 
@@ -55,5 +72,21 @@ public partial class LobbyPanel : PanelContainer
             ContentMarginRight = 8,
             ContentMarginBottom = 8,
         });
+    }
+
+    public void ShowAccessorySelection(
+        IReadOnlyList<AccessoryDefinition> catalog,
+        LobbyAccessorySelectionState state,
+        bool interactive)
+    {
+        if (_accessoryPanel is null)
+            return;
+        _accessoryPanel.Configure(catalog, state, interactive);
+        _accessoryPanel.Visible = interactive;
+    }
+
+    public void HideAccessorySelection()
+    {
+        _accessoryPanel?.HideSelection();
     }
 }

@@ -1,3 +1,4 @@
+using Minimap.Simulation.Types;
 using Xunit;
 
 namespace Minimap.Simulation.Tests;
@@ -19,14 +20,14 @@ public class ScenarioRunnerTests
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var runner = new ScenarioRunner();
 
-        runner.Tick(world, scenario, spawn, 0.5f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.5f);
         Assert.Equal(ScenarioPhase.Preparation, runner.Phase);
         Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));
 
-        runner.Tick(world, scenario, spawn, 0.6f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.6f);
         Assert.Equal(ScenarioPhase.Waves, runner.Phase);
         Assert.Equal(1, runner.WavesCompleted);
         Assert.Equal(scenario.SpawnerCount * scenario.SpawnerVolume, CountRivals(world, spawn.RivalFactionId));
@@ -38,13 +39,13 @@ public class ScenarioRunnerTests
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var runner = new ScenarioRunner();
 
-        runner.Tick(world, scenario, spawn, 1.1f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 1.1f);
         var afterWave1 = CountRivals(world, spawn.RivalFactionId);
 
-        runner.Tick(world, scenario, spawn, 1.1f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 1.1f);
         var afterWave2 = CountRivals(world, spawn.RivalFactionId);
 
         Assert.Equal(4, afterWave1);
@@ -65,19 +66,19 @@ public class ScenarioRunnerTests
         };
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
         player.Health = 10f;
         var runner = new ScenarioRunner();
 
-        runner.Tick(world, scenario, spawn, 0.2f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         Assert.Equal(1, CountRivals(world, spawn.RivalFactionId));
         Assert.Equal(ScenarioPhase.Waves, runner.Phase);
 
-        runner.Tick(world, scenario, spawn, 0.2f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         Assert.Equal(ScenarioPhase.LevelComplete, runner.Phase);
 
-        var result = runner.Tick(world, scenario, spawn, 0.01f);
+        var result = runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.01f);
         Assert.True(result.LevelRegenerated);
         Assert.Equal(ScenarioPhase.Preparation, runner.Phase);
         Assert.Equal(2, runner.LevelIndex);
@@ -101,18 +102,40 @@ public class ScenarioRunnerTests
         };
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
-        world.InitializeScenarioLevel(scenario, spawn, TestContent.Generic);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
         world.ApplyDamage(player, CombatTuning.DefaultMaxHealth);
         world.Tick(0.016f);
         Assert.DoesNotContain(player, world.Characters);
 
         var runner = new ScenarioRunner();
-        runner.Tick(world, scenario, spawn, 0.2f);
-        runner.Tick(world, scenario, spawn, 0.2f);
-        runner.Tick(world, scenario, spawn, 0.01f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
+        runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.01f);
 
         Assert.Single(world.Characters, c => c.FactionId == spawn.PlayerFactionId);
+    }
+
+    [Fact]
+    public void Empty_character_pool_spawns_nothing()
+    {
+        var emptySpawner = new SpawnerDefinition(
+            "empty",
+            WeightedPool<CharacterDefinition>.Empty);
+        var pool = new WeightedPool<SpawnerDefinition>(
+        [
+            new WeightedEntry<SpawnerDefinition>(emptySpawner, 1),
+        ]);
+        var content = new GameContent(TestContent.Generic, pool);
+        var scenario = FastScenario();
+        var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
+        var world = GameWorld.Create(4, 4, 42);
+        world.InitializeScenarioLevel(scenario, spawn, content);
+        var runner = new ScenarioRunner();
+
+        runner.Tick(world, scenario, spawn, pool, 1.1f);
+        Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));
+        Assert.Equal(2, world.Spawners.Count);
     }
 
     private static int CountRivals(GameWorld world, int rivalFactionId) =>

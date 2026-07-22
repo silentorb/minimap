@@ -18,10 +18,14 @@ public sealed class CoreSettings
     public static CoreSettings Defaults { get; } = new()
     {
         Map = new CoreMapSettings { Radius = new SimVec2I(8, 6) },
+        Player = new CorePlayerSettings { AccessoryPoints = 2 },
     };
 
     [JsonPropertyName("map")]
     public required CoreMapSettings Map { get; init; }
+
+    [JsonPropertyName("player")]
+    public CorePlayerSettings Player { get; init; } = new() { AccessoryPoints = 2 };
 
     public static CoreSettings LoadFromJson(string json)
     {
@@ -61,6 +65,12 @@ public sealed class CoreSettings
             throw new InvalidOperationException(
                 $"map.radius components must be >= 0 (got [{radius.X}, {radius.Y}]).");
         }
+
+        if (settings.Player.AccessoryPoints < 0)
+        {
+            throw new InvalidOperationException(
+                $"player.accessoryPoints must be >= 0 (got {settings.Player.AccessoryPoints}).");
+        }
     }
 }
 
@@ -69,4 +79,10 @@ public sealed class CoreMapSettings
     [JsonPropertyName("radius")]
     [JsonConverter(typeof(SimVec2IJsonConverter))]
     public required SimVec2I Radius { get; init; }
+}
+
+public sealed class CorePlayerSettings
+{
+    [JsonPropertyName("accessoryPoints")]
+    public int AccessoryPoints { get; init; } = 2;
 }
