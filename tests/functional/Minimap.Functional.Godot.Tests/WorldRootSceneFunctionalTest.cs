@@ -52,6 +52,16 @@ public class LobbyFunctionalTest(GodotAutomationFixture fixture)
     }
 
     [Fact]
+    public async Task Lobby_accessory_selection_stays_inside_panel_and_viewport()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.LobbyAccessorySelectionFitsId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
     public async Task Lobby_back_unclaims_slot()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest

@@ -23,12 +23,8 @@ public partial class LobbyPanel : PanelContainer
         {
             Name = "AccessorySelection",
             Visible = false,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
         };
-        _accessoryPanel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        _accessoryPanel.OffsetLeft = 0;
-        _accessoryPanel.OffsetTop = 0;
-        _accessoryPanel.OffsetRight = 0;
-        _accessoryPanel.OffsetBottom = 0;
         _customizeArea!.AddChild(_accessoryPanel);
 
         ApplyMode(LobbySlotMode.Available, 0);

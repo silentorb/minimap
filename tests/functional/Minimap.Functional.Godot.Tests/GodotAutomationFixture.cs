@@ -16,6 +16,7 @@ public sealed class GodotAutomationFixture : IAsyncLifetime
     public const string HoldDMovesPlayerId = "Minimap.Functional.Godot.Playbooks.HoldDMovesPlayer";
     public const string LobbyBootstrapId = "Minimap.Functional.Godot.Playbooks.LobbyBootstrap";
     public const string LobbyClaimReadyStartId = "Minimap.Functional.Godot.Playbooks.LobbyClaimReadyStart";
+    public const string LobbyAccessorySelectionFitsId = "Minimap.Functional.Godot.Playbooks.LobbyAccessorySelectionFits";
     public const string LobbyBackUnclaimsId = "Minimap.Functional.Godot.Playbooks.LobbyBackUnclaims";
     public const string LobbyJoypadClaimReadyId = "Minimap.Functional.Godot.Playbooks.LobbyJoypadClaimReady";
     public const string ReconnectOverlayDropId = "Minimap.Functional.Godot.Playbooks.ReconnectOverlayDrop";

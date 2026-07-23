@@ -262,6 +262,69 @@ public partial class GodotRpcHost : Node
                 owner.GetNode<LocalPlayContextNode>("/root/LocalPlayContext").Clear();
                 return Task.CompletedTask;
             });
+
+        public Task<PlaybookControlRectSnapshot> GetControlRectAsync(
+            string nodePath,
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var scene = owner.GetTree().CurrentScene;
+                if (scene is null || string.IsNullOrWhiteSpace(nodePath))
+                    return new PlaybookControlRectSnapshot { Found = false };
+
+                if (scene.GetNodeOrNull(nodePath) is not Control control)
+                    return new PlaybookControlRectSnapshot { Found = false };
+
+                var rect = control.GetGlobalRect();
+                var min = control.GetCombinedMinimumSize();
+                return new PlaybookControlRectSnapshot
+                {
+                    Found = true,
+                    Visible = control.Visible && control.IsVisibleInTree(),
+                    X = rect.Position.X,
+                    Y = rect.Position.Y,
+                    Width = rect.Size.X,
+                    Height = rect.Size.Y,
+                    MinWidth = min.X,
+                    MinHeight = min.Y,
+                    ClassName = control.GetClass(),
+                };
+            });
+
+        public Task<PlaybookControlRectSnapshot> GetViewportVisibleRectAsync(
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var rect = owner.GetViewport().GetVisibleRect();
+                return new PlaybookControlRectSnapshot
+                {
+                    Found = true,
+                    Visible = true,
+                    X = rect.Position.X,
+                    Y = rect.Position.Y,
+                    Width = rect.Size.X,
+                    Height = rect.Size.Y,
+                };
+            });
+
+        public Task SetWindowSizeAsync(int width, int height, CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (width < 1 || height < 1)
+                    throw new ArgumentOutOfRangeException(nameof(width), "Window size must be positive.");
+                var size = new Vector2I(width, height);
+                DisplayServer.WindowSetSize(size);
+                var window = owner.GetWindow();
+                if (window is not null)
+                    window.Size = size;
+                owner.GetTree().Root.Size = size;
+                await owner.WaitFramesAsync(2);
+            });
     }
 
     private sealed class AutomationServiceImpl(GodotRpcHost owner) : AutomationService.AutomationServiceBase

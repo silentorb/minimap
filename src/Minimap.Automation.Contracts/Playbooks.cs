@@ -38,6 +38,21 @@ public interface IPlaybookContext
     Task FocusReconnectDropAsync(CancellationToken cancellationToken = default);
 
     Task ClearLocalPlayContextAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Global rect of a <c>Control</c> at <paramref name="nodePath"/> under the current scene
+    /// (Godot node path, e.g. <c>Margin/PanelRow/LobbyPanel</c>).
+    /// </summary>
+    Task<PlaybookControlRectSnapshot> GetControlRectAsync(
+        string nodePath,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Visible rect of the root viewport in global coordinates.</summary>
+    Task<PlaybookControlRectSnapshot> GetViewportVisibleRectAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Resize the main window (forces a layout pass after the next frames).</summary>
+    Task SetWindowSizeAsync(int width, int height, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Outcome of a playbook run (also mirrored on the gRPC wire).</summary>
@@ -81,4 +96,19 @@ public sealed class PlaybookPauseOverlaySnapshot
     public bool Visible { get; init; }
     public bool DropButtonVisible { get; init; }
     public bool TreePaused { get; init; }
+}
+
+/// <summary>Control or viewport rect for layout assertions (global coordinates).</summary>
+public sealed class PlaybookControlRectSnapshot
+{
+    public bool Found { get; init; }
+    public bool Visible { get; init; }
+    public float X { get; init; }
+    public float Y { get; init; }
+    public float Width { get; init; }
+    public float Height { get; init; }
+    public float MinWidth { get; init; }
+    public float MinHeight { get; init; }
+    /// <summary>Godot class name (e.g. ScrollContainer), empty when not found.</summary>
+    public string ClassName { get; init; } = "";
 }
