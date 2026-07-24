@@ -22,6 +22,21 @@ internal static class TestContent
         visible: true,
         uiPriority: 1000);
 
+    public static ResourceDefinition MaxEnergyResource { get; } = new(
+        WellKnownResourceIds.MaxEnergy,
+        Tags.GetOrCreate(WellKnownResourceIds.MaxEnergy),
+        displayName: "Max Energy",
+        visible: false,
+        uiPriority: 0);
+
+    public static ResourceDefinition EnergyResource { get; } = new(
+        WellKnownResourceIds.Energy,
+        Tags.GetOrCreate(WellKnownResourceIds.Energy),
+        displayName: "Energy",
+        limitTag: MaxEnergyResource.Tag,
+        visible: true,
+        uiPriority: 900);
+
     public static ResourceDefinition AmmoResource { get; } = new(
         "ammo",
         Tags.GetOrCreate("ammo"),
@@ -40,6 +55,8 @@ internal static class TestContent
     [
         HealthResource,
         MaxHealthResource,
+        EnergyResource,
+        MaxEnergyResource,
         AmmoResource,
         FoodResource,
     ];
@@ -47,7 +64,9 @@ internal static class TestContent
     public static ResourceContext ResourceContext { get; } = new(
         Resources,
         HealthResource.Tag,
-        MaxHealthResource.Tag);
+        MaxHealthResource.Tag,
+        EnergyResource.Tag,
+        MaxEnergyResource.Tag);
 
     public static AccessoryDefinition Gun { get; } = new(
         "gun",

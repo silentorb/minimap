@@ -1,6 +1,6 @@
 {
   "id": "zombie",
-  "accessories": ["gun"],
+  "accessories": ["energy_upkeep", "eat", "gun"],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",

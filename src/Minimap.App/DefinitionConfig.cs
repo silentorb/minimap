@@ -87,6 +87,7 @@ public static class DefinitionConfig
         var tags = ParseTagsProperty(root, registry.Tags, sourcePath);
         var pointCost = ParsePointCostProperty(root, sourcePath);
         var activation = ParseActivationProperty(root, sourcePath);
+        var enabledWhen = ParseEnabledWhenProperty(root, registry, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
         TryGetStringProperty(root, "description", out var description);
         if (root.TryGetProperty("resource", out _))
@@ -106,7 +107,8 @@ public static class DefinitionConfig
             pointCost,
             displayName,
             description,
-            activation);
+            activation,
+            enabledWhen);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -607,6 +609,51 @@ public static class DefinitionConfig
         }
 
         return cost;
+    }
+
+    private static AccessoryResourceGate? ParseEnabledWhenProperty(
+        JsonElement root,
+        IExtensionRegistry registry,
+        string? sourcePath)
+    {
+        if (!root.TryGetProperty("enabledWhen", out var gateElement))
+            return null;
+
+        if (gateElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return null;
+
+        if (gateElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory enabledWhen must be a JSON object or null.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(gateElement, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory enabledWhen must include id.", sourcePath));
+        }
+
+        if (!registry.TryGetResourceDefinition(id, out var resource) || resource is null)
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory enabledWhen resource '{id}' is not registered.",
+                    sourcePath));
+        }
+
+        if (!gateElement.TryGetProperty("atLeast", out var atLeastElement) ||
+            atLeastElement.ValueKind != JsonValueKind.Number ||
+            !atLeastElement.TryGetInt32(out var atLeast) ||
+            atLeast < 0)
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    "Accessory enabledWhen atLeast must be a non-negative integer.",
+                    sourcePath));
+        }
+
+        return new AccessoryResourceGate(resource.Tag, atLeast);
     }
 
     private static AccessoryActivation ParseActivationProperty(JsonElement root, string? sourcePath)

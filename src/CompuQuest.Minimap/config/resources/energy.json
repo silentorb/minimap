@@ -1,0 +1,10 @@
+{
+  "id": "energy",
+  "displayName": "Energy",
+  "limit": "max_energy",
+  "visible": true,
+  "uiPriority": 900,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/energy-tank.svg"
+  }
+}

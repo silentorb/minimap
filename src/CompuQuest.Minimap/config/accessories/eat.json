@@ -1,0 +1,23 @@
+{
+  "id": "eat",
+  "displayName": "Eat",
+  "description": "Consume food to restore energy.",
+  "activation": {
+    "kind": "modal"
+  },
+  "enabledWhen": {
+    "id": "food",
+    "atLeast": 1
+  },
+  "effects": [
+    {
+      "type": "modify_resource_on_use",
+      "id": "energy",
+      "amount": 5,
+      "cost": { "id": "food", "amount": 1 }
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/eating.svg"
+  }
+}

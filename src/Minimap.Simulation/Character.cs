@@ -11,11 +11,14 @@ public sealed class Character : Actor
         SimVec2 position,
         CharacterDefinition definition,
         ResourceContext resourceContext,
-        int maxHealth = CombatTuning.DefaultMaxHealth)
+        int maxHealth = CombatTuning.DefaultMaxHealth,
+        int maxEnergy = CombatTuning.DefaultMaxEnergy)
         : base(id, definition, resourceContext, applyDefinitionAccessories: false)
     {
         if (maxHealth < 0)
             throw new ArgumentOutOfRangeException(nameof(maxHealth));
+        if (maxEnergy < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxEnergy));
 
         FactionId = factionId;
         Position = position;
@@ -23,6 +26,8 @@ public sealed class Character : Actor
 
         SetResource(ResourceContext.MaxHealthTag, maxHealth);
         SetResource(ResourceContext.HealthTag, maxHealth);
+        SetResource(ResourceContext.MaxEnergyTag, maxEnergy);
+        SetResource(ResourceContext.EnergyTag, maxEnergy);
 
         ApplyDefinitionAccessories();
     }
@@ -45,7 +50,25 @@ public sealed class Character : Actor
 
     public int MaxHealth => GetResource(ResourceContext.MaxHealthTag);
 
+    public int Energy
+    {
+        get => GetResource(ResourceContext.EnergyTag);
+        set => SetResource(ResourceContext.EnergyTag, value);
+    }
+
+    public int MaxEnergy => GetResource(ResourceContext.MaxEnergyTag);
+
     public bool IsAlive => Health > 0;
 
-    protected override void OnAccessoriesChanged() => AbilityLoadout.Rebuild(Accessories);
+    protected override void OnAccessoriesChanged()
+    {
+        AccessoryEnablement.Sync(this);
+        AbilityLoadout.Rebuild(Accessories);
+    }
+
+    protected override void OnResourcesChanged()
+    {
+        if (AccessoryEnablement.Sync(this))
+            AbilityLoadout.Rebuild(Accessories);
+    }
 }

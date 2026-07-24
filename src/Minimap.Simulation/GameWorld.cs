@@ -175,6 +175,23 @@ public sealed class GameWorld
             {
                 if (effect is IGrowEffect grow)
                     grow.Tick(actor, dt);
+                else if (effect is IPassiveEffect passive)
+                    passive.Tick(actor, dt);
+            }
+        }
+    }
+
+    /// <summary>Ticks passive effects on characters (e.g. energy drain / vitality).</summary>
+    public void TickCharacterPassives(float dt)
+    {
+        foreach (var character in _characters)
+        {
+            if (!character.IsAlive)
+                continue;
+            foreach (var effect in character.Effects)
+            {
+                if (effect is IPassiveEffect passive)
+                    passive.Tick(character, dt);
             }
         }
     }
@@ -183,7 +200,8 @@ public sealed class GameWorld
         int factionId,
         SimVec2 position,
         CharacterDefinition? definition = null,
-        int maxHealth = CombatTuning.DefaultMaxHealth)
+        int maxHealth = CombatTuning.DefaultMaxHealth,
+        int maxEnergy = CombatTuning.DefaultMaxEnergy)
     {
         var def = definition ?? _spawnCharacterDefinition
             ?? throw new InvalidOperationException(
@@ -191,7 +209,7 @@ public sealed class GameWorld
         var resources = _resourceContext
             ?? throw new InvalidOperationException(
                 "Resource context is required (call SetResourceContext or ApplyGameContent).");
-        var c = new Character(_nextCharacterId++, factionId, position, def, resources, maxHealth);
+        var c = new Character(_nextCharacterId++, factionId, position, def, resources, maxHealth, maxEnergy);
         _characters.Add(c);
         return c;
     }
@@ -351,6 +369,7 @@ public sealed class GameWorld
             return;
 
         TickCellActors(dt);
+        TickCharacterPassives(dt);
 
         foreach (var c in _controllers)
             c.Tick(this, dt);

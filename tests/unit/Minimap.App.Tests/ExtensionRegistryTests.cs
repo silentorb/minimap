@@ -26,9 +26,19 @@ public class ExtensionRegistryTests
                 limitTag: maxHealth.Tag,
                 visible: true,
                 uiPriority: 1000);
+            var maxEnergy = new ResourceDefinition(
+                WellKnownResourceIds.MaxEnergy,
+                tags.GetOrCreate(WellKnownResourceIds.MaxEnergy),
+                visible: false);
+            var energy = new ResourceDefinition(
+                WellKnownResourceIds.Energy,
+                tags.GetOrCreate(WellKnownResourceIds.Energy),
+                limitTag: maxEnergy.Tag,
+                visible: true,
+                uiPriority: 900);
             return new GameContent(
                 registry.CharacterDefinitions[0],
-                resources: [health, maxHealth]);
+                resources: [health, maxHealth, energy, maxEnergy]);
         }
 
         public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(

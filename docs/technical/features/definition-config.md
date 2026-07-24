@@ -1,6 +1,6 @@
 # Definition config
 
-JSON configuration for accessory, character, actor, and resource definitions. Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md) / [actors](actors.md) / [resources](resources.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md), [ui-icons.md](ui-icons.md), [tags.md](tags.md), [farming.md](farming.md).
+JSON configuration for accessory, character, actor, and resource definitions. Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md) / [actors](actors.md) / [resources](resources.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md), [ui-icons.md](ui-icons.md), [tags.md](tags.md), [farming.md](farming.md), [hunger.md](hunger.md).
 
 ## Requirements
 
@@ -13,7 +13,7 @@ JSON configuration for accessory, character, actor, and resource definitions. Lo
   2. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/` (effect `cost` / `modify_resource` ids must resolve to registered resource types)
   3. Register actor definitions from `{dllDir}/{assemblyName}/actors/` (accessory ids resolve against the registry)
   4. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry)
-- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_actor"`, `"modify_resource"`, `"grow"`, `"harvest"`). The host does **not** hardcode concrete effect classes.
+- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_actor"`, `"modify_resource"`, `"grow"`, `"harvest"`, `"drain_resource"`, `"modify_resource_by_ratio_bands"`, `"modify_resource_on_use"`). The host does **not** hardcode concrete effect classes.
 - Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
 - Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory / resource / actor ids, malformed `depiction` or `icon`, duplicate ids, or invalid resource limit graphs fail fast (same boot/preflight boundary as extensions).
 - Optional **`depiction`** / **`icon`** on accessory, character, and actor JSON map to **`DepictionConfig`** / **`IconConfig`**. App does not validate that Godot resources exist at load time.
@@ -77,7 +77,7 @@ No accessory-level `resource` block. Grants and costs live on effects:
 }
 ```
 
-- `id` and `effects` are required. `activation`, `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, and `description` are optional.
+- `id` and `effects` are required. `activation`, `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, `description`, and optional **`enabledWhen`** (`{ "id", "atLeast" }` resource gate) are optional.
 - Optional `"cost": { "id", "amount" }` on activatable effects (default free; when present, `amount` must be ≥ **1**).
 - `activation.kind`: `none` | `dedicated` | `modal`. Dedicated requires `bind` (e.g. `primary_fire`).
 - `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
@@ -87,6 +87,10 @@ No accessory-level `resource` block. Grants and costs live on effects:
   - **`place_random_actor`** → `PlaceRandomActorEffect` (`ICellPlacementEffect`) — weighted `pool` of `{ "id", "weight" }` actor definition ids + optional `cost`.
   - **`grow`** — duration, mature depiction, harvest yield (passive; on vegetable actors).
   - **`harvest`** → `IInteractionEffect` — harvest mature food actors.
+  - **`drain_resource`** → `IPassiveEffect` — drain resource `id` at `amountPerSecond` (default **1**).
+  - **`modify_resource_by_ratio_bands`** → `IPassiveEffect` — every `periodSeconds`, read source/max ratio and apply a banded delta to a target resource (vitality).
+  - **`modify_resource_on_use`** → `IInstantUseEffect` — on activate: add `amount` of resource `id` + optional `cost`.
+- CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`** and **`eat`** (see [hunger.md](hunger.md)); they use the same schema.
 
 ### Actor schema
 
@@ -109,7 +113,7 @@ No accessory-level `resource` block. Grants and costs live on effects:
 ```json
 {
   "id": "generic",
-  "accessories": [],
+  "accessories": ["energy_upkeep", "eat"],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
@@ -122,7 +126,7 @@ No accessory-level `resource` block. Grants and costs live on effects:
 ```
 
 - `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` and `icon` are optional.
-- CompuQuest also ships **`zombie`** with `"accessories": ["gun"]` for wave spawns. Generic has **empty** accessories — players choose abilities in the lobby.
+- CompuQuest ships **`generic`** with **`energy_upkeep`** and **`eat`** (hunger); lobby-selectable abilities are still chosen in the lobby. **`zombie`** includes those plus **`gun`** for wave spawns.
 
 ### Later similar catalogs
 

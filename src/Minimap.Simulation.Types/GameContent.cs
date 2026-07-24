@@ -31,6 +31,8 @@ public sealed class GameContent
 
         HealthTag = RequireResourceTag(WellKnownResourceIds.Health);
         MaxHealthTag = RequireResourceTag(WellKnownResourceIds.MaxHealth);
+        EnergyTag = RequireResourceTag(WellKnownResourceIds.Energy);
+        MaxEnergyTag = RequireResourceTag(WellKnownResourceIds.MaxEnergy);
     }
 
     public CharacterDefinition DefaultCharacter { get; }
@@ -47,6 +49,10 @@ public sealed class GameContent
     public TagId HealthTag { get; }
 
     public TagId MaxHealthTag { get; }
+
+    public TagId EnergyTag { get; }
+
+    public TagId MaxEnergyTag { get; }
 
     public bool TryGetResource(TagId tag, out ResourceDefinition? definition) =>
         _resourcesByTag.TryGetValue(tag, out definition);

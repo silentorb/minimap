@@ -68,10 +68,14 @@ public class Actor
                 amount = max;
         }
 
+        var previous = GetResource(tag);
         if (amount == 0)
             _resources.Remove(tag);
         else
             _resources[tag] = amount;
+
+        if (previous != amount)
+            OnResourcesChanged();
     }
 
     public void AddResource(TagId tag, int amount)
@@ -106,6 +110,7 @@ public class Actor
     public void AddAccessory(Accessory accessory)
     {
         ArgumentNullException.ThrowIfNull(accessory);
+        accessory.IsEnabled = AccessoryEnablement.Evaluate(this, accessory);
         _accessories.Add(accessory);
         foreach (var effect in accessory.Effects)
             _effects.Add(effect);
@@ -138,6 +143,10 @@ public class Actor
     }
 
     protected virtual void OnAccessoriesChanged()
+    {
+    }
+
+    protected virtual void OnResourcesChanged()
     {
     }
 }

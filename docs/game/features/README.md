@@ -10,6 +10,7 @@
 | [../game-design.md](../game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [resources.md](resources.md) | Changing **actor/character resources**, resource types, limits, HUD resource lists, or effect resource cost/grant. |
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
+| [hunger.md](hunger.md) | Changing **energy** / max energy, energy drain, vitality bands, **Eat**, or food-gated ability enable. |
 | [movement.md](movement.md) | Changing **realtime cartesian movement**, screen-axis move input, or wall/character **slide** collision. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
 | [depiction.md](depiction.md) | Changing **depiction** on character/accessory/actor definitions, Kenney / SpriteFrames presentation, or how pawns look. |

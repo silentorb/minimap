@@ -16,6 +16,7 @@
 | [actors.md](actors.md) | Working on **Actor** / **ActorDefinition**, cell-anchored actors, or actor vs character hierarchy. |
 | [characters.md](characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |
 | [resources.md](resources.md) | Working on **ResourceDefinition**, actor resource bags, limits, or effect use cost / acquire grant. |
+| [hunger.md](hunger.md) | Working on **energy** / max_energy, `energy_upkeep`, Eat enable gate, drain/vitality passives, or instant-use Eat. |
 | [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Farm, Geek, or actor effect cache add/remove. |
 | [active-abilities.md](active-abilities.md) | Working on **AbilityLoadout**, dedicated/modal activation, or PlayerController ability intents. |
 | [interaction.md](interaction.md) | Working on **IInteractionEffect**, interact target resolve, or Client highlight. |

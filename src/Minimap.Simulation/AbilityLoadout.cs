@@ -24,11 +24,21 @@ public sealed class AbilityLoadout
     public void Rebuild(IReadOnlyList<Accessory> accessories)
     {
         ArgumentNullException.ThrowIfNull(accessories);
+
+        var previousSelectedId = SelectedModal?.Definition.Id;
+        var previousModalIds = new List<string>(_modal.Count);
+        foreach (var accessory in _modal)
+            previousModalIds.Add(accessory.Definition.Id);
+        var previousIndex = SelectedModalIndex;
+
         _dedicated.Clear();
         _modal.Clear();
 
         foreach (var accessory in accessories)
         {
+            if (!accessory.IsEnabled)
+                continue;
+
             var activation = accessory.Definition.Activation;
             switch (activation.Kind)
             {
@@ -40,6 +50,29 @@ public sealed class AbilityLoadout
                         _modal.Add(accessory);
                     break;
             }
+        }
+
+        if (previousSelectedId is not null)
+        {
+            var stillIndex = IndexOfModal(previousSelectedId);
+            if (stillIndex >= 0)
+            {
+                SelectedModalIndex = stillIndex;
+                return;
+            }
+
+            for (var i = previousIndex + 1; i < previousModalIds.Count; i++)
+            {
+                var nextIndex = IndexOfModal(previousModalIds[i]);
+                if (nextIndex >= 0)
+                {
+                    SelectedModalIndex = nextIndex;
+                    return;
+                }
+            }
+
+            SelectedModalIndex = _modal.Count > 0 ? 0 : 0;
+            return;
         }
 
         if (SelectedModalIndex >= _modal.Count)
@@ -88,5 +121,32 @@ public sealed class AbilityLoadout
         }
 
         return null;
+    }
+
+    public static bool TryActivateInstantUse(Accessory? accessory, Actor actor)
+    {
+        if (accessory is null)
+            return false;
+
+        ArgumentNullException.ThrowIfNull(actor);
+        var used = false;
+        foreach (var effect in accessory.Effects)
+        {
+            if (effect is IInstantUseEffect instant && instant.TryUse(actor))
+                used = true;
+        }
+
+        return used;
+    }
+
+    private int IndexOfModal(string definitionId)
+    {
+        for (var i = 0; i < _modal.Count; i++)
+        {
+            if (string.Equals(_modal[i].Definition.Id, definitionId, StringComparison.Ordinal))
+                return i;
+        }
+
+        return -1;
     }
 }

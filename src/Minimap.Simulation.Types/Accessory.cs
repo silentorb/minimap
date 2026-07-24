@@ -16,4 +16,10 @@ public sealed class Accessory
     public AccessoryDefinition Definition { get; }
 
     public IReadOnlyList<AccessoryEffect> Effects => _effects;
+
+    /// <summary>
+    /// Whether the accessory participates in the ability loadout.
+    /// Orthogonal to effect use costs; updated from <see cref="AccessoryDefinition.EnabledWhen"/>.
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
 }

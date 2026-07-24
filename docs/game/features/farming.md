@@ -1,6 +1,6 @@
 # Farming
 
-Growing and harvesting food via the **Farm** ability. Related: [actors.md](actors.md), [accessories.md](accessories.md), [active-abilities.md](active-abilities.md), [interaction.md](interaction.md), [resources.md](resources.md), [cell-placement.md](cell-placement.md). Technical: [../../technical/features/farming.md](../../technical/features/farming.md).
+Growing and harvesting food via the **Farm** ability. Related: [actors.md](actors.md), [accessories.md](accessories.md), [active-abilities.md](active-abilities.md), [interaction.md](interaction.md), [resources.md](resources.md), [cell-placement.md](cell-placement.md), [hunger.md](hunger.md). Technical: [../../technical/features/farming.md](../../technical/features/farming.md).
 
 ## Requirements
 
@@ -10,10 +10,9 @@ Growing and harvesting food via the **Farm** ability. Related: [actors.md](actor
 - Grow behavior lives on a **grow** accessory/effect on each vegetable actor definition (duration, mature depiction, food yield).
 - Harvesting: with Farm selected, environment interact on a mature food actor destroys it and grants the farmer a **food** resource equal to that vegetable’s yield (**carrot 1**, **corn 2**, **melon 3**).
 - Acquiring Farm grants **3** seeds via a `modify_resource` effect (not an accessory-level resource block).
-- Food is a generic resource for now; only vegetables are grown. There is no use for food yet beyond accumulating it.
+- Food is a generic resource; **Eat** spends **1 food** to restore energy (see [hunger.md](hunger.md)). Only vegetables are grown.
 
 ## Non-goals (for now)
 
-- Eating / spending food
 - Per-crop food resource types
 - Watering, soil quality, or multi-stage growth beyond seedling → mature

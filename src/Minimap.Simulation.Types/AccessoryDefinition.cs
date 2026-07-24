@@ -15,7 +15,8 @@ public sealed class AccessoryDefinition
         int pointCost = 0,
         string? displayName = null,
         string? description = null,
-        AccessoryActivation? activation = null)
+        AccessoryActivation? activation = null,
+        AccessoryResourceGate? enabledWhen = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Accessory definition id must be non-empty.", nameof(id));
@@ -32,6 +33,7 @@ public sealed class AccessoryDefinition
         DisplayName = displayName;
         Description = description;
         Activation = activation ?? AccessoryActivation.None;
+        EnabledWhen = enabledWhen;
     }
 
     public string Id { get; }
@@ -51,6 +53,9 @@ public sealed class AccessoryDefinition
     public string? Description { get; }
 
     public AccessoryActivation Activation { get; }
+
+    /// <summary>When set, the accessory is enabled only while the actor meets this resource gate.</summary>
+    public AccessoryResourceGate? EnabledWhen { get; }
 
     public bool HasTag(TagId tag) => _tags.Contains(tag);
 

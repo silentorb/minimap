@@ -1,0 +1,27 @@
+{
+  "id": "energy_upkeep",
+  "displayName": "Energy Upkeep",
+  "description": "Hidden upkeep: drains energy and adjusts health from energy bands.",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "drain_resource",
+      "id": "energy",
+      "amountPerSecond": 1
+    },
+    {
+      "type": "modify_resource_by_ratio_bands",
+      "source": "energy",
+      "target": "health",
+      "periodSeconds": 1,
+      "bands": [
+        { "maxRatio": 0, "amount": -2 },
+        { "maxRatio": 0.333333, "amount": -1 },
+        { "maxRatio": 0.666667, "amount": 0 },
+        { "maxRatio": 1, "amount": 1 }
+      ]
+    }
+  ]
+}

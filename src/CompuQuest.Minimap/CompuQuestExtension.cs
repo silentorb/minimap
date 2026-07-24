@@ -18,6 +18,15 @@ public sealed class CompuQuestExtension : IExtension
             ModifyResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            DrainResourceEffectFactory.TypeId,
+            DrainResourceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceByRatioBandsEffectFactory.TypeId,
+            ModifyResourceByRatioBandsEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceOnUseEffectFactory.TypeId,
+            ModifyResourceOnUseEffectFactory.Create);
         registry.AddIntegrator(new CompuQuestIntegrator());
     }
 }

@@ -1,9 +1,10 @@
 namespace Minimap.Simulation;
 
-/// <summary>Documented combat / health defaults (docs/game/features).</summary>
+/// <summary>Documented combat / health / energy defaults (docs/game/features).</summary>
 public static class CombatTuning
 {
     public const int DefaultMaxHealth = 100;
+    public const int DefaultMaxEnergy = 100;
     public const int MissileDamage = 25;
     public const float MissileSpeed = 200f;
     public const float FireIntervalSeconds = 1.25f;

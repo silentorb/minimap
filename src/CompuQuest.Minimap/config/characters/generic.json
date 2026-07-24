@@ -1,6 +1,6 @@
 {
   "id": "generic",
-  "accessories": [],
+  "accessories": ["energy_upkeep", "eat"],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",

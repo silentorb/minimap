@@ -1,6 +1,6 @@
 # Accessories
 
-System for attaching game logic to actors (including characters). Related: [actors.md](actors.md), [characters.md](characters.md), [combat.md](combat.md), [tags.md](tags.md), [resources.md](resources.md), [players.md](players.md), [lobby.md](lobby.md), [active-abilities.md](active-abilities.md), [farming.md](farming.md), [cell-placement.md](cell-placement.md). Technical: [../../technical/features/accessories.md](../../technical/features/accessories.md).
+System for attaching game logic to actors (including characters). Related: [actors.md](actors.md), [characters.md](characters.md), [combat.md](combat.md), [tags.md](tags.md), [resources.md](resources.md), [players.md](players.md), [lobby.md](lobby.md), [active-abilities.md](active-abilities.md), [farming.md](farming.md), [cell-placement.md](cell-placement.md), [hunger.md](hunger.md). Technical: [../../technical/features/accessories.md](../../technical/features/accessories.md).
 
 ## Terminology
 
@@ -15,9 +15,12 @@ System for attaching game logic to actors (including characters). Related: [acto
 - Each accessory instance has an **accessory definition**. Definitions ship as JSON with their content extension (CompuQuest: `src/CompuQuest.Minimap/config/accessories/`; see [../../technical/features/definition-config.md](../../technical/features/definition-config.md)); extensions may also register definitions in code.
 - Definitions may include **tags**, **pointCost** (default **0**), **displayName**, **description**, depiction, icon, and optional **activation** (dedicated / modal / none). They do **not** declare consumed resources or starting amounts at the accessory level.
 - When an accessory is **added**, its effects join the actor’s flat effect list; on-acquire effects (e.g. `modify_resource`) run; the character **ability loadout** rebuilds when applicable. When it is **removed**, those effects are removed.
-- **Use cost** is per **effect** (resource tag + amount; default free). Activatable effects that declare a cost cannot run when the actor cannot afford it; successful activation consumes the cost.
+- **Use cost** is per **effect** (resource tag + amount; default free). Activatable effects that declare a cost cannot run when the actor cannot afford it; successful activation consumes the cost. Use cost does **not** disable the accessory (e.g. Gun with **0** ammo stays selectable).
+- **Enable gate** (optional on the definition, e.g. `enabledWhen`): when unmet, the accessory is **disabled** — omitted from the ability loadout and HUD. Orthogonal to use cost. See [hunger.md](hunger.md) (**Eat** gated on food ≥ 1).
 - **Starting stock** is granted by a `modify_resource` (or equivalent) effect whose purpose is to change a resource when the accessory is acquired.
 - Shipped player-selectable **abilities** (each lobby point cost **1**): **Gun** (dedicated shoot; grant ammo **6**; shoot costs **1** ammo), **Farm** (modal plant/harvest; grant seeds **3**; plant costs **1** seed), **Geek** (modal place computer; grant computers **1**; place costs **1** computer).
+- Shipped non-selectable character accessories: **energy upkeep** (`energy_upkeep`; activation none; drain + vitality), **Eat** (`eat`; modal; enable-gated on food; instant use restores energy). See [hunger.md](hunger.md).
+- Passive effects may tick on characters (e.g. `drain_resource`, `modify_resource_by_ratio_bands`). Instant-use effects (`modify_resource_on_use`) run on modal activate without placement preview.
 - Lobby selection (see [lobby.md](lobby.md)): players spend accessory points on tagged `player_selectable` accessories. Players do not start with Gun or other selectable abilities unless chosen.
 
 ## Non-goals (for now)

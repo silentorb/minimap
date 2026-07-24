@@ -5,4 +5,6 @@ public static class WellKnownResourceIds
 {
     public const string Health = "health";
     public const string MaxHealth = "max_health";
+    public const string Energy = "energy";
+    public const string MaxEnergy = "max_energy";
 }

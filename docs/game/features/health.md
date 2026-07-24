@@ -1,6 +1,6 @@
 # Health
 
-Character hit points as resources. Related: [resources.md](resources.md), [damage.md](damage.md), [combat.md](combat.md), [factions.md](factions.md).
+Character hit points as resources. Related: [resources.md](resources.md), [damage.md](damage.md), [combat.md](combat.md), [factions.md](factions.md), [hunger.md](hunger.md).
 
 ## Requirements
 
@@ -13,6 +13,6 @@ Character hit points as resources. Related: [resources.md](resources.md), [damag
 
 ## Non-goals (for now)
 
-- Regeneration, armor, or invulnerability frames
+- Armor or invulnerability frames
 
-Player health is shown on the local HUD as part of the resource list; see [player-hud.md](player-hud.md) and [resources.md](resources.md).
+Vitality from [hunger.md](hunger.md) can heal or hurt health over time based on energy bands. Player health is shown on the local HUD as part of the resource list; see [player-hud.md](player-hud.md) and [resources.md](resources.md).

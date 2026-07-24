@@ -95,19 +95,23 @@ public sealed class PlayerController : IController
         if (Pawn is null)
             return;
 
-        var placement = AbilityLoadout.FindPlacementEffect(Pawn.AbilityLoadout.SelectedModal);
-        if (placement is null)
-            return;
-
-        if (!_placementPreview)
+        var selected = Pawn.AbilityLoadout.SelectedModal;
+        var placement = AbilityLoadout.FindPlacementEffect(selected);
+        if (placement is not null)
         {
-            _placementPreview = true;
+            if (!_placementPreview)
+            {
+                _placementPreview = true;
+                return;
+            }
+
+            var cell = CellFacing.CellInFront(Pawn, world.HexSize);
+            if (placement.TryPlace(world, Pawn, cell, _random))
+                ExitPlacementPreview();
             return;
         }
 
-        var cell = CellFacing.CellInFront(Pawn, world.HexSize);
-        if (placement.TryPlace(world, Pawn, cell, _random))
-            ExitPlacementPreview();
+        AbilityLoadout.TryActivateInstantUse(selected, Pawn);
     }
 
     private void UpdatePlacementPreview(GameWorld world)

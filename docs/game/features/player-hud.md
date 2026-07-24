@@ -1,6 +1,6 @@
 # Player HUD
 
-On-screen player status for local humans. Related: [health.md](health.md), [resources.md](resources.md), [ui-icons.md](ui-icons.md).
+On-screen player status for local humans. Related: [health.md](health.md), [resources.md](resources.md), [ui-icons.md](ui-icons.md), [active-abilities.md](active-abilities.md), [hunger.md](hunger.md).
 
 ## Requirements
 
@@ -10,6 +10,7 @@ On-screen player status for local humans. Related: [health.md](health.md), [reso
   - **Player name** (currently hardcoded as `"Player 1"`, `"Player 2"`, … — not bound to simulation identity data yet)
   - A **horizontal list** of **visible** character resources (see [resources.md](resources.md)), sorted by **uiPriority** (higher first), each with **icon** and amount
   - Resources with a limit show **`VALUE / MAX`** (limit types themselves are not listed)
+  - The **currently selected modal ability** (icon + display name), when one is selected; hidden when none (disabled abilities are already omitted from the loadout)
 - When a pawn is missing or dead, health displays as **0 / max** (max may still reflect the last known max, or 0 if never possessed).
 - If more than **4** visible resource rows would show, truncate and append a **`+N`** overflow label.
 
@@ -19,3 +20,4 @@ On-screen player status for local humans. Related: [health.md](health.md), [reso
 - Health bars as graphical meters (text amounts are enough)
 - Death animations or HUD flourish on death
 - Tabbed resource UI (a truncated list is enough)
+- Full ability slot strip / cooldown chrome beyond the selected modal ability

@@ -19,6 +19,15 @@ public class DefinitionConfigTests
             ModifyResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            DrainResourceEffectFactory.TypeId,
+            DrainResourceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceByRatioBandsEffectFactory.TypeId,
+            ModifyResourceByRatioBandsEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceOnUseEffectFactory.TypeId,
+            ModifyResourceOnUseEffectFactory.Create);
         return registry;
     }
 
@@ -165,6 +174,8 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "farm");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_carrot");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "energy_upkeep");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "eat");
 
         var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
         Assert.Equal(1, gun.PointCost);
@@ -180,6 +191,16 @@ public class DefinitionConfigTests
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
 
+        var eat = registry.AccessoryDefinitions.Single(a => a.Id == "eat");
+        Assert.Equal(AccessoryActivationKind.Modal, eat.Activation.Kind);
+        Assert.NotNull(eat.EnabledWhen);
+        Assert.Contains(eat.EffectTemplates, e => e is ModifyResourceOnUseEffect);
+
+        var upkeep = registry.AccessoryDefinitions.Single(a => a.Id == "energy_upkeep");
+        Assert.Equal(AccessoryActivationKind.None, upkeep.Activation.Kind);
+        Assert.Contains(upkeep.EffectTemplates, e => e is DrainResourceEffect);
+        Assert.Contains(upkeep.EffectTemplates, e => e is ModifyResourceByRatioBandsEffect);
+
         Assert.Equal(4, registry.ActorDefinitions.Count);
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn");
@@ -192,16 +213,20 @@ public class DefinitionConfigTests
             "res://assets/compuquest/game-icons/delapouite/seedling.svg",
             carrot.DepictionConfig!.ResourcePath);
 
-        Assert.Equal(6, registry.ResourceDefinitions.Count);
+        Assert.Equal(8, registry.ResourceDefinitions.Count);
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "food");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "seeds");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "energy");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "max_energy");
 
         Assert.Equal(2, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
-        Assert.Empty(generic.Accessories);
+        Assert.Equal(["energy_upkeep", "eat"], generic.Accessories.Select(a => a.Id).ToArray());
 
         var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
-        Assert.Equal("gun", Assert.Single(zombie.Accessories).Id);
+        Assert.Equal(
+            ["energy_upkeep", "eat", "gun"],
+            zombie.Accessories.Select(a => a.Id).ToArray());
     }
 
     [Fact]

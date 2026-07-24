@@ -83,6 +83,7 @@ public sealed class ClientSession
             {
                 DisplayName = $"Player {i + 1}",
                 Resources = BuildResourceModels(pawn, _session.Content),
+                SelectedAbility = BuildSelectedAbilityModel(pawn),
             });
         }
 
@@ -123,16 +124,22 @@ public sealed class ClientSession
                      content.TryGetResource(limitTag, out var limitDef) &&
                      limitDef is not null)
             {
-                // Dead / missing pawn: still show health as 0 / default max when possible.
+                // Dead / missing pawn: still show health/energy as 0 / default max when possible.
                 if (definition.Tag == content.HealthTag)
                 {
                     amount = 0;
                     maxAmount = CombatTuning.DefaultMaxHealth;
                 }
+                else if (definition.Tag == content.EnergyTag)
+                {
+                    amount = 0;
+                    maxAmount = CombatTuning.DefaultMaxEnergy;
+                }
             }
 
             var isHealth = definition.Tag == content.HealthTag;
-            if (!isHealth && amount <= 0 && maxAmount is null)
+            var isEnergy = definition.Tag == content.EnergyTag;
+            if (!isHealth && !isEnergy && amount <= 0 && maxAmount is null)
                 continue;
 
             if (isHealth && pawn is { IsAlive: false })
@@ -149,6 +156,21 @@ public sealed class ClientSession
         }
 
         return rows;
+    }
+
+    private static PlayerHudAbilityModel? BuildSelectedAbilityModel(Character? pawn)
+    {
+        var selected = pawn?.AbilityLoadout.SelectedModal;
+        if (selected is null)
+            return null;
+
+        var definition = selected.Definition;
+        return new PlayerHudAbilityModel
+        {
+            Id = definition.Id,
+            DisplayName = definition.DisplayName ?? definition.Id,
+            IconPath = definition.IconConfig?.ResourcePath,
+        };
     }
 
     private void AttachHumanPlayers()

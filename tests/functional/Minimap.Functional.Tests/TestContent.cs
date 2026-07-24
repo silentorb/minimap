@@ -21,16 +21,34 @@ internal static class TestContent
         visible: true,
         uiPriority: 1000);
 
+    public static ResourceDefinition MaxEnergyResource { get; } = new(
+        WellKnownResourceIds.MaxEnergy,
+        Tags.GetOrCreate(WellKnownResourceIds.MaxEnergy),
+        displayName: "Max Energy",
+        visible: false);
+
+    public static ResourceDefinition EnergyResource { get; } = new(
+        WellKnownResourceIds.Energy,
+        Tags.GetOrCreate(WellKnownResourceIds.Energy),
+        displayName: "Energy",
+        limitTag: MaxEnergyResource.Tag,
+        visible: true,
+        uiPriority: 900);
+
     public static IReadOnlyList<ResourceDefinition> Resources { get; } =
     [
         HealthResource,
         MaxHealthResource,
+        EnergyResource,
+        MaxEnergyResource,
     ];
 
     public static ResourceContext ResourceContext { get; } = new(
         Resources,
         HealthResource.Tag,
-        MaxHealthResource.Tag);
+        MaxHealthResource.Tag,
+        EnergyResource.Tag,
+        MaxEnergyResource.Tag);
 
     public static GameContent Content { get; } = new(
         new CharacterDefinition("generic", Array.Empty<AccessoryDefinition>()),

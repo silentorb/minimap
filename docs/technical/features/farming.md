@@ -1,6 +1,6 @@
 # Farming (technical)
 
-Implements [../../game/features/farming.md](../../game/features/farming.md). Related: [actors.md](actors.md), [accessories.md](accessories.md), [interaction.md](interaction.md), [cell-placement.md](cell-placement.md), [resources.md](resources.md), [definition-config.md](definition-config.md).
+Implements [../../game/features/farming.md](../../game/features/farming.md). Related: [actors.md](actors.md), [accessories.md](accessories.md), [interaction.md](interaction.md), [cell-placement.md](cell-placement.md), [resources.md](resources.md), [definition-config.md](definition-config.md), [hunger.md](hunger.md).
 
 ## Requirements
 
@@ -8,7 +8,7 @@ Implements [../../game/features/farming.md](../../game/features/farming.md). Rel
 - Vegetable **actor** defs (`carrot` / `corn` / `melon`) under `config/actors/`: seedling depiction; accessory `grow_*` with `grow` effect (`durationSeconds`, `matureDepiction`, `harvestYield`).
 - **`grow`** effect ticks on cell actors; on completion sets harvestable and `DepictionOverride` to mature art.
 - **`harvest`** validates mature grow state on the target; removes the cell actor; grants yield resource to the acting character.
-- Resource type **`food`** registered in CompuQuest; visible on HUD.
+- Resource type **`food`** registered in CompuQuest; visible on HUD. Food is spent by **Eat** (see [hunger.md](hunger.md)).
 
 ## Non-goals (for now)
 
