@@ -76,4 +76,17 @@ public sealed class AbilityLoadout
 
         return null;
     }
+
+    public static IInteractionEffect? FindInteractionEffect(Accessory? accessory)
+    {
+        if (accessory is null)
+            return null;
+        foreach (var effect in accessory.Effects)
+        {
+            if (effect is IInteractionEffect interaction)
+                return interaction;
+        }
+
+        return null;
+    }
 }

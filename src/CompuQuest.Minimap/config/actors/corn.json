@@ -1,0 +1,9 @@
+{
+  "id": "corn",
+  "displayName": "Corn",
+  "accessories": ["grow_corn"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+  }
+}

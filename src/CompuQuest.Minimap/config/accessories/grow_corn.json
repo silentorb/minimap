@@ -1,0 +1,21 @@
+{
+  "id": "grow_corn",
+  "displayName": "Grow Corn",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "grow",
+      "durationSeconds": 5,
+      "matureDepiction": {
+        "kind": "texture",
+        "path": "res://assets/compuquest/game-icons/delapouite/corn.svg"
+      },
+      "harvestYield": {
+        "id": "food",
+        "amount": 2
+      }
+    }
+  ]
+}

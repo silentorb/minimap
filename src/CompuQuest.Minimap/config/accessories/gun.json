@@ -8,17 +8,19 @@
     "kind": "dedicated",
     "bind": "primary_fire"
   },
-  "resource": {
-    "id": "ammo",
-    "startingAmount": 6
-  },
   "effects": [
+    {
+      "type": "modify_resource",
+      "id": "ammo",
+      "amount": 6
+    },
     {
       "type": "shoot",
       "fireIntervalSeconds": 1.25,
       "missileSpeed": 200,
       "missileDamage": 25,
-      "friendlyFire": true
+      "friendlyFire": true,
+      "cost": { "id": "ammo", "amount": 1 }
     }
   ],
   "depiction": {

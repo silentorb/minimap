@@ -7,13 +7,18 @@ namespace Minimap.App.Tests;
 
 public class DefinitionConfigTests
 {
-    private static ExtensionRegistry RegistryWithShootFactory()
+    private static ExtensionRegistry RegistryWithCompuQuestFactories()
     {
         var registry = new ExtensionRegistry();
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
-            PlaceRandomObjectEffectFactory.TypeId,
-            PlaceRandomObjectEffectFactory.Create);
+            PlaceRandomActorEffectFactory.TypeId,
+            PlaceRandomActorEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceEffectFactory.TypeId,
+            ModifyResourceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         return registry;
     }
 
@@ -35,7 +40,7 @@ public class DefinitionConfigTests
             }
             """;
 
-        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithCompuQuestFactories());
 
         Assert.Equal("gun", def.Id);
         var shoot = Assert.IsType<ShootEffect>(Assert.Single(def.EffectTemplates));
@@ -53,7 +58,14 @@ public class DefinitionConfigTests
         const string json = """
             {
               "id": "gun",
-              "effects": [],
+              "effects": [
+                {
+                  "type": "shoot",
+                  "fireIntervalSeconds": 1.25,
+                  "missileSpeed": 200,
+                  "missileDamage": 25
+                }
+              ],
               "depiction": {
                 "kind": "sprite_frames",
                 "path": "res://assets/compuquest/kenney-1bit/depict/gun.tres",
@@ -62,11 +74,9 @@ public class DefinitionConfigTests
             }
             """;
 
-        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
-        var depiction = Assert.IsType<DepictionConfig>(def.DepictionConfig);
-        Assert.Equal(DepictionKinds.SpriteFrames, depiction.Kind);
-        Assert.Equal("res://assets/compuquest/kenney-1bit/depict/gun.tres", depiction.ResourcePath);
-        Assert.Equal("default", depiction.DefaultAnimation);
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithCompuQuestFactories());
+        Assert.NotNull(def.DepictionConfig);
+        Assert.Equal(DepictionKinds.SpriteFrames, def.DepictionConfig.Kind);
     }
 
     [Fact]
@@ -75,225 +85,120 @@ public class DefinitionConfigTests
         const string json = """
             {
               "id": "gun",
-              "effects": [],
+              "effects": [
+                {
+                  "type": "shoot",
+                  "fireIntervalSeconds": 1.25,
+                  "missileSpeed": 200,
+                  "missileDamage": 25
+                }
+              ],
               "icon": {
                 "path": "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg"
               }
             }
             """;
 
-        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithShootFactory());
-        var icon = Assert.IsType<IconConfig>(def.IconConfig);
+        var def = DefinitionConfig.LoadAccessoryFromJson(json, RegistryWithCompuQuestFactories());
+        Assert.NotNull(def.IconConfig);
         Assert.Equal(
             "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg",
-            icon.ResourcePath);
-    }
-
-    [Fact]
-    public void LoadAccessoryFromJson_DepictionMissingKind_Throws()
-    {
-        Assert.Throws<InvalidOperationException>(() =>
-            DefinitionConfig.LoadAccessoryFromJson("""
-                {
-                  "id": "gun",
-                  "effects": [],
-                  "depiction": { "path": "res://x.tres" }
-                }
-                """, RegistryWithShootFactory()));
-    }
-
-    [Fact]
-    public void LoadAccessoryFromJson_IconMissingPath_Throws()
-    {
-        Assert.Throws<InvalidOperationException>(() =>
-            DefinitionConfig.LoadAccessoryFromJson("""
-                {
-                  "id": "gun",
-                  "effects": [],
-                  "icon": {}
-                }
-                """, RegistryWithShootFactory()));
+            def.IconConfig.ResourcePath);
     }
 
     [Fact]
     public void LoadAccessoryFromJson_UnknownEffectType_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionConfig.LoadAccessoryFromJson("""
+            DefinitionConfig.LoadAccessoryFromJson(
+                """
                 {
-                  "id": "odd",
-                  "effects": [ { "type": "explode" } ]
+                  "id": "gun",
+                  "effects": [ { "type": "nope" } ]
                 }
-                """, RegistryWithShootFactory()));
+                """, RegistryWithCompuQuestFactories()));
+    }
+
+    [Fact]
+    public void LoadAccessoryFromJson_MissingEffects_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            DefinitionConfig.LoadAccessoryFromJson(
+                """{ "id": "gun" }""", RegistryWithCompuQuestFactories()));
     }
 
     [Fact]
     public void LoadAccessoryFromJson_MissingId_Throws()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionConfig.LoadAccessoryFromJson("""{ "effects": [] }""", RegistryWithShootFactory()));
+            DefinitionConfig.LoadAccessoryFromJson(
+                """{ "effects": [] }""", RegistryWithCompuQuestFactories()));
     }
 
     [Fact]
-    public void LoadCharacterFromJson_ResolvesAccessories()
+    public void LoadAccessoryFromJson_LegacyResourceBlock_Throws()
     {
-        var gun = new AccessoryDefinition("gun", Array.Empty<AccessoryEffect>());
-        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal)
-        {
-            ["gun"] = gun,
-        };
-
-        var def = DefinitionConfig.LoadCharacterFromJson(
-            """{ "id": "generic", "accessories": ["gun"] }""",
-            byId);
-
-        Assert.Equal("generic", def.Id);
-        Assert.Same(gun, Assert.Single(def.Accessories));
-        Assert.Null(def.DepictionConfig);
-        Assert.Null(def.IconConfig);
-    }
-
-    [Fact]
-    public void LoadCharacterFromJson_WithDepiction_ParsesDepictionConfig()
-    {
-        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
-
-        var def = DefinitionConfig.LoadCharacterFromJson(
-            """
-            {
-              "id": "generic",
-              "accessories": [],
-              "depiction": {
-                "kind": "sprite_frames",
-                "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres"
-              }
-            }
-            """,
-            byId);
-
-        var depiction = Assert.IsType<DepictionConfig>(def.DepictionConfig);
-        Assert.Equal(DepictionKinds.SpriteFrames, depiction.Kind);
-        Assert.Equal("res://assets/compuquest/kenney-1bit/depict/generic.tres", depiction.ResourcePath);
-        Assert.Null(depiction.DefaultAnimation);
-    }
-
-    [Fact]
-    public void LoadCharacterFromJson_WithIcon_ParsesIconConfig()
-    {
-        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
-
-        var def = DefinitionConfig.LoadCharacterFromJson(
-            """
-            {
-              "id": "generic",
-              "accessories": [],
-              "icon": {
-                "path": "res://assets/compuquest/game-icons/delapouite/person.svg"
-              }
-            }
-            """,
-            byId);
-
-        var icon = Assert.IsType<IconConfig>(def.IconConfig);
-        Assert.Equal(
-            "res://assets/compuquest/game-icons/delapouite/person.svg",
-            icon.ResourcePath);
-    }
-
-    [Fact]
-    public void LoadCharacterFromJson_UnknownAccessory_Throws()
-    {
-        var byId = new Dictionary<string, AccessoryDefinition>(StringComparer.Ordinal);
-
         Assert.Throws<InvalidOperationException>(() =>
-            DefinitionConfig.LoadCharacterFromJson(
-                """{ "id": "generic", "accessories": ["gun"] }""",
-                byId));
-    }
-
-    [Fact]
-    public void LoadAccessoriesFromDirectory_MissingDir_ReturnsEmpty()
-    {
-        var missing = Path.Combine(Path.GetTempPath(), $"defs-missing-{Guid.NewGuid():N}");
-        Assert.Empty(DefinitionConfig.LoadAccessoriesFromDirectory(missing, RegistryWithShootFactory()));
-    }
-
-    [Fact]
-    public void ContentDirectoryForAssembly_UsesAssemblyNameBesideDll()
-    {
-        var path = Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap.dll");
-        var content = DefinitionConfig.ContentDirectoryForAssembly(path);
-        Assert.Equal(
-            Path.Combine(Path.GetTempPath(), "extensions", "CompuQuest.Minimap"),
-            content);
+            DefinitionConfig.LoadAccessoryFromJson(
+                """
+                {
+                  "id": "gun",
+                  "resource": { "id": "ammo", "startingAmount": 6 },
+                  "effects": []
+                }
+                """,
+                RegistryWithCompuQuestFactories()));
     }
 
     [Fact]
     public void RegisterFromConfigDirectory_LoadsShippedCompuQuestContent()
     {
         var repoRoot = FindRepoRoot();
-        var registry = RegistryWithShootFactory();
+        var registry = RegistryWithCompuQuestFactories();
         registry.RegisterTags(["player_selectable"]);
 
         DefinitionConfig.RegisterFromConfigDirectory(
             Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config"),
             registry);
 
-        Assert.Equal(3, registry.AccessoryDefinitions.Count);
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "gun");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "farm");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_carrot");
+
         var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
-        Assert.IsType<ShootEffect>(Assert.Single(gun.EffectTemplates));
         Assert.Equal(1, gun.PointCost);
         Assert.True(gun.HasTag(registry.Tags.GetOrCreate("player_selectable")));
-        Assert.NotNull(gun.DepictionConfig);
-        Assert.Equal(DepictionKinds.SpriteFrames, gun.DepictionConfig.Kind);
-        Assert.Equal(
-            "res://assets/compuquest/kenney-1bit/depict/gun.tres",
-            gun.DepictionConfig.ResourcePath);
-        Assert.NotNull(gun.IconConfig);
-        Assert.Equal(
-            "res://assets/compuquest/game-icons/john-colburn/pistol-gun.svg",
-            gun.IconConfig.ResourcePath);
+        Assert.Contains(gun.EffectTemplates, e => e is ModifyResourceEffect);
+        Assert.Contains(gun.EffectTemplates, e => e is ShootEffect shoot && shoot.CostAmount == 1);
 
-        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
-        var plant = registry.AccessoryDefinitions.Single(a => a.Id == "plant_vegetable");
-        Assert.Equal(AccessoryActivationKind.Modal, plant.Activation.Kind);
-        Assert.IsType<PlaceRandomObjectEffect>(Assert.Single(plant.EffectTemplates));
-        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
+        var farm = registry.AccessoryDefinitions.Single(a => a.Id == "farm");
+        Assert.Equal(AccessoryActivationKind.Modal, farm.Activation.Kind);
+        Assert.Contains(farm.EffectTemplates, e => e is PlaceRandomActorEffect);
+        Assert.Contains(farm.EffectTemplates, e => e is HarvestEffect);
+
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
-        Assert.Equal(1, geek.StartingResourceAmount);
-        Assert.NotNull(geek.ConsumedResourceTag);
 
-        Assert.Equal(4, registry.PlacedObjectDefinitions.Count);
-        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "carrot");
-        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "corn");
-        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "melon");
-        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "computer");
+        Assert.Equal(4, registry.ActorDefinitions.Count);
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "melon");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "computer");
 
-        Assert.Equal(5, registry.ResourceDefinitions.Count);
-        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "health");
-        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "max_health");
-        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "ammo");
+        var carrot = registry.ActorDefinitions.Single(a => a.Id == "carrot");
+        Assert.Equal("grow_carrot", Assert.Single(carrot.Accessories).Id);
+        Assert.Equal(
+            "res://assets/compuquest/game-icons/delapouite/seedling.svg",
+            carrot.DepictionConfig!.ResourcePath);
+
+        Assert.Equal(6, registry.ResourceDefinitions.Count);
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "food");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "seeds");
-        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "computers");
-
-        var gunResource = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
-        Assert.Equal(6, gunResource.StartingResourceAmount);
-        var plantResource = registry.AccessoryDefinitions.Single(a => a.Id == "plant_vegetable");
-        Assert.Equal(3, plantResource.StartingResourceAmount);
 
         Assert.Equal(2, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
         Assert.Empty(generic.Accessories);
-        Assert.NotNull(generic.DepictionConfig);
-        Assert.Equal(DepictionKinds.SpriteFrames, generic.DepictionConfig.Kind);
-        Assert.Equal(
-            "res://assets/compuquest/kenney-1bit/depict/generic.tres",
-            generic.DepictionConfig.ResourcePath);
-        Assert.NotNull(generic.IconConfig);
-        Assert.Equal(
-            "res://assets/compuquest/game-icons/delapouite/person.svg",
-            generic.IconConfig.ResourcePath);
 
         var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
         Assert.Equal("gun", Assert.Single(zombie.Accessories).Id);
@@ -327,7 +232,7 @@ public class DefinitionConfigTests
                 { "id": "generic", "accessories": ["gun"] }
                 """);
 
-            var registry = RegistryWithShootFactory();
+            var registry = RegistryWithCompuQuestFactories();
             DefinitionConfig.RegisterFromConfigDirectory(root, registry);
 
             Assert.Equal("gun", Assert.Single(registry.AccessoryDefinitions).Id);
@@ -360,7 +265,7 @@ public class DefinitionConfigTests
     }
 
     [Fact]
-    public void RegisterFromConfigDirectory_TempDirs_WithResources_ResolvesAccessoryResource()
+    public void RegisterFromConfigDirectory_TempDirs_WithModifyResource_LoadsGrantEffect()
     {
         var root = Path.Combine(Path.GetTempPath(), $"defs-{Guid.NewGuid():N}");
         var resources = Path.Combine(root, DefinitionConfig.ResourcesDirectoryName);
@@ -376,17 +281,27 @@ public class DefinitionConfigTests
             File.WriteAllText(Path.Combine(accessories, "gun.json"), """
                 {
                   "id": "gun",
-                  "resource": { "id": "ammo", "startingAmount": 6 },
-                  "effects": []
+                  "effects": [
+                    { "type": "modify_resource", "id": "ammo", "amount": 6 },
+                    {
+                      "type": "shoot",
+                      "fireIntervalSeconds": 1.0,
+                      "missileSpeed": 100,
+                      "missileDamage": 10,
+                      "cost": { "id": "ammo", "amount": 1 }
+                    }
+                  ]
                 }
                 """);
 
-            var registry = RegistryWithShootFactory();
+            var registry = RegistryWithCompuQuestFactories();
             DefinitionConfig.RegisterFromConfigDirectory(root, registry);
 
             var gun = Assert.Single(registry.AccessoryDefinitions);
-            Assert.Equal(6, gun.StartingResourceAmount);
-            Assert.NotNull(gun.ConsumedResourceTag);
+            Assert.Contains(gun.EffectTemplates, e => e is ModifyResourceEffect);
+            var shoot = Assert.IsType<ShootEffect>(
+                gun.EffectTemplates.Single(e => e is ShootEffect));
+            Assert.Equal(1, shoot.CostAmount);
             Assert.Equal("ammo", Assert.Single(registry.ResourceDefinitions).Id);
         }
         finally

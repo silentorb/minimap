@@ -8,16 +8,19 @@
 | File | Read when… |
 |------|------------|
 | [../game-design.md](../game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
-| [resources.md](resources.md) | Changing **character resources**, resource types, limits, HUD resource lists, or accessory resource consume/grant. |
+| [resources.md](resources.md) | Changing **actor/character resources**, resource types, limits, HUD resource lists, or effect resource cost/grant. |
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
 | [movement.md](movement.md) | Changing **realtime cartesian movement**, screen-axis move input, or wall/character **slide** collision. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
-| [depiction.md](depiction.md) | Changing **depiction** on character/accessory definitions, Kenney / SpriteFrames presentation, or how pawns look. |
+| [depiction.md](depiction.md) | Changing **depiction** on character/accessory/actor definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [ui-icons.md](ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
+| [actors.md](actors.md) | Changing **actors**, actor definitions, cell-anchored actors, or the actor vs character split. |
 | [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
-| [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, Plant Vegetable, Geek, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
-| [active-abilities.md](active-abilities.md) | Changing **dedicated vs modal** ability activation, D-pad / 1–4 select, or ability activate binds. |
-| [cell-placement.md](cell-placement.md) | Changing **cell occupancy**, placing objects on cells, placement preview, or Plant Vegetable rules. |
+| [accessories.md](accessories.md) | Changing **accessories**, **abilities**, accessory effects, Gun, Farm, Geek, CompuQuest `config/accessories/` JSON, or effect-cache rules. |
+| [active-abilities.md](active-abilities.md) | Changing **dedicated vs modal** ability activation, preview/confirm vs immediate activate, D-pad / 1–4 select, or ability activate binds. |
+| [interaction.md](interaction.md) | Changing **environment interact**, target highlight, A/E binds, or ability interaction effects. |
+| [farming.md](farming.md) | Changing **Farm**, grow/harvest, seedlings, food yields, or vegetable actors. |
+| [cell-placement.md](cell-placement.md) | Changing **cell occupancy**, placing actors on cells, placement preview, or Farm/Geek place rules. |
 | [tags.md](tags.md) | Changing **tags** on definitions (e.g. `player_selectable`), resource type ids as tags, or tag naming policy. |
 | [players.md](players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [ai.md](ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |

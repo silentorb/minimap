@@ -7,28 +7,30 @@ namespace Minimap.Simulation.Tests;
 public class CellOccupancyTests
 {
     [Fact]
-    public void TryPlaceObject_rejects_occupied_or_missing_cell()
+    public void TryPlaceActor_rejects_occupied_or_missing_cell()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
-        var def = new PlacedObjectDefinition("carrot");
+        w.ApplyGameContent(TestContent.Content);
+        var def = new ActorDefinition("carrot");
         var cell = w.Grid.AllHexes().First();
 
-        Assert.True(w.TryPlaceObject(cell, def));
+        Assert.True(w.TryPlaceActor(cell, def));
         Assert.True(w.IsCellOccupied(cell));
-        Assert.False(w.TryPlaceObject(cell, def));
+        Assert.False(w.TryPlaceActor(cell, def));
 
         var outside = new HexAxial(99, 99);
-        Assert.False(w.TryPlaceObject(outside, def));
+        Assert.False(w.TryPlaceActor(outside, def));
     }
 
     [Fact]
-    public void TryRemoveObjectAt_removes_occupancy()
+    public void TryRemoveActorAt_removes_occupancy()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
-        var def = new PlacedObjectDefinition("corn");
+        w.ApplyGameContent(TestContent.Content);
+        var def = new ActorDefinition("corn");
         var cell = w.Grid.AllHexes().First();
-        Assert.True(w.TryPlaceObject(cell, def));
-        Assert.True(w.TryRemoveObjectAt(cell, out var removed));
+        Assert.True(w.TryPlaceActor(cell, def));
+        Assert.True(w.TryRemoveActorAt(cell, out var removed));
         Assert.Equal("corn", removed!.Definition.Id);
         Assert.False(w.IsCellOccupied(cell));
     }

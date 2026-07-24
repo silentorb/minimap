@@ -12,6 +12,7 @@ public sealed class PlayerController : IController
     private bool _fireHeld;
     private bool _abilityActivatePressed;
     private bool _abilityBackPressed;
+    private bool _interactPressed;
     private int? _modalSelect;
     private bool _placementPreview;
 
@@ -32,12 +33,16 @@ public sealed class PlayerController : IController
 
     public bool PlacementPreviewValid { get; private set; }
 
+    /// <summary>Cell-actor id currently valid for environment interact, if any.</summary>
+    public int? InteractTargetActorId { get; private set; }
+
     public void Possess(Character character) => Pawn = character;
 
     public void Unpossess()
     {
         Pawn = null;
         ExitPlacementPreview();
+        InteractTargetActorId = null;
     }
 
     public void SetMoveInput(SimVec2 direction) => _moveInput = direction;
@@ -49,6 +54,8 @@ public sealed class PlayerController : IController
     public void SetAbilityActivatePressed(bool pressed) => _abilityActivatePressed = pressed;
 
     public void SetAbilityBackPressed(bool pressed) => _abilityBackPressed = pressed;
+
+    public void SetInteractPressed(bool pressed) => _interactPressed = pressed;
 
     public void SetModalSelect(int? slotIndex) => _modalSelect = slotIndex;
 
@@ -72,7 +79,11 @@ public sealed class PlayerController : IController
         if (_abilityActivatePressed)
             HandleAbilityActivate(world);
 
+        if (_interactPressed)
+            EnvironmentInteraction.TryInteract(world, Pawn);
+
         UpdatePlacementPreview(world);
+        UpdateInteractTarget(world);
 
         var wantsFire = _fireHeld
             && Pawn.AbilityLoadout.TryGetDedicated(AccessoryActivationBinds.PrimaryFire, out _);
@@ -116,6 +127,17 @@ public sealed class PlayerController : IController
         var cell = CellFacing.CellInFront(Pawn, world.HexSize);
         PlacementPreviewCell = cell;
         PlacementPreviewValid = placement.CanPlace(world, Pawn, cell);
+    }
+
+    private void UpdateInteractTarget(GameWorld world)
+    {
+        InteractTargetActorId = null;
+        if (Pawn is null)
+            return;
+
+        var target = EnvironmentInteraction.ResolveTarget(world, Pawn);
+        if (target is not null)
+            InteractTargetActorId = target.Id;
     }
 
     private void ExitPlacementPreview()

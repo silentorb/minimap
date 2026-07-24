@@ -9,7 +9,7 @@ public static class DefinitionConfig
 {
     public const string AccessoriesDirectoryName = "accessories";
     public const string CharactersDirectoryName = "characters";
-    public const string PlacedObjectsDirectoryName = "placed_objects";
+    public const string ActorsDirectoryName = "actors";
     public const string ResourcesDirectoryName = "resources";
 
     /// <summary>
@@ -89,8 +89,14 @@ public static class DefinitionConfig
         var activation = ParseActivationProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
         TryGetStringProperty(root, "description", out var description);
-        var (consumedResourceTag, startingResourceAmount) =
-            ParseAccessoryResourceProperty(root, registry, sourcePath);
+        if (root.TryGetProperty("resource", out _))
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    "Accessory-level 'resource' is no longer supported; use modify_resource and effect cost.",
+                    sourcePath));
+        }
+
         return new AccessoryDefinition(
             id,
             effects,
@@ -100,9 +106,7 @@ public static class DefinitionConfig
             pointCost,
             displayName,
             description,
-            activation,
-            consumedResourceTag,
-            startingResourceAmount);
+            activation);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -212,7 +216,7 @@ public static class DefinitionConfig
 
     /// <summary>
     /// Registers JSON definitions from <paramref name="contentDirectory"/> into
-    /// <paramref name="registry"/> (placed objects, resources, accessories, then characters).
+    /// <paramref name="registry"/> (resources, accessories, actors, then characters).
     /// Effect <c>type</c> values must already be registered via
     /// <see cref="IExtensionRegistry.AddAccessoryEffectFactory"/>.
     /// </summary>
@@ -220,10 +224,6 @@ public static class DefinitionConfig
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
         ArgumentNullException.ThrowIfNull(registry);
-
-        var placedObjectsDir = Path.Combine(contentDirectory, PlacedObjectsDirectoryName);
-        foreach (var placed in LoadPlacedObjectsFromDirectory(placedObjectsDir))
-            registry.AddPlacedObjectDefinition(placed);
 
         var resourcesDir = Path.Combine(contentDirectory, ResourcesDirectoryName);
         foreach (var resource in LoadResourcesFromDirectory(resourcesDir, registry.Tags))
@@ -233,6 +233,10 @@ public static class DefinitionConfig
         var accessoriesDir = Path.Combine(contentDirectory, AccessoriesDirectoryName);
         foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir, registry))
             registry.AddAccessoryDefinition(accessory);
+
+        var actorsDir = Path.Combine(contentDirectory, ActorsDirectoryName);
+        foreach (var actor in LoadActorsFromDirectory(actorsDir, registry))
+            registry.AddActorDefinition(actor);
 
         var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
         foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
@@ -355,50 +359,102 @@ public static class DefinitionConfig
         }
     }
 
-    public static IReadOnlyList<PlacedObjectDefinition> LoadPlacedObjectsFromDirectory(string directory)
+    public static IReadOnlyList<ActorDefinition> LoadActorsFromDirectory(
+        string directory,
+        IExtensionRegistry registry)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        ArgumentNullException.ThrowIfNull(registry);
 
         if (!Directory.Exists(directory))
-            return Array.Empty<PlacedObjectDefinition>();
+            return Array.Empty<ActorDefinition>();
 
-        var definitions = new List<PlacedObjectDefinition>();
+        var byId = registry.AccessoryDefinitions.ToDictionary(d => d.Id, StringComparer.Ordinal);
+        var definitions = new List<ActorDefinition>();
         foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
-            definitions.Add(LoadPlacedObjectFromFile(path));
+            definitions.Add(LoadActorFromFile(path, byId));
 
         return definitions;
     }
 
-    public static PlacedObjectDefinition LoadPlacedObjectFromFile(string path)
+    public static ActorDefinition LoadActorFromFile(
+        string path,
+        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(accessoriesById);
         if (!File.Exists(path))
-            throw new FileNotFoundException($"Placed object definition file not found: {path}", path);
+            throw new FileNotFoundException($"Actor definition file not found: {path}", path);
 
-        return LoadPlacedObjectFromJson(File.ReadAllText(path), path);
+        return LoadActorFromJson(File.ReadAllText(path), accessoriesById, path);
     }
 
-    public static PlacedObjectDefinition LoadPlacedObjectFromJson(string json, string? sourcePath = null)
+    public static ActorDefinition LoadActorFromJson(
+        string json,
+        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById,
+        string? sourcePath = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        ArgumentNullException.ThrowIfNull(accessoriesById);
 
-        using var document = ParseDocument(json, "placed object", sourcePath);
+        using var document = ParseDocument(json, "actor", sourcePath);
         var root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object)
         {
             throw new InvalidOperationException(
-                FormatEmptyObjectError("placed object", sourcePath));
+                FormatEmptyObjectError("actor", sourcePath));
         }
 
         if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
         {
             throw new InvalidOperationException(
-                FormatRequiredFieldError("placed object", "id", sourcePath));
+                FormatRequiredFieldError("actor", "id", sourcePath));
+        }
+
+        var accessories = new List<AccessoryDefinition>();
+        if (root.TryGetProperty("accessories", out var accessoriesElement))
+        {
+            if (accessoriesElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException(
+                    AppendSource("Actor definition accessories must be an array of ids.", sourcePath));
+            }
+
+            foreach (var accessoryIdElement in accessoriesElement.EnumerateArray())
+            {
+                if (accessoryIdElement.ValueKind != JsonValueKind.String)
+                {
+                    throw new InvalidOperationException(
+                        AppendSource(
+                            "Actor definition accessories must be non-empty ids.",
+                            sourcePath));
+                }
+
+                var accessoryId = accessoryIdElement.GetString();
+                if (string.IsNullOrWhiteSpace(accessoryId))
+                {
+                    throw new InvalidOperationException(
+                        AppendSource(
+                            "Actor definition accessories must be non-empty ids.",
+                            sourcePath));
+                }
+
+                if (!accessoriesById.TryGetValue(accessoryId, out var accessory))
+                {
+                    throw new InvalidOperationException(
+                        AppendSource(
+                            $"Actor definition '{id}' references unknown accessory '{accessoryId}'.",
+                            sourcePath));
+                }
+
+                accessories.Add(accessory);
+            }
         }
 
         var depiction = ParseDepictionProperty(root, sourcePath);
+        var icon = ParseIconProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
-        return new PlacedObjectDefinition(id, depiction, displayName);
+        return new ActorDefinition(id, accessories, depiction, icon, displayName);
     }
 
     private static JsonDocument ParseDocument(string json, string kind, string? sourcePath)
@@ -491,59 +547,6 @@ public static class DefinitionConfig
         }
 
         return priority;
-    }
-
-    private static (TagId? ConsumedResourceTag, int StartingResourceAmount) ParseAccessoryResourceProperty(
-        JsonElement root,
-        IExtensionRegistry registry,
-        string? sourcePath)
-    {
-        if (!root.TryGetProperty("resource", out var resourceElement))
-            return (null, 0);
-
-        if (resourceElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            return (null, 0);
-
-        if (resourceElement.ValueKind != JsonValueKind.Object)
-        {
-            throw new InvalidOperationException(
-                AppendSource("Accessory resource must be a JSON object or null.", sourcePath));
-        }
-
-        if (!TryGetStringProperty(resourceElement, "id", out var resourceId) ||
-            string.IsNullOrWhiteSpace(resourceId))
-        {
-            throw new InvalidOperationException(
-                AppendSource("Accessory resource must include id.", sourcePath));
-        }
-
-        if (!registry.TryGetResourceDefinition(resourceId, out var definition) || definition is null)
-        {
-            throw new InvalidOperationException(
-                AppendSource(
-                    $"Accessory resource id '{resourceId}' is not a registered resource type.",
-                    sourcePath));
-        }
-
-        var startingAmount = 0;
-        if (resourceElement.TryGetProperty("startingAmount", out var amountElement))
-        {
-            if (amountElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            {
-                startingAmount = 0;
-            }
-            else if (amountElement.ValueKind != JsonValueKind.Number ||
-                     !amountElement.TryGetInt32(out startingAmount) ||
-                     startingAmount < 0)
-            {
-                throw new InvalidOperationException(
-                    AppendSource(
-                        "Accessory resource startingAmount must be a non-negative integer.",
-                        sourcePath));
-            }
-        }
-
-        return (definition.Tag, startingAmount);
     }
 
     private static IReadOnlyList<TagId> ParseTagsProperty(
@@ -778,7 +781,7 @@ public static class DefinitionConfig
                     sourcePath));
         }
 
-        return factory(effectElement, index, sourcePath);
+        return factory(effectElement, index, sourcePath, registry);
     }
 
     private static bool TryGetStringProperty(JsonElement obj, string name, out string? value)

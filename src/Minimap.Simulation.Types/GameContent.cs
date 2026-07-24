@@ -3,20 +3,20 @@ namespace Minimap.Simulation.Types;
 /// <summary>Playthrough content bag. Not an integration-facing type.</summary>
 public sealed class GameContent
 {
-    private readonly List<PlacedObjectDefinition> _placedObjects;
+    private readonly List<ActorDefinition> _actors;
     private readonly List<ResourceDefinition> _resources;
     private readonly Dictionary<TagId, ResourceDefinition> _resourcesByTag = new();
 
     public GameContent(
         CharacterDefinition defaultCharacter,
         WeightedPool<SpawnerDefinition>? worldSpawnerPool = null,
-        IEnumerable<PlacedObjectDefinition>? placedObjects = null,
+        IEnumerable<ActorDefinition>? actors = null,
         IEnumerable<ResourceDefinition>? resources = null)
     {
         ArgumentNullException.ThrowIfNull(defaultCharacter);
         DefaultCharacter = defaultCharacter;
         WorldSpawnerPool = worldSpawnerPool ?? WeightedPool<SpawnerDefinition>.Empty;
-        _placedObjects = placedObjects?.ToList() ?? new List<PlacedObjectDefinition>();
+        _actors = actors?.ToList() ?? new List<ActorDefinition>();
         _resources = resources?.ToList() ?? new List<ResourceDefinition>();
 
         foreach (var resource in _resources)
@@ -38,7 +38,7 @@ public sealed class GameContent
     /// <summary>Weighted pool of spawner definitions placed during level init.</summary>
     public WeightedPool<SpawnerDefinition> WorldSpawnerPool { get; }
 
-    public IReadOnlyList<PlacedObjectDefinition> PlacedObjects => _placedObjects;
+    public IReadOnlyList<ActorDefinition> Actors => _actors;
 
     public IReadOnlyList<ResourceDefinition> Resources => _resources;
 

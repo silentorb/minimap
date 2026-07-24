@@ -45,7 +45,7 @@ public sealed class CompuQuestIntegrator : IIntegrator
         return new GameContent(
             generic,
             spawnerPool,
-            registry.PlacedObjectDefinitions,
+            registry.ActorDefinitions,
             registry.ResourceDefinitions);
     }
 

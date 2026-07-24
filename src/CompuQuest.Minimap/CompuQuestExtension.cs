@@ -11,8 +11,13 @@ public sealed class CompuQuestExtension : IExtension
         registry.RegisterTags([CompuQuestIntegrator.PlayerSelectableTag]);
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
-            PlaceRandomObjectEffectFactory.TypeId,
-            PlaceRandomObjectEffectFactory.Create);
+            PlaceRandomActorEffectFactory.TypeId,
+            PlaceRandomActorEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            ModifyResourceEffectFactory.TypeId,
+            ModifyResourceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddIntegrator(new CompuQuestIntegrator());
     }
 }

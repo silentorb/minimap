@@ -1,0 +1,21 @@
+{
+  "id": "grow_melon",
+  "displayName": "Grow Melon",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "grow",
+      "durationSeconds": 5,
+      "matureDepiction": {
+        "kind": "texture",
+        "path": "res://assets/compuquest/game-icons/delapouite/watermelon.svg"
+      },
+      "harvestYield": {
+        "id": "food",
+        "amount": 3
+      }
+    }
+  ]
+}

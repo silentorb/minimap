@@ -11,8 +11,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, AccessoryDefinition> _accessoryById = new(StringComparer.Ordinal);
     private readonly List<CharacterDefinition> _characterDefinitions = new();
     private readonly Dictionary<string, CharacterDefinition> _characterById = new(StringComparer.Ordinal);
-    private readonly List<PlacedObjectDefinition> _placedObjectDefinitions = new();
-    private readonly Dictionary<string, PlacedObjectDefinition> _placedObjectById = new(StringComparer.Ordinal);
+    private readonly List<ActorDefinition> _actorDefinitions = new();
+    private readonly Dictionary<string, ActorDefinition> _actorById = new(StringComparer.Ordinal);
     private readonly List<ResourceDefinition> _resourceDefinitions = new();
     private readonly Dictionary<string, ResourceDefinition> _resourceById = new(StringComparer.Ordinal);
     private readonly Dictionary<TagId, ResourceDefinition> _resourceByTag = new();
@@ -28,7 +28,7 @@ public sealed class ExtensionRegistry : IExtensionRegistry
 
     public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
 
-    public IReadOnlyList<PlacedObjectDefinition> PlacedObjectDefinitions => _placedObjectDefinitions;
+    public IReadOnlyList<ActorDefinition> ActorDefinitions => _actorDefinitions;
 
     public IReadOnlyList<ResourceDefinition> ResourceDefinitions => _resourceDefinitions;
 
@@ -120,19 +120,19 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         return _characterById.TryGetValue(id, out definition);
     }
 
-    public void AddPlacedObjectDefinition(PlacedObjectDefinition definition)
+    public void AddActorDefinition(ActorDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        if (!_placedObjectById.TryAdd(definition.Id, definition))
+        if (!_actorById.TryAdd(definition.Id, definition))
         {
             throw new InvalidOperationException(
-                $"Duplicate placed object definition id '{definition.Id}'.");
+                $"Duplicate actor definition id '{definition.Id}'.");
         }
 
-        _placedObjectDefinitions.Add(definition);
+        _actorDefinitions.Add(definition);
     }
 
-    public bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition)
+    public bool TryGetActorDefinition(string id, out ActorDefinition? definition)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -140,7 +140,7 @@ public sealed class ExtensionRegistry : IExtensionRegistry
             return false;
         }
 
-        return _placedObjectById.TryGetValue(id, out definition);
+        return _actorById.TryGetValue(id, out definition);
     }
 
     public void AddResourceDefinition(ResourceDefinition definition)

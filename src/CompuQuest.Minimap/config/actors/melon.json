@@ -1,0 +1,9 @@
+{
+  "id": "melon",
+  "displayName": "Melon",
+  "accessories": ["grow_melon"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+  }
+}

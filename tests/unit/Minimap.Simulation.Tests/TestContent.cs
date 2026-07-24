@@ -29,11 +29,19 @@ internal static class TestContent
         visible: true,
         uiPriority: 80);
 
+    public static ResourceDefinition FoodResource { get; } = new(
+        "food",
+        Tags.GetOrCreate("food"),
+        displayName: "Food",
+        visible: true,
+        uiPriority: 70);
+
     public static IReadOnlyList<ResourceDefinition> Resources { get; } =
     [
         HealthResource,
         MaxHealthResource,
         AmmoResource,
+        FoodResource,
     ];
 
     public static ResourceContext ResourceContext { get; } = new(
@@ -43,9 +51,10 @@ internal static class TestContent
 
     public static AccessoryDefinition Gun { get; } = new(
         "gun",
-        [new TestShootEffect(1.25f, 200f, 25, true)],
-        consumedResourceTag: AmmoResource.Tag,
-        startingResourceAmount: 6);
+        [
+            new TestGrantResourceEffect(AmmoResource.Tag, 6),
+            new TestShootEffect(1.25f, 200f, 25, true, AmmoResource.Tag, 1),
+        ]);
 
     public static CharacterDefinition Bare { get; } =
         new("bare", Array.Empty<AccessoryDefinition>());

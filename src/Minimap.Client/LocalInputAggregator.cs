@@ -13,6 +13,7 @@ public readonly struct PlayerWorldInput
         bool fireHeld,
         bool abilityActivatePressed,
         bool abilityBackPressed,
+        bool interactPressed,
         int? modalSelect)
     {
         Move = move;
@@ -20,6 +21,7 @@ public readonly struct PlayerWorldInput
         FireHeld = fireHeld;
         AbilityActivatePressed = abilityActivatePressed;
         AbilityBackPressed = abilityBackPressed;
+        InteractPressed = interactPressed;
         ModalSelect = modalSelect;
     }
 
@@ -28,6 +30,7 @@ public readonly struct PlayerWorldInput
     public bool FireHeld { get; }
     public bool AbilityActivatePressed { get; }
     public bool AbilityBackPressed { get; }
+    public bool InteractPressed { get; }
     public int? ModalSelect { get; }
 }
 
@@ -57,6 +60,7 @@ public sealed class LocalInputAggregator
         var fireHeld = false;
         var activateHeld = false;
         var backHeld = false;
+        var interactHeld = false;
         int? modalSelect = null;
 
         foreach (var device in _roster.Players[playerIndex].Devices)
@@ -66,6 +70,7 @@ public sealed class LocalInputAggregator
                 fireHeld |= Input.IsMouseButtonPressed(MouseButton.Left);
                 activateHeld |= Input.IsKeyPressed(Key.Space);
                 backHeld |= Input.IsKeyPressed(Key.Escape);
+                interactHeld |= Input.IsKeyPressed(Key.E);
                 modalSelect ??= ReadKeyboardModalSelect();
             }
             else if (Input.GetConnectedJoypads().Contains(device.JoypadDevice))
@@ -74,6 +79,7 @@ public sealed class LocalInputAggregator
                 fireHeld |= trigger >= TriggerDeadzone;
                 activateHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.X);
                 backHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.B);
+                interactHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.A);
                 modalSelect ??= ReadJoypadModalSelect(device.JoypadDevice);
             }
         }
@@ -86,6 +92,7 @@ public sealed class LocalInputAggregator
 
         var activatePressed = activateHeld && !edge.ActivateWasHeld;
         var backPressed = backHeld && !edge.BackWasHeld;
+        var interactPressed = interactHeld && !edge.InteractWasHeld;
         var modalPressed = modalSelect is int slot && edge.LastModalSelect != slot
             ? modalSelect
             : null;
@@ -96,8 +103,16 @@ public sealed class LocalInputAggregator
 
         edge.ActivateWasHeld = activateHeld;
         edge.BackWasHeld = backHeld;
+        edge.InteractWasHeld = interactHeld;
 
-        return new PlayerWorldInput(move, aim, fireHeld, activatePressed, backPressed, modalPressed);
+        return new PlayerWorldInput(
+            move,
+            aim,
+            fireHeld,
+            activatePressed,
+            backPressed,
+            interactPressed,
+            modalPressed);
     }
 
     private SimVec2 ReadMerged(
@@ -202,6 +217,7 @@ public sealed class LocalInputAggregator
     {
         public bool ActivateWasHeld;
         public bool BackWasHeld;
+        public bool InteractWasHeld;
         public int? LastModalSelect;
     }
 }

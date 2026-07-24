@@ -7,9 +7,9 @@ namespace Minimap.Simulation.Tests;
 /// <summary>Test double for ICellPlacementEffect (CompuQuest effect stays in extension).</summary>
 internal sealed class TestPlaceEffect : AccessoryEffect, ICellPlacementEffect
 {
-    private readonly PlacedObjectDefinition _definition;
+    private readonly ActorDefinition _definition;
 
-    public TestPlaceEffect(PlacedObjectDefinition definition)
+    public TestPlaceEffect(ActorDefinition definition)
     {
         _definition = definition;
     }
@@ -32,7 +32,7 @@ internal sealed class TestPlaceEffect : AccessoryEffect, ICellPlacementEffect
         PlaceAttempts++;
         if (!CanPlace(world, placer, cell))
             return false;
-        return world.TryPlaceObject(cell, _definition);
+        return world.TryPlaceActor(cell, _definition);
     }
 
     public override AccessoryEffect Clone() => new TestPlaceEffect(_definition);
@@ -46,8 +46,8 @@ public class CellPlacementEffectTests
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(TestContent.Bare);
-        var veg = new PlacedObjectDefinition("carrot");
-        w.SetPlacedObjectDefinitions([veg]);
+        var veg = new ActorDefinition("carrot");
+        w.SetActorDefinitions([veg]);
         var effect = new TestPlaceEffect(veg);
         var placer = w.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
         var grass = w.Grid.AllHexes().First(h => w.Grid.Get(h) == CellType.Grass);

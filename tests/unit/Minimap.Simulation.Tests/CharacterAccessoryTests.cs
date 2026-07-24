@@ -11,8 +11,9 @@ public class CharacterAccessoryTests
         var c = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
         Assert.Single(c.Accessories);
         Assert.Equal("gun", c.Accessories[0].Definition.Id);
-        Assert.Single(c.Effects);
-        Assert.IsType<TestShootEffect>(c.Effects[0]);
+        Assert.Equal(2, c.Effects.Count);
+        Assert.IsType<TestGrantResourceEffect>(c.Effects[0]);
+        Assert.IsType<TestShootEffect>(c.Effects[1]);
     }
 
     [Fact]
@@ -24,8 +25,9 @@ public class CharacterAccessoryTests
         var gun = TestContent.Gun.CreateInstance();
         c.AddAccessory(gun);
         Assert.Single(c.Accessories);
-        Assert.Single(c.Effects);
+        Assert.Equal(2, c.Effects.Count);
         Assert.Same(gun.Effects[0], c.Effects[0]);
+        Assert.Same(gun.Effects[1], c.Effects[1]);
 
         Assert.True(c.RemoveAccessory(gun));
         Assert.Empty(c.Accessories);
@@ -52,7 +54,8 @@ public class CharacterAccessoryTests
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
 
-        var effect = Assert.IsType<TestShootEffect>(player.Effects[0]);
+        var effect = Assert.IsType<TestShootEffect>(
+            Assert.Single(player.Effects.OfType<TestShootEffect>()));
         Assert.Equal(0f, effect.CooldownRemaining);
 
         driver.SetAimInput(new SimVec2(1f, 0f));

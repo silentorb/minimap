@@ -7,14 +7,18 @@
   "activation": {
     "kind": "modal"
   },
-  "resource": {
-    "id": "computers",
-    "startingAmount": 1
-  },
   "effects": [
     {
-      "type": "place_random_object",
-      "pool": ["computer"]
+      "type": "modify_resource",
+      "id": "computers",
+      "amount": 1
+    },
+    {
+      "type": "place_random_actor",
+      "pool": [
+        { "id": "computer", "weight": 1 }
+      ],
+      "cost": { "id": "computers", "amount": 1 }
     }
   ],
   "icon": {

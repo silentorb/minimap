@@ -106,10 +106,10 @@ public class ExtensionRegistryTests
     public void AddAccessoryEffectFactory_rejects_duplicate_type()
     {
         var registry = new ExtensionRegistry();
-        registry.AddAccessoryEffectFactory("shoot", (_, _, _) =>
+        registry.AddAccessoryEffectFactory("shoot", (_, _, _, _) =>
             throw new InvalidOperationException("unused"));
         Assert.Throws<InvalidOperationException>(() =>
-            registry.AddAccessoryEffectFactory("SHOOT", (_, _, _) =>
+            registry.AddAccessoryEffectFactory("SHOOT", (_, _, _, _) =>
                 throw new InvalidOperationException("unused")));
     }
 

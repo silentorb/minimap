@@ -1,0 +1,21 @@
+{
+  "id": "grow_carrot",
+  "displayName": "Grow Carrot",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "grow",
+      "durationSeconds": 5,
+      "matureDepiction": {
+        "kind": "texture",
+        "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"
+      },
+      "harvestYield": {
+        "id": "food",
+        "amount": 1
+      }
+    }
+  ]
+}

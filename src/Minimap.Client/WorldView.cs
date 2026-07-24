@@ -107,7 +107,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         SyncCharacters();
         SyncMissiles();
         SyncSpawners();
-        SyncPlacedObjects();
+        SyncCellActors(localPlayers);
         SyncPlacementPreview(localPlayers);
         SyncAimLines(localPlayers);
     }
@@ -146,7 +146,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     {
         SyncHexes();
         SyncSpawners();
-        SyncPlacedObjects();
+        SyncCellActors(null);
         SyncCharacters();
         SyncMissiles();
     }
@@ -218,25 +218,46 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         }
     }
 
-    private void SyncPlacedObjects()
+    private void SyncCellActors(IReadOnlyList<PlayerController>? localPlayers)
     {
         if (_world is null || _placedLayer is null)
             return;
 
-        var live = new HashSet<int>();
-        foreach (var placed in _world.PlacedObjects.Values)
+        var highlightIds = new HashSet<int>();
+        if (localPlayers is not null)
         {
-            live.Add(placed.Id);
-            if (!_placedNodes.TryGetValue(placed.Id, out var node))
+            foreach (var player in localPlayers)
             {
-                node = CreatePlacedObjectNode(placed);
+                if (player.InteractTargetActorId is int id)
+                    highlightIds.Add(id);
+            }
+        }
+
+        var live = new HashSet<int>();
+        foreach (var actor in _world.CellActors.Values)
+        {
+            live.Add(actor.Id);
+            if (!_placedNodes.TryGetValue(actor.Id, out var node))
+            {
+                node = CreateCellActorNode(actor);
                 _placedLayer.AddChild(node);
-                _placedNodes[placed.Id] = node;
+                _placedNodes[actor.Id] = node;
+            }
+            else
+            {
+                RefreshCellActorDepiction(node, actor);
             }
 
-            var worldPos = HexLayout.ToWorld(placed.Cell, HexSize);
-            node.Position = new Vector2(worldPos.X, worldPos.Y);
+            if (actor.Cell is { } cell)
+            {
+                var worldPos = HexLayout.ToWorld(cell, HexSize);
+                node.Position = new Vector2(worldPos.X, worldPos.Y);
+            }
+
             node.ZIndex = 1;
+            node.Modulate = highlightIds.Contains(actor.Id)
+                ? new Color(1.35f, 1.35f, 0.75f)
+                : Colors.White;
         }
 
         foreach (var id in _placedNodes.Keys.ToList())
@@ -248,15 +269,36 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         }
     }
 
-    private static Node2D CreatePlacedObjectNode(PlacedObject placed)
+    private static Node2D CreateCellActorNode(Actor actor)
     {
         var node = new Node2D();
-        var depiction = placed.Definition.DepictionConfig;
+        ApplyCellActorDepiction(node, actor.EffectiveDepiction);
+        return node;
+    }
+
+    private static void RefreshCellActorDepiction(Node2D node, Actor actor)
+    {
+        var depiction = actor.EffectiveDepiction;
+        var path = depiction?.ResourcePath;
+        var currentPath = node.HasMeta("depiction_path")
+            ? node.GetMeta("depiction_path").AsString()
+            : null;
+        if (string.Equals(path, currentPath, StringComparison.Ordinal))
+            return;
+
+        foreach (var child in node.GetChildren())
+            child.Free();
+        ApplyCellActorDepiction(node, depiction);
+    }
+
+    private static void ApplyCellActorDepiction(Node2D node, DepictionConfig? depiction)
+    {
         if (depiction is not null &&
             depiction.Kind == DepictionKinds.Texture &&
             TryApplyTexture(node, depiction))
         {
-            return node;
+            node.SetMeta("depiction_path", depiction.ResourcePath);
+            return;
         }
 
         var rect = new ColorRect
@@ -268,7 +310,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             OffsetBottom = 8,
         };
         node.AddChild(rect);
-        return node;
+        node.SetMeta("depiction_path", depiction?.ResourcePath ?? string.Empty);
     }
 
     private static bool TryApplyTexture(Node2D node, DepictionConfig depiction)

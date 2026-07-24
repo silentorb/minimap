@@ -29,11 +29,11 @@ public interface IExtensionRegistry
 
     bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition);
 
-    void AddPlacedObjectDefinition(PlacedObjectDefinition definition);
+    void AddActorDefinition(ActorDefinition definition);
 
-    IReadOnlyList<PlacedObjectDefinition> PlacedObjectDefinitions { get; }
+    IReadOnlyList<ActorDefinition> ActorDefinitions { get; }
 
-    bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition);
+    bool TryGetActorDefinition(string id, out ActorDefinition? definition);
 
     void AddResourceDefinition(ResourceDefinition definition);
 

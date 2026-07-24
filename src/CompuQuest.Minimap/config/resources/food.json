@@ -1,0 +1,9 @@
+{
+  "id": "food",
+  "displayName": "Food",
+  "visible": true,
+  "uiPriority": 80,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/skoll/fruit-bowl.svg"
+  }
+}

@@ -57,6 +57,13 @@ public sealed class ClientSession
         _players[playerIndex].SetAbilityBackPressed(pressed);
     }
 
+    public void SetInteractPressed(int playerIndex, bool pressed)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetInteractPressed(pressed);
+    }
+
     public void SetModalSelect(int playerIndex, int? slotIndex)
     {
         if (playerIndex < 0 || playerIndex >= _players.Count)

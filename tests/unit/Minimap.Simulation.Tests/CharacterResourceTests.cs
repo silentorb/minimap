@@ -53,7 +53,8 @@ public class CharacterResourceTests
         }
 
         Assert.Equal(0, pawn.GetResource(TestContent.AmmoResource.Tag));
-        Assert.False(AccessoryResources.CanAffordUse(pawn, Shoot.FindShootAccessory(pawn)!));
+        var shootEffect = Shoot.FindShootEffectInstance(pawn)!;
+        Assert.False(EffectUseCosts.CanAfford(pawn, shootEffect));
 
         effect.CooldownRemaining = 0f;
         w.Tick(0.016f);

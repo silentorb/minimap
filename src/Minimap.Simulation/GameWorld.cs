@@ -9,8 +9,8 @@ public sealed class GameWorld
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
     private readonly List<Spawner> _spawners = new();
-    private readonly Dictionary<HexAxial, PlacedObject> _placedByCell = new();
-    private readonly Dictionary<string, PlacedObjectDefinition> _placedObjectDefinitions =
+    private readonly Dictionary<HexAxial, Actor> _actorsByCell = new();
+    private readonly Dictionary<string, ActorDefinition> _actorDefinitions =
         new(StringComparer.Ordinal);
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly List<SimVec2> _characterObstacleCenters = new();
@@ -21,7 +21,7 @@ public sealed class GameWorld
     private int _nextCharacterId;
     private int _nextMissileId;
     private int _nextSpawnerId;
-    private int _nextPlacedObjectId;
+    private int _nextActorId;
 
 
     public static GameWorld Create(
@@ -70,7 +70,7 @@ public sealed class GameWorld
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
     public IReadOnlyList<Spawner> Spawners => _spawners;
-    public IReadOnlyDictionary<HexAxial, PlacedObject> PlacedObjects => _placedByCell;
+    public IReadOnlyDictionary<HexAxial, Actor> CellActors => _actorsByCell;
 
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
     public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
@@ -99,26 +99,26 @@ public sealed class GameWorld
     {
         ArgumentNullException.ThrowIfNull(content);
         SetSpawnCharacterDefinition(content.DefaultCharacter);
-        SetPlacedObjectDefinitions(content.PlacedObjects);
+        SetActorDefinitions(content.Actors);
         SetResourceContext(ResourceContext.FromGameContent(content));
     }
 
-    public void SetPlacedObjectDefinitions(IEnumerable<PlacedObjectDefinition> definitions)
+    public void SetActorDefinitions(IEnumerable<ActorDefinition> definitions)
     {
         ArgumentNullException.ThrowIfNull(definitions);
-        _placedObjectDefinitions.Clear();
+        _actorDefinitions.Clear();
         foreach (var def in definitions)
         {
             ArgumentNullException.ThrowIfNull(def);
-            if (!_placedObjectDefinitions.TryAdd(def.Id, def))
+            if (!_actorDefinitions.TryAdd(def.Id, def))
             {
                 throw new InvalidOperationException(
-                    $"Duplicate placed object definition id '{def.Id}'.");
+                    $"Duplicate actor definition id '{def.Id}'.");
             }
         }
     }
 
-    public bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition)
+    public bool TryGetActorDefinition(string id, out ActorDefinition? definition)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -126,35 +126,57 @@ public sealed class GameWorld
             return false;
         }
 
-        return _placedObjectDefinitions.TryGetValue(id, out definition);
+        return _actorDefinitions.TryGetValue(id, out definition);
     }
 
-    public bool IsCellOccupied(HexAxial cell) => _placedByCell.ContainsKey(cell);
+    public bool IsCellOccupied(HexAxial cell) => _actorsByCell.ContainsKey(cell);
+
+    public bool TryGetActorAt(HexAxial cell, out Actor? actor) =>
+        _actorsByCell.TryGetValue(cell, out actor);
 
     /// <summary>
-    /// Places a static object on <paramref name="cell"/> if the cell is in the grid and empty.
+    /// Places a cell-anchored actor on <paramref name="cell"/> if the cell is in the grid and empty.
     /// Returns false for expected rejection (missing cell / occupied); does not validate terrain.
     /// </summary>
-    public bool TryPlaceObject(HexAxial cell, PlacedObjectDefinition definition)
+    public bool TryPlaceActor(HexAxial cell, ActorDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        if (!Grid.Contains(cell) || _placedByCell.ContainsKey(cell))
+        if (!Grid.Contains(cell) || _actorsByCell.ContainsKey(cell))
             return false;
 
-        _placedByCell[cell] = new PlacedObject(_nextPlacedObjectId++, cell, definition);
+        var resources = _resourceContext
+            ?? throw new InvalidOperationException(
+                "Resource context is required (call SetResourceContext or ApplyGameContent).");
+        var actor = new Actor(_nextActorId++, definition, resources);
+        actor.Cell = cell;
+        _actorsByCell[cell] = actor;
         return true;
     }
 
-    public bool TryRemoveObjectAt(HexAxial cell, out PlacedObject? removed)
+    public bool TryRemoveActorAt(HexAxial cell, out Actor? removed)
     {
-        if (_placedByCell.Remove(cell, out var obj))
+        if (_actorsByCell.Remove(cell, out var obj))
         {
+            obj.Cell = null;
             removed = obj;
             return true;
         }
 
         removed = null;
         return false;
+    }
+
+    /// <summary>Ticks passive effects on cell-anchored actors (e.g. grow).</summary>
+    public void TickCellActors(float dt)
+    {
+        foreach (var actor in _actorsByCell.Values)
+        {
+            foreach (var effect in actor.Effects)
+            {
+                if (effect is IGrowEffect grow)
+                    grow.Tick(actor, dt);
+            }
+        }
     }
 
     public Character AddCharacter(
@@ -220,7 +242,7 @@ public sealed class GameWorld
     {
         ClearRivalsAndMissiles(spawn.RivalFactionId);
         _spawners.Clear();
-        _placedByCell.Clear();
+        _actorsByCell.Clear();
 
         var rng = new Random(WorldSeed + levelIndex);
         var gen = new SeededWorldGenerator();
@@ -322,11 +344,13 @@ public sealed class GameWorld
         }
     }
 
-    /// <summary>Full simulation step: controllers → movement → missiles → death prune.</summary>
+    /// <summary>Full simulation step: cell actors → controllers → movement → missiles → death prune.</summary>
     public void Tick(float dt)
     {
         if (dt <= 0f)
             return;
+
+        TickCellActors(dt);
 
         foreach (var c in _controllers)
             c.Tick(this, dt);

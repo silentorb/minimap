@@ -27,30 +27,19 @@ public static class Shoot
         return best;
     }
 
-    public static IShootEffect? FindShootEffect(Character shooter)
+    public static AccessoryEffect? FindShootEffectInstance(Character shooter)
     {
         foreach (var effect in shooter.Effects)
         {
-            if (effect is IShootEffect shoot)
-                return shoot;
+            if (effect is IShootEffect)
+                return effect;
         }
 
         return null;
     }
 
-    public static Accessory? FindShootAccessory(Character shooter)
-    {
-        foreach (var accessory in shooter.Accessories)
-        {
-            foreach (var effect in accessory.Effects)
-            {
-                if (effect is IShootEffect)
-                    return accessory;
-            }
-        }
-
-        return null;
-    }
+    public static IShootEffect? FindShootEffect(Character shooter) =>
+        FindShootEffectInstance(shooter) as IShootEffect;
 
     /// <summary>
     /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready,
@@ -64,8 +53,8 @@ public static class Shoot
         SimVec2 aimDirection,
         bool wantsFire)
     {
-        var effect = FindShootEffect(shooter);
-        if (effect is null)
+        var effectInstance = FindShootEffectInstance(shooter);
+        if (effectInstance is not IShootEffect effect)
             return;
 
         effect.CooldownRemaining -= dt;
@@ -75,8 +64,7 @@ public static class Shoot
         if (!wantsFire)
             return;
 
-        var shootAccessory = FindShootAccessory(shooter);
-        if (shootAccessory is not null && !AccessoryResources.CanAffordUse(shooter, shootAccessory))
+        if (!EffectUseCosts.CanAfford(shooter, effectInstance))
             return;
 
         var fireDirection = aimDirection;
@@ -95,7 +83,6 @@ public static class Shoot
             effect.FriendlyFire);
         effect.CooldownRemaining = effect.FireIntervalSeconds;
 
-        if (shootAccessory is not null)
-            AccessoryResources.TryConsumeUse(shooter, shootAccessory);
+        EffectUseCosts.TryConsume(shooter, effectInstance);
     }
 }

@@ -1,0 +1,9 @@
+{
+  "id": "carrot",
+  "displayName": "Carrot",
+  "accessories": ["grow_carrot"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+  }
+}

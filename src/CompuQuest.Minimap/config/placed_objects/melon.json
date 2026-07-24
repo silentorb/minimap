@@ -1,8 +1,0 @@
-{
-  "id": "melon",
-  "displayName": "Melon",
-  "depiction": {
-    "kind": "texture",
-    "path": "res://assets/compuquest/game-icons/delapouite/watermelon.svg"
-  }
-}

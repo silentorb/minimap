@@ -1,0 +1,32 @@
+{
+  "id": "farm",
+  "displayName": "Farm",
+  "description": "Plant vegetables and harvest mature crops for food.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "modal"
+  },
+  "effects": [
+    {
+      "type": "modify_resource",
+      "id": "seeds",
+      "amount": 3
+    },
+    {
+      "type": "place_random_actor",
+      "pool": [
+        { "id": "carrot", "weight": 1 },
+        { "id": "corn", "weight": 1 },
+        { "id": "melon", "weight": 1 }
+      ],
+      "cost": { "id": "seeds", "amount": 1 }
+    },
+    {
+      "type": "harvest"
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/plant-seed.svg"
+  }
+}
