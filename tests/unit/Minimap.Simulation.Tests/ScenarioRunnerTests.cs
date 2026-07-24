@@ -14,6 +14,27 @@ public class ScenarioRunnerTests
         SpawnerVolume = 2,
     };
 
+    private static ScenarioRunner EnabledRunner() => new() { Enabled = true };
+
+    [Fact]
+    public void Disabled_by_default_never_spawns_or_regenerates()
+    {
+        var scenario = FastScenario();
+        var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
+        var world = GameWorld.Create(4, 4, 42);
+        world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
+        var runner = new ScenarioRunner();
+
+        Assert.False(runner.Enabled);
+
+        var result = runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 10f);
+        Assert.False(result.LevelRegenerated);
+        Assert.Equal(ScenarioPhase.Preparation, runner.Phase);
+        Assert.Equal(0, runner.WavesCompleted);
+        Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));
+        Assert.Equal(1, runner.LevelIndex);
+    }
+
     [Fact]
     public void Preparation_delays_first_wave()
     {
@@ -21,7 +42,7 @@ public class ScenarioRunnerTests
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
-        var runner = new ScenarioRunner();
+        var runner = EnabledRunner();
 
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.5f);
         Assert.Equal(ScenarioPhase.Preparation, runner.Phase);
@@ -40,7 +61,7 @@ public class ScenarioRunnerTests
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
-        var runner = new ScenarioRunner();
+        var runner = EnabledRunner();
 
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 1.1f);
         var afterWave1 = CountRivals(world, spawn.RivalFactionId);
@@ -69,7 +90,7 @@ public class ScenarioRunnerTests
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
         player.Health = 10f;
-        var runner = new ScenarioRunner();
+        var runner = EnabledRunner();
 
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         Assert.Equal(1, CountRivals(world, spawn.RivalFactionId));
@@ -108,7 +129,7 @@ public class ScenarioRunnerTests
         world.Tick(0.016f);
         Assert.DoesNotContain(player, world.Characters);
 
-        var runner = new ScenarioRunner();
+        var runner = EnabledRunner();
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.01f);
@@ -131,7 +152,7 @@ public class ScenarioRunnerTests
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, content);
-        var runner = new ScenarioRunner();
+        var runner = EnabledRunner();
 
         runner.Tick(world, scenario, spawn, pool, 1.1f);
         Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));

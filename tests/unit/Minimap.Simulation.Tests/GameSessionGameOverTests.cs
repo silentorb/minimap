@@ -52,4 +52,16 @@ public class GameSessionGameOverTests
         Assert.Same(content, session.Content);
         Assert.Equal("generic", session.Content.DefaultCharacter.Id);
     }
+
+    [Fact]
+    public void Create_places_no_spawners()
+    {
+        var scenario = Scenario.Defaults;
+        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestContent.Content);
+
+        Assert.Empty(session.World.Spawners);
+        Assert.False(session.ScenarioRunner.Enabled);
+    }
 }

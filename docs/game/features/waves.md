@@ -2,7 +2,11 @@
 
 Wave timing and spawner behavior. Related: [scenarios.md](scenarios.md), [ai.md](ai.md), [factions.md](factions.md), [characters.md](characters.md).
 
-## Requirements
+## Status
+
+**Disabled in normal play.** Wave pacing and level-end-via-last-wave are parked behind `ScenarioRunner.Enabled` (default `false`). `GameSession.Create` does **not** place spawners. The simulation APIs and scenario JSON fields remain for tests and a later return.
+
+## Parked requirements (when re-enabled)
 
 - Each level begins with a **preparation phase** lasting `preparationDuration` seconds from the scenario. No waves fire during preparation.
 - After preparation, **wave 1** starts immediately.
@@ -14,7 +18,12 @@ Wave timing and spawner behavior. Related: [scenarios.md](scenarios.md), [ai.md]
 - Player spawning is a **separate** step from spawner placement.
 - When the last wave of a level has fired, the level ends and a new level begins (see [scenarios.md](scenarios.md)).
 
-## Non-goals (for now)
+## Future
 
+- Prefer **per-spawner timers** (organic emission) over a global wave clock when enemies return.
 - Wave announcements or UI
 - Escalating spawner volume per wave
+
+## Non-goals (for now)
+
+- Re-enabling waves or placing spawners in sandbox sessions

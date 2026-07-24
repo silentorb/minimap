@@ -16,7 +16,7 @@ Simulation character model and faction APIs. Implements [../../game/features/fac
 - `GameWorld` holds a **mutable roster** of characters (not a fixed 1–4 array).
 - Spawns take a **`CharacterDefinition`** (normally `GameContent.DefaultCharacter`) and attach definition accessories via `AddAccessory`.
 - **`FactionRules.AreHostile(int a, int b)`** → `a != b`. No other faction constants in this helper.
-- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play: `GameSession` creates **`Player`** records, spawns their characters from `GameContent.DefaultCharacter` (plus lobby-selected accessories), then places spawners from `GameContent.WorldSpawnerPool`. Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.Client** (`ClientSession`) attaches `PlayerController`s associated with each `Player`. Rival AI during play comes from spawners’ character pools (see [../../game/features/waves.md](../../game/features/waves.md)).
+- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play: `GameSession` creates **`Player`** records and spawns their characters from `GameContent.DefaultCharacter` (plus lobby-selected accessories). **No spawners** are placed while waves are parked (see [../../game/features/waves.md](../../game/features/waves.md)). Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.Client** (`ClientSession`) attaches `PlayerController`s associated with each `Player`.
 
 ## Death
 

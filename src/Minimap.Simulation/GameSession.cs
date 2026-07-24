@@ -76,7 +76,7 @@ public sealed class GameSession
 
         session.CreatePlayers(count, accessoryPoints, selectedAccessoriesByPlayer);
         session.SpawnPlayers(config);
-        world.PlaceSpawners(scenario.SpawnerCount, content.WorldSpawnerPool);
+        // Spawner placement parked for sandbox play (see waves / scenarios feature docs).
         return session;
     }
 

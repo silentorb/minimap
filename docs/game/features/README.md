@@ -23,7 +23,7 @@
 | [map-layout.md](map-layout.md) | Changing **map shape or size** (rectangle extents, single-screen arena). |
 | [player-hud.md](player-hud.md) | Changing **player HUD** slots, names, or on-screen health display. |
 | [lobby.md](lobby.md) | Changing **local player lobby**, join panels, or lobby → world start flow. |
-| [scenarios.md](scenarios.md) | Changing **scenario** JSON, wave pacing, spawner counts, or level transitions. |
-| [waves.md](waves.md) | Changing **wave timing**, spawner placement, or per-wave enemy volume. |
+| [scenarios.md](scenarios.md) | Changing **scenario** JSON, wave pacing, spawner counts, level transitions, or single-map sandbox session rules. |
+| [waves.md](waves.md) | Changing **wave timing**, spawner placement, per-wave enemy volume, or the parked/disabled wave stance. |
 | [game-over.md](game-over.md) | Changing **game over** detection, overlay, or continue navigation. |
 | [local-input.md](local-input.md) | Changing **gamepad/keyboard** binding, per-player devices, disconnect/reconnect, or in-world input. |

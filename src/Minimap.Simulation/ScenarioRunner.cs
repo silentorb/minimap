@@ -10,8 +10,15 @@ public enum ScenarioPhase
 }
 
 /// <summary>Wave timing and level transitions for a <see cref="Scenario"/>.</summary>
+/// <remarks>
+/// Parked for sandbox play: <see cref="Enabled"/> defaults to false (no waves, no level regen).
+/// Opt in for tests or when re-enabling the parked meta-loop.
+/// </remarks>
 public sealed class ScenarioRunner
 {
+    /// <summary>When false (default), <see cref="Tick"/> is a no-op.</summary>
+    public bool Enabled { get; set; }
+
     public int LevelIndex { get; private set; } = 1;
     public int WavesCompleted { get; private set; }
     public ScenarioPhase Phase { get; private set; } = ScenarioPhase.Preparation;
@@ -26,7 +33,7 @@ public sealed class ScenarioRunner
         WeightedPool<SpawnerDefinition> spawnerPool,
         float dt)
     {
-        if (dt <= 0f)
+        if (!Enabled || dt <= 0f)
             return ScenarioTickResult.None;
 
         switch (Phase)
