@@ -5,14 +5,12 @@ using Minimap.Automation.Contracts;
 namespace Minimap.Functional.Godot.Playbooks;
 
 /// <summary>
-/// After keyboard claim, CustomizeArea scrolls/clips accessory selection so layout
-/// stays inside the player panel and lobby viewport.
+/// After keyboard claim, accessory selection fills CustomizeArea with three
+/// vertically scrolling child panels and fits horizontally without whole-panel clip.
 /// </summary>
 public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
 {
     private const float Epsilon = 1f;
-    private const int ConstrainedWidth = 800;
-    private const int ConstrainedHeight = 480;
 
     public string Id => "LobbyAccessorySelectionFits";
 
@@ -23,9 +21,6 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
     {
         await context.LoadSceneAsync("res://scenes/lobby.tscn", cancellationToken);
         await context.WaitFramesAsync(10, cancellationToken);
-
-        await context.SetWindowSizeAsync(ConstrainedWidth, ConstrainedHeight, cancellationToken);
-        await context.WaitFramesAsync(5, cancellationToken);
 
         await context.SetActivateKeyAsync(true, cancellationToken);
         await context.WaitFramesAsync(2, cancellationToken);
@@ -47,6 +42,11 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
         var areaSnap = await context.GetControlRectAsync(areaPath, cancellationToken);
         if (!areaSnap.Found)
             return PlaybookResult.Fail($"CustomizeArea not found at {areaPath}.");
+        if (string.Equals(areaSnap.ClassName, "ScrollContainer", StringComparison.Ordinal))
+        {
+            return PlaybookResult.Fail(
+                "CustomizeArea must not be a whole-panel ScrollContainer (use Control + inner vertical scrolls).");
+        }
 
         var selectionSnap = await context.GetControlRectAsync(selectionPath, cancellationToken);
         if (!selectionSnap.Found)
@@ -60,6 +60,7 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
 
         var panelRect = ToRect(panelSnap);
         var areaRect = ToRect(areaSnap);
+        var selectionRect = ToRect(selectionSnap);
         var viewportRect = ToRect(viewportSnap);
 
         if (!ControlLayout.Contains(viewportRect, panelRect, Epsilon))
@@ -74,24 +75,38 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
                 $"CustomizeArea overflows LobbyPanel. area={Format(areaRect)} panel={Format(panelRect)}.");
         }
 
-        if (!ControlLayout.Contains(viewportRect, areaRect, Epsilon))
+        if (!ControlLayout.Contains(areaRect, selectionRect, Epsilon))
         {
             return PlaybookResult.Fail(
-                $"CustomizeArea overflows viewport. area={Format(areaRect)} viewport={Format(viewportRect)}.");
+                $"AccessorySelection overflows CustomizeArea. selection={Format(selectionRect)} area={Format(areaRect)}.");
         }
 
-        // Bare Control + FullRect selection draws past the area when content grows; docs require
-        // a ScrollContainer so overflow scrolls/clips instead of escaping the panel/window.
-        if (!string.Equals(areaSnap.ClassName, "ScrollContainer", StringComparison.Ordinal))
+        if (selectionSnap.MinWidth > areaSnap.Width + Epsilon)
         {
             return PlaybookResult.Fail(
-                "CustomizeArea must be a ScrollContainer so accessory selection cannot overflow the panel. "
-                + $"Got class={areaSnap.ClassName}, "
-                + $"selMin=({selectionSnap.MinWidth:0.##}x{selectionSnap.MinHeight:0.##}), "
-                + $"area=({areaSnap.Width:0.##}x{areaSnap.Height:0.##}).");
+                "AccessorySelection min width exceeds CustomizeArea (horizontal fit required). "
+                + $"selMinW={selectionSnap.MinWidth:0.##} areaW={areaSnap.Width:0.##}.");
         }
 
-        return PlaybookResult.Success("selection-scrolls");
+        foreach (var section in new[] { "Available", "Description", "Owned" })
+        {
+            var sectionPath = $"{selectionPath}/{section}";
+            var sectionSnap = await context.GetControlRectAsync(sectionPath, cancellationToken);
+            if (!sectionSnap.Found)
+                return PlaybookResult.Fail($"Missing child panel '{section}' at {sectionPath}.");
+
+            var scrollPath = $"{sectionPath}/Content/Scroll";
+            var scrollSnap = await context.GetControlRectAsync(scrollPath, cancellationToken);
+            if (!scrollSnap.Found)
+                return PlaybookResult.Fail($"Missing vertical scroll at {scrollPath}.");
+            if (!string.Equals(scrollSnap.ClassName, "ScrollContainer", StringComparison.Ordinal))
+            {
+                return PlaybookResult.Fail(
+                    $"Expected ScrollContainer at {scrollPath}; got {scrollSnap.ClassName}.");
+            }
+        }
+
+        return PlaybookResult.Success("three-panels-fit");
     }
 
     private static Rect2 ToRect(PlaybookControlRectSnapshot snap) =>

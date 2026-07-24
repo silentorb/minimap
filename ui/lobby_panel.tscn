@@ -28,7 +28,7 @@ layout_mode = 2
 text = "Available"
 horizontal_alignment = 1
 
-[node name="CustomizeArea" type="ScrollContainer" parent="Margin/VBox"]
+[node name="CustomizeArea" type="Control" parent="Margin/VBox"]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_vertical = 3

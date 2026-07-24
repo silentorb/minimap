@@ -23,11 +23,23 @@ public partial class LobbyPanel : PanelContainer
         {
             Name = "AccessorySelection",
             Visible = false,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
         };
+        _accessoryPanel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _accessoryPanel.OffsetLeft = 0;
+        _accessoryPanel.OffsetTop = 0;
+        _accessoryPanel.OffsetRight = 0;
+        _accessoryPanel.OffsetBottom = 0;
         _customizeArea!.AddChild(_accessoryPanel);
+        _customizeArea.Resized += OnCustomizeAreaResized;
 
         ApplyMode(LobbySlotMode.Available, 0);
+    }
+
+    public override void _ExitTree()
+    {
+        if (_customizeArea is not null)
+            _customizeArea.Resized -= OnCustomizeAreaResized;
+        base._ExitTree();
     }
 
     public void ApplyMode(LobbySlotMode mode, int slotIndex)
@@ -75,14 +87,24 @@ public partial class LobbyPanel : PanelContainer
         LobbyAccessorySelectionState state,
         bool interactive)
     {
-        if (_accessoryPanel is null)
+        if (_accessoryPanel is null || _customizeArea is null)
             return;
         _accessoryPanel.Configure(catalog, state, interactive);
         _accessoryPanel.Visible = interactive;
+        CallDeferred(nameof(RelayoutAccessorySelection));
     }
 
     public void HideAccessorySelection()
     {
         _accessoryPanel?.HideSelection();
+    }
+
+    private void OnCustomizeAreaResized() => RelayoutAccessorySelection();
+
+    private void RelayoutAccessorySelection()
+    {
+        if (_accessoryPanel is null || _customizeArea is null || !_accessoryPanel.Visible)
+            return;
+        _accessoryPanel.Relayout(_customizeArea.Size);
     }
 }

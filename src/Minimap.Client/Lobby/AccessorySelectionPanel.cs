@@ -4,13 +4,17 @@ using Minimap.Simulation.Types;
 namespace Minimap.Client.Lobby;
 
 /// <summary>
-/// Accessory picker: available grid, description, owned grid.
+/// Accessory picker: Available / Description / Owned panels that share parent height.
 /// Interactive only while the parent lobby panel is Claimed.
 /// </summary>
 public partial class AccessorySelectionPanel : VBoxContainer
 {
-    private const int GridColumns = 4;
-    private const int IconSize = 48;
+    private const int MinColumns = 2;
+    private const int MaxColumns = 4;
+    private const int MinIconSize = 24;
+    private const int MaxIconSize = 48;
+    private const int IconPadding = 8;
+    private const int GridSeparation = 4;
 
     private Label? _pointsLabel;
     private Label? _descriptionLabel;
@@ -24,30 +28,96 @@ public partial class AccessorySelectionPanel : VBoxContainer
     private int _focusIndex;
     private bool _focusOwned;
     private bool _interactive;
+    private int _gridColumns = MaxColumns;
+    private int _iconSize = MaxIconSize;
 
     public int AccessoryPointsBudget { get; private set; }
 
     public override void _Ready()
     {
-        AddThemeConstantOverride("separation", 6);
+        AddThemeConstantOverride("separation", 4);
 
-        _pointsLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+        _pointsLabel = new Label
+        {
+            Name = "Points",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
         AddChild(_pointsLabel);
 
-        AddChild(new Label { Text = "Available", HorizontalAlignment = HorizontalAlignment.Center });
-        _availableGrid = new GridContainer { Columns = GridColumns };
-        AddChild(_availableGrid);
+        var availablePanel = CreateSectionPanel("Available", withHeader: true, out var availableScroll);
+        _availableGrid = new GridContainer
+        {
+            Name = "Grid",
+            Columns = _gridColumns,
+        };
+        _availableGrid.AddThemeConstantOverride("h_separation", GridSeparation);
+        _availableGrid.AddThemeConstantOverride("v_separation", GridSeparation);
+        availableScroll.AddChild(_availableGrid);
+        AddChild(availablePanel);
 
+        var descriptionPanel = CreateSectionPanel("Description", withHeader: false, out var descriptionScroll);
         _descriptionLabel = new Label
         {
+            Name = "Body",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            CustomMinimumSize = new Vector2(0, 56),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
         };
-        AddChild(_descriptionLabel);
+        descriptionScroll.AddChild(_descriptionLabel);
+        AddChild(descriptionPanel);
 
-        AddChild(new Label { Text = "Owned", HorizontalAlignment = HorizontalAlignment.Center });
-        _ownedGrid = new GridContainer { Columns = GridColumns };
-        AddChild(_ownedGrid);
+        var ownedPanel = CreateSectionPanel("Owned", withHeader: true, out var ownedScroll);
+        _ownedGrid = new GridContainer
+        {
+            Name = "Grid",
+            Columns = _gridColumns,
+        };
+        _ownedGrid.AddThemeConstantOverride("h_separation", GridSeparation);
+        _ownedGrid.AddThemeConstantOverride("v_separation", GridSeparation);
+        ownedScroll.AddChild(_ownedGrid);
+        AddChild(ownedPanel);
+    }
+
+    /// <summary>Scale columns and icon size so grids fit <paramref name="availableSize"/> width.</summary>
+    public void Relayout(Vector2 availableSize)
+    {
+        if (availableSize.X <= 1f)
+            return;
+
+        var width = availableSize.X;
+        var columns = MaxColumns;
+        var iconSize = MaxIconSize;
+        for (var tryColumns = MaxColumns; tryColumns >= MinColumns; tryColumns--)
+        {
+            var separations = GridSeparation * Math.Max(0, tryColumns - 1);
+            var cell = (int)Math.Floor((width - separations) / tryColumns);
+            var candidateIcon = cell - IconPadding;
+            if (candidateIcon >= MinIconSize)
+            {
+                columns = tryColumns;
+                iconSize = Math.Clamp(candidateIcon, MinIconSize, MaxIconSize);
+                break;
+            }
+
+            if (tryColumns == MinColumns)
+            {
+                columns = MinColumns;
+                iconSize = MinIconSize;
+            }
+        }
+
+        if (columns == _gridColumns && iconSize == _iconSize)
+            return;
+
+        _gridColumns = columns;
+        _iconSize = iconSize;
+        if (_availableGrid is not null)
+            _availableGrid.Columns = _gridColumns;
+        if (_ownedGrid is not null)
+            _ownedGrid.Columns = _gridColumns;
+
+        if (_state is not null)
+            Rebuild();
     }
 
     public void Configure(
@@ -107,7 +177,6 @@ public partial class AccessorySelectionPanel : VBoxContainer
 
         if (delta.Y != 0 && ((_focusOwned && delta.Y < 0) || (!_focusOwned && delta.Y > 0)))
         {
-            // Switch lists vertically when possible.
             if (!_focusOwned && _ownedButtons.Count > 0 && delta.Y > 0)
             {
                 _focusOwned = true;
@@ -125,7 +194,7 @@ public partial class AccessorySelectionPanel : VBoxContainer
             }
         }
 
-        var cols = GridColumns;
+        var cols = _gridColumns;
         var count = buttons.Count;
         var row = _focusIndex / cols;
         var col = _focusIndex % cols;
@@ -167,6 +236,58 @@ public partial class AccessorySelectionPanel : VBoxContainer
         Rebuild();
         EnsureFocus();
         return true;
+    }
+
+    private static PanelContainer CreateSectionPanel(string name, bool withHeader, out ScrollContainer scroll)
+    {
+        var panel = new PanelContainer
+        {
+            Name = name,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.13f, 0.16f, 0.65f),
+            ContentMarginLeft = 4,
+            ContentMarginTop = 4,
+            ContentMarginRight = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        });
+
+        var vbox = new VBoxContainer
+        {
+            Name = "Content",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        vbox.AddThemeConstantOverride("separation", 2);
+        panel.AddChild(vbox);
+
+        if (withHeader)
+        {
+            vbox.AddChild(new Label
+            {
+                Name = "Header",
+                Text = name,
+                HorizontalAlignment = HorizontalAlignment.Center,
+            });
+        }
+
+        scroll = new ScrollContainer
+        {
+            Name = "Scroll",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+        };
+        vbox.AddChild(scroll);
+        return panel;
     }
 
     private void Rebuild()
@@ -259,12 +380,13 @@ public partial class AccessorySelectionPanel : VBoxContainer
     {
         var button = new Button
         {
-            CustomMinimumSize = new Vector2(IconSize + 8, IconSize + 8),
+            CustomMinimumSize = new Vector2(_iconSize + IconPadding, _iconSize + IconPadding),
             FocusMode = _interactive ? FocusModeEnum.All : FocusModeEnum.None,
             Disabled = !_interactive,
             TooltipText = locked
                 ? $"{accessory.DisplayName ?? accessory.Id} (locked)"
                 : accessory.DisplayName ?? accessory.Id,
+            ExpandIcon = true,
         };
 
         var icon = TryLoadIcon(accessory);
