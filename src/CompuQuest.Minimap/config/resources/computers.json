@@ -1,0 +1,9 @@
+{
+  "id": "computers",
+  "displayName": "Computers",
+  "visible": true,
+  "uiPriority": 100,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/laptop.svg"
+  }
+}

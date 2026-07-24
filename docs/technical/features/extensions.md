@@ -14,8 +14,10 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
 - Extension contracts and the in-memory registry live in **`Minimap.Extensive`** (no Godot, no file I/O). Registry catalogs (registration order):
   - integrators
   - accessory effect factories (JSON `type` → `AccessoryEffect`)
+  - resource definitions
   - accessory definitions
   - character definitions
+  - placed-object definitions
   - tags (`TagRegistry` + `RegisterTags`)
 - **`IIntegrator`**:
   - `CreateGameContent(IExtensionRegistry)` → `GameContent`
@@ -37,8 +39,8 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
   - `integrator` — id of the `IIntegrator` to use for the new game. Must be registered from a loaded extension or load fails.
 - There is **no** built-in default integrator; CompuQuest registers id **`compuquest`**.
 - `LobbyApp` (Client) loads extensions via `WorldHostHooks.RequireExtensions` on ready so a bad extension set fails before the player starts a game; also loads core accessory points for the selection budget.
-- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (**not** linked into the Godot host assembly). Depends on **Extensive** and **Simulation**. The host project (`minimap.csproj`) has a **build-only** `ProjectReference` (`ReferenceOutputAssembly=false`) so Godot Play / `dotnet build` builds it and copies output to repo-root `extensions/`. Registers integrator id **`compuquest`**, the **`shoot`** accessory effect factory, tag **`player_selectable`**, and ships accessory/character JSON under `src/CompuQuest.Minimap/config/` (copied to `extensions/CompuQuest.Minimap/` on build; see [definition-config.md](definition-config.md)); `ExtensionLoader` registers each extension’s content directory after that DLL’s `Register` and before `CreateGameContent`. CompuQuest presentation art lives under host **`assets/compuquest/`** (see [depiction.md](depiction.md), [ui-icons.md](ui-icons.md)).
-- `CompuQuestIntegrator` sets `DefaultCharacter` to **`generic`**, builds a world spawner pool of **zombie spawners**, and filters selectable accessories by `player_selectable`.
+- Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (**not** linked into the Godot host assembly). Depends on **Extensive** and **Simulation**. The host project (`minimap.csproj`) has a **build-only** `ProjectReference` (`ReferenceOutputAssembly=false`) so Godot Play / `dotnet build` builds it and copies output to repo-root `extensions/`. Registers integrator id **`compuquest`**, the **`shoot`** / **`place_random_object`** accessory effect factories, tag **`player_selectable`**, and ships accessory/character/placed-object/resource JSON under `src/CompuQuest.Minimap/config/` (copied to `extensions/CompuQuest.Minimap/` on build; see [definition-config.md](definition-config.md)); `ExtensionLoader` registers each extension’s content directory after that DLL’s `Register` and before `CreateGameContent`. CompuQuest presentation art lives under host **`assets/compuquest/`** (see [depiction.md](depiction.md), [ui-icons.md](ui-icons.md)).
+- `CompuQuestIntegrator` sets `DefaultCharacter` to **`generic`**, builds a world spawner pool of **zombie spawners**, passes registered **resource** definitions into `GameContent` (including health / max_health tags), and filters selectable accessories by `player_selectable`.
 - Lobby boot binds panels **before** extension load (`LobbySceneBoot`). A failed load **aborts** the lobby (no input / no further play) and quits; it must not leave a corrupted interactive scene.
 - World boot (`WorldApp` / `WorldSceneBoot`) likewise fail-fast loads extensions (and core/scenario settings) via host hooks. On any exception during ready, abort (no tick / no reconnect), `GD.PushError`, and quit the process—same boundary pattern as lobby.
 

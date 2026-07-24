@@ -13,6 +13,9 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, CharacterDefinition> _characterById = new(StringComparer.Ordinal);
     private readonly List<PlacedObjectDefinition> _placedObjectDefinitions = new();
     private readonly Dictionary<string, PlacedObjectDefinition> _placedObjectById = new(StringComparer.Ordinal);
+    private readonly List<ResourceDefinition> _resourceDefinitions = new();
+    private readonly Dictionary<string, ResourceDefinition> _resourceById = new(StringComparer.Ordinal);
+    private readonly Dictionary<TagId, ResourceDefinition> _resourceByTag = new();
     private readonly Dictionary<string, AccessoryEffectFactory> _effectFactories =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -26,6 +29,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
 
     public IReadOnlyList<PlacedObjectDefinition> PlacedObjectDefinitions => _placedObjectDefinitions;
+
+    public IReadOnlyList<ResourceDefinition> ResourceDefinitions => _resourceDefinitions;
 
     public void RegisterTags(IEnumerable<string> tagNames)
     {
@@ -137,6 +142,39 @@ public sealed class ExtensionRegistry : IExtensionRegistry
 
         return _placedObjectById.TryGetValue(id, out definition);
     }
+
+    public void AddResourceDefinition(ResourceDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (!_resourceById.TryAdd(definition.Id, definition))
+        {
+            throw new InvalidOperationException(
+                $"Duplicate resource definition id '{definition.Id}'.");
+        }
+
+        if (!_resourceByTag.TryAdd(definition.Tag, definition))
+        {
+            _resourceById.Remove(definition.Id);
+            throw new InvalidOperationException(
+                $"Duplicate resource definition tag for id '{definition.Id}'.");
+        }
+
+        _resourceDefinitions.Add(definition);
+    }
+
+    public bool TryGetResourceDefinition(string id, out ResourceDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _resourceById.TryGetValue(id, out definition);
+    }
+
+    public bool TryGetResourceDefinition(TagId tag, out ResourceDefinition? definition) =>
+        _resourceByTag.TryGetValue(tag, out definition);
 
     public void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory)
     {

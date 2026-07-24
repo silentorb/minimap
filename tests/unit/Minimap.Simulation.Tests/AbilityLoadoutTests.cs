@@ -11,7 +11,7 @@ public class AbilityLoadoutTests
     {
         var gun = new AccessoryDefinition(
             "gun",
-            [new TestShootEffect(1.25f, 200f, 25f)],
+            [new TestShootEffect(1.25f, 200f, 25)],
             activation: new AccessoryActivation(
                 AccessoryActivationKind.Dedicated,
                 AccessoryActivationBinds.PrimaryFire));
@@ -20,7 +20,7 @@ public class AbilityLoadoutTests
             Array.Empty<AccessoryEffect>(),
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
 
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare);
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
         character.AddAccessory(gun.CreateInstance());
         character.AddAccessory(plant.CreateInstance());
 
@@ -38,7 +38,7 @@ public class AbilityLoadoutTests
             "plant",
             Array.Empty<AccessoryEffect>(),
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare);
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
         character.AddAccessory(plant.CreateInstance());
 
         character.AbilityLoadout.SelectModal(3);

@@ -44,6 +44,8 @@ public class CellPlacementEffectTests
     public void Place_effect_requires_unoccupied_grass()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+        w.SetSpawnCharacterDefinition(TestContent.Bare);
         var veg = new PlacedObjectDefinition("carrot");
         w.SetPlacedObjectDefinitions([veg]);
         var effect = new TestPlaceEffect(veg);

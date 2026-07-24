@@ -4,7 +4,7 @@ Missiles and shooting. Related: [damage.md](damage.md), [health.md](health.md), 
 
 ## Requirements
 
-- Characters shoot **medium-speed missiles** when they have an **`IShootEffect`** on their character effect cache (CompuQuest **`ShootEffect`** via the **Gun** accessory). Controllers only fire if the pawn has an `IShootEffect`.
+- Characters shoot **medium-speed missiles** when they have an **`IShootEffect`** on their character effect cache (CompuQuest **`ShootEffect`** via the **Gun** accessory) and enough of the accessory’s consumed resource (Gun: **ammo**). Controllers only fire if the pawn has an `IShootEffect`.
 - **Missile speed**: **200** world units per second (character move speed is 120) — from the effect.
 - **Fire direction** is supplied by the controller (not by the effect):
   - **Player**: aim via right stick / mouse; fire only while **primary fire** is held (RT / LMB). If aim is zero, fall back to character **facing**. Gun is a **dedicated** ability bind (`primary_fire`), not modal.
@@ -14,5 +14,6 @@ Missiles and shooting. Related: [damage.md](damage.md), [health.md](health.md), 
 
 ## Non-goals (for now)
 
-- Multiple weapon types, ammo, or charge shots
+- Multiple weapon types or charge shots
+- Ways to refill ammo after the Gun’s starting grant (see [resources.md](resources.md))
 - Homing missiles or splash damage

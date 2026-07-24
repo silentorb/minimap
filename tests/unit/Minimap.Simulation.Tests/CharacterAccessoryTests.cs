@@ -8,7 +8,7 @@ public class CharacterAccessoryTests
     [Fact]
     public void Instantiate_from_definition_adds_accessories_and_caches_effects()
     {
-        var c = new Character(0, 1, SimVec2.Zero, TestContent.Generic);
+        var c = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
         Assert.Single(c.Accessories);
         Assert.Equal("gun", c.Accessories[0].Definition.Id);
         Assert.Single(c.Effects);
@@ -18,7 +18,7 @@ public class CharacterAccessoryTests
     [Fact]
     public void Add_and_remove_accessory_syncs_effect_cache()
     {
-        var c = new Character(0, 1, SimVec2.Zero, TestContent.Bare);
+        var c = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
         Assert.Empty(c.Effects);
 
         var gun = TestContent.Gun.CreateInstance();

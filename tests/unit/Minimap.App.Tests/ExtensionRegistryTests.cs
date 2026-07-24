@@ -14,7 +14,21 @@ public class ExtensionRegistryTests
         {
             if (registry.CharacterDefinitions.Count == 0)
                 throw new InvalidOperationException("No characters.");
-            return new GameContent(registry.CharacterDefinitions[0]);
+
+            var tags = registry.Tags;
+            var maxHealth = new ResourceDefinition(
+                WellKnownResourceIds.MaxHealth,
+                tags.GetOrCreate(WellKnownResourceIds.MaxHealth),
+                visible: false);
+            var health = new ResourceDefinition(
+                WellKnownResourceIds.Health,
+                tags.GetOrCreate(WellKnownResourceIds.Health),
+                limitTag: maxHealth.Tag,
+                visible: true,
+                uiPriority: 1000);
+            return new GameContent(
+                registry.CharacterDefinitions[0],
+                resources: [health, maxHealth]);
         }
 
         public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(

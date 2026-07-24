@@ -8,6 +8,10 @@
     "kind": "dedicated",
     "bind": "primary_fire"
   },
+  "resource": {
+    "id": "ammo",
+    "startingAmount": 6
+  },
   "effects": [
     {
       "type": "shoot",

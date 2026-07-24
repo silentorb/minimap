@@ -11,6 +11,8 @@ public class CellFacingTests
     {
         var gen = new AllGrassGenerator();
         var w = GameWorld.Create(4, 4, 7, gen);
+        w.ApplyGameContent(TestContent.Content);
+        w.SetSpawnCharacterDefinition(TestContent.Bare);
         var c = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         c.Facing = new SimVec2(1f, 0f);
 

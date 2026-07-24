@@ -41,7 +41,7 @@ public class DefinitionConfigTests
         var shoot = Assert.IsType<ShootEffect>(Assert.Single(def.EffectTemplates));
         Assert.Equal(1.25f, shoot.FireIntervalSeconds);
         Assert.Equal(200f, shoot.MissileSpeed);
-        Assert.Equal(25f, shoot.MissileDamage);
+        Assert.Equal(25, shoot.MissileDamage);
         Assert.True(shoot.FriendlyFire);
         Assert.Null(def.DepictionConfig);
         Assert.Null(def.IconConfig);
@@ -258,12 +258,29 @@ public class DefinitionConfigTests
         var plant = registry.AccessoryDefinitions.Single(a => a.Id == "plant_vegetable");
         Assert.Equal(AccessoryActivationKind.Modal, plant.Activation.Kind);
         Assert.IsType<PlaceRandomObjectEffect>(Assert.Single(plant.EffectTemplates));
-        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "use_computer");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
+        var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
+        Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
+        Assert.Equal(1, geek.StartingResourceAmount);
+        Assert.NotNull(geek.ConsumedResourceTag);
 
-        Assert.Equal(3, registry.PlacedObjectDefinitions.Count);
+        Assert.Equal(4, registry.PlacedObjectDefinitions.Count);
         Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "carrot");
         Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "corn");
         Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "melon");
+        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "computer");
+
+        Assert.Equal(5, registry.ResourceDefinitions.Count);
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "health");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "max_health");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "ammo");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "seeds");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "computers");
+
+        var gunResource = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
+        Assert.Equal(6, gunResource.StartingResourceAmount);
+        var plantResource = registry.AccessoryDefinitions.Single(a => a.Id == "plant_vegetable");
+        Assert.Equal(3, plantResource.StartingResourceAmount);
 
         Assert.Equal(2, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
@@ -315,6 +332,62 @@ public class DefinitionConfigTests
 
             Assert.Equal("gun", Assert.Single(registry.AccessoryDefinitions).Id);
             Assert.Equal("generic", Assert.Single(registry.CharacterDefinitions).Id);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ValidateResourceLimits_rejects_limit_resource_that_is_itself_limited()
+    {
+        var tags = new TagRegistry();
+        var other = new ResourceDefinition("other", tags.GetOrCreate("other"));
+        var maxHealth = new ResourceDefinition(
+            "max_health",
+            tags.GetOrCreate("max_health"),
+            limitTag: other.Tag,
+            visible: false);
+        var health = new ResourceDefinition(
+            "health",
+            tags.GetOrCreate("health"),
+            limitTag: maxHealth.Tag);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            DefinitionConfig.ValidateResourceLimits([health, maxHealth, other]));
+    }
+
+    [Fact]
+    public void RegisterFromConfigDirectory_TempDirs_WithResources_ResolvesAccessoryResource()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"defs-{Guid.NewGuid():N}");
+        var resources = Path.Combine(root, DefinitionConfig.ResourcesDirectoryName);
+        var accessories = Path.Combine(root, DefinitionConfig.AccessoriesDirectoryName);
+        Directory.CreateDirectory(resources);
+        Directory.CreateDirectory(accessories);
+
+        try
+        {
+            File.WriteAllText(Path.Combine(resources, "ammo.json"), """
+                { "id": "ammo", "displayName": "Ammo", "visible": true, "uiPriority": 80 }
+                """);
+            File.WriteAllText(Path.Combine(accessories, "gun.json"), """
+                {
+                  "id": "gun",
+                  "resource": { "id": "ammo", "startingAmount": 6 },
+                  "effects": []
+                }
+                """);
+
+            var registry = RegistryWithShootFactory();
+            DefinitionConfig.RegisterFromConfigDirectory(root, registry);
+
+            var gun = Assert.Single(registry.AccessoryDefinitions);
+            Assert.Equal(6, gun.StartingResourceAmount);
+            Assert.NotNull(gun.ConsumedResourceTag);
+            Assert.Equal("ammo", Assert.Single(registry.ResourceDefinitions).Id);
         }
         finally
         {

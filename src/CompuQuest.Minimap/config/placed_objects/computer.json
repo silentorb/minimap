@@ -1,0 +1,8 @@
+{
+  "id": "computer",
+  "displayName": "Computer",
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/laptop.svg"
+  }
+}

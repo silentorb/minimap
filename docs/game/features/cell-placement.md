@@ -12,7 +12,8 @@ Placing static objects on map **cells** (spatial partitions). Related: [active-a
 - Characters may place **static objects** onto individual cells. Placement snaps to cell centers so objects cannot be crammed together.
 - Occupancy tracks **placed objects only** (not mobile characters).
 - General placement is engine-owned; content accessories supply validation and what gets placed.
-- **Plant Vegetable** (CompuQuest): modal ability; places a random vegetable from a pool (carrot, corn, melon) on an **unoccupied Grass** cell in front of the player.
+- **Plant Vegetable** (CompuQuest): modal ability; consumes **seeds**; places a random vegetable from a pool (carrot, corn, melon) on an **unoccupied Grass** cell in front of the player.
+- **Geek** (CompuQuest): modal ability; consumes **computers**; places a **computer** on an **unoccupied Grass** cell in front of the player (no further computer behavior yet).
 - Placement UX (players): first activate enters **preview** (highlight front cell — greenish if valid, redder if invalid); second activate places if valid; **Back** cancels preview.
 - Facing: last non-zero move direction; a short aim line shows facing; the front cell is the neighbor in that facing.
 

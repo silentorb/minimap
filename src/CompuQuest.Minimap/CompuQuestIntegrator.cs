@@ -42,7 +42,11 @@ public sealed class CompuQuestIntegrator : IIntegrator
             new WeightedEntry<SpawnerDefinition>(zombieSpawner, 1),
         ]);
 
-        return new GameContent(generic, spawnerPool, registry.PlacedObjectDefinitions);
+        return new GameContent(
+            generic,
+            spawnerPool,
+            registry.PlacedObjectDefinitions,
+            registry.ResourceDefinitions);
     }
 
     public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(IExtensionRegistry registry)

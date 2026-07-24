@@ -28,6 +28,11 @@ public sealed class PlaceRandomObjectEffect : AccessoryEffect, ICellPlacementEff
             return false;
         if (world.IsCellOccupied(cell))
             return false;
+
+        var modal = placer.AbilityLoadout.SelectedModal;
+        if (modal is not null && !AccessoryResources.CanAffordUse(placer, modal))
+            return false;
+
         return true;
     }
 
@@ -43,7 +48,14 @@ public sealed class PlaceRandomObjectEffect : AccessoryEffect, ICellPlacementEff
         if (!world.TryGetPlacedObjectDefinition(id, out var definition) || definition is null)
             return false;
 
-        return world.TryPlaceObject(cell, definition);
+        if (!world.TryPlaceObject(cell, definition))
+            return false;
+
+        var modal = placer.AbilityLoadout.SelectedModal;
+        if (modal is not null)
+            AccessoryResources.TryConsumeUse(placer, modal);
+
+        return true;
     }
 
     public override AccessoryEffect Clone() => new PlaceRandomObjectEffect(_poolIds);

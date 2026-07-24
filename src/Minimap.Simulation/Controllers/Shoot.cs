@@ -38,6 +38,20 @@ public static class Shoot
         return null;
     }
 
+    public static Accessory? FindShootAccessory(Character shooter)
+    {
+        foreach (var accessory in shooter.Accessories)
+        {
+            foreach (var effect in accessory.Effects)
+            {
+                if (effect is IShootEffect)
+                    return accessory;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready,
     /// <paramref name="wantsFire"/> is true, and a fire direction is available
@@ -61,6 +75,10 @@ public static class Shoot
         if (!wantsFire)
             return;
 
+        var shootAccessory = FindShootAccessory(shooter);
+        if (shootAccessory is not null && !AccessoryResources.CanAffordUse(shooter, shootAccessory))
+            return;
+
         var fireDirection = aimDirection;
         if (fireDirection.LengthSquared < 1e-10f)
             fireDirection = shooter.Facing;
@@ -76,5 +94,8 @@ public static class Shoot
             shooter.Id,
             effect.FriendlyFire);
         effect.CooldownRemaining = effect.FireIntervalSeconds;
+
+        if (shootAccessory is not null)
+            AccessoryResources.TryConsumeUse(shooter, shootAccessory);
     }
 }

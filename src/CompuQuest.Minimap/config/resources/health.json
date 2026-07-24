@@ -1,0 +1,10 @@
+{
+  "id": "health",
+  "displayName": "Health",
+  "limit": "max_health",
+  "visible": true,
+  "uiPriority": 1000,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/sbed/health-normal.svg"
+  }
+}

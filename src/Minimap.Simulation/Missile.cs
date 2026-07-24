@@ -8,7 +8,7 @@ public sealed class Missile
         SimVec2 position,
         SimVec2 velocity,
         float radius,
-        float damage,
+        int damage,
         int ownerFactionId,
         int? ownerCharacterId,
         bool friendlyFire = true)
@@ -27,7 +27,7 @@ public sealed class Missile
     public SimVec2 Position { get; set; }
     public SimVec2 Velocity { get; set; }
     public float Radius { get; }
-    public float Damage { get; }
+    public int Damage { get; }
     public int OwnerFactionId { get; }
     public int? OwnerCharacterId { get; }
     public bool FriendlyFire { get; }

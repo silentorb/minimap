@@ -35,6 +35,14 @@ public interface IExtensionRegistry
 
     bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition);
 
+    void AddResourceDefinition(ResourceDefinition definition);
+
+    IReadOnlyList<ResourceDefinition> ResourceDefinitions { get; }
+
+    bool TryGetResourceDefinition(string id, out ResourceDefinition? definition);
+
+    bool TryGetResourceDefinition(TagId tag, out ResourceDefinition? definition);
+
     /// <summary>
     /// Registers a JSON effect <paramref name="type"/> factory (case-insensitive).
     /// Duplicate type ids fail fast.

@@ -8,8 +8,8 @@
 
 - `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`**, tags such as **`player_selectable`**)
 - Sealed gameplay implementations (e.g. `ShootEffect`)
-- Content JSON under `config/` (copied to `extensions/CompuQuest.Minimap/` on build)
-- Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners**, player-selectable accessories via tag filter
+- Content JSON under `config/` (copied to `extensions/CompuQuest.Minimap/` on build): accessories, characters, placed_objects, resources
+- Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners**, player-selectable accessories via tag filter, resource catalog into `GameContent`
 
 ## What must not live here
 

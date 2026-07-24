@@ -16,6 +16,7 @@ public sealed class GameWorld
     private readonly List<SimVec2> _characterObstacleCenters = new();
     private readonly Random _random;
     private CharacterDefinition? _spawnCharacterDefinition;
+    private ResourceContext? _resourceContext;
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _nextCharacterId;
     private int _nextMissileId;
@@ -74,6 +75,9 @@ public sealed class GameWorld
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
     public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
 
+    /// <summary>Resource types / health tags required before adding characters.</summary>
+    public ResourceContext? ResourceContext => _resourceContext;
+
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
 
@@ -83,6 +87,20 @@ public sealed class GameWorld
     {
         ArgumentNullException.ThrowIfNull(definition);
         _spawnCharacterDefinition = definition;
+    }
+
+    public void SetResourceContext(ResourceContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        _resourceContext = context;
+    }
+
+    public void ApplyGameContent(GameContent content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        SetSpawnCharacterDefinition(content.DefaultCharacter);
+        SetPlacedObjectDefinitions(content.PlacedObjects);
+        SetResourceContext(ResourceContext.FromGameContent(content));
     }
 
     public void SetPlacedObjectDefinitions(IEnumerable<PlacedObjectDefinition> definitions)
@@ -143,12 +161,15 @@ public sealed class GameWorld
         int factionId,
         SimVec2 position,
         CharacterDefinition? definition = null,
-        float maxHealth = CombatTuning.DefaultMaxHealth)
+        int maxHealth = CombatTuning.DefaultMaxHealth)
     {
         var def = definition ?? _spawnCharacterDefinition
             ?? throw new InvalidOperationException(
                 "Character definition is required (pass definition or call SetSpawnCharacterDefinition).");
-        var c = new Character(_nextCharacterId++, factionId, position, def, maxHealth);
+        var resources = _resourceContext
+            ?? throw new InvalidOperationException(
+                "Resource context is required (call SetResourceContext or ApplyGameContent).");
+        var c = new Character(_nextCharacterId++, factionId, position, def, resources, maxHealth);
         _characters.Add(c);
         return c;
     }
@@ -162,7 +183,7 @@ public sealed class GameWorld
     public Missile SpawnMissile(
         SimVec2 position,
         SimVec2 velocity,
-        float damage,
+        int damage,
         int ownerFactionId,
         int? ownerCharacterId,
         bool friendlyFire = true)
@@ -186,7 +207,7 @@ public sealed class GameWorld
         GameContent content)
     {
         ArgumentNullException.ThrowIfNull(content);
-        SetSpawnCharacterDefinition(content.DefaultCharacter);
+        ApplyGameContent(content);
         SpawnHumanPlayers(spawn);
         PlaceSpawners(scenario.SpawnerCount, content.WorldSpawnerPool);
     }
@@ -272,9 +293,14 @@ public sealed class GameWorld
     }
 
     /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>
-    public void SpawnDefaultRoster(SpawnConfig spawn, CharacterDefinition characterDefinition)
+    public void SpawnDefaultRoster(
+        SpawnConfig spawn,
+        CharacterDefinition characterDefinition,
+        ResourceContext? resourceContext = null)
     {
         SetSpawnCharacterDefinition(characterDefinition);
+        if (resourceContext is not null)
+            SetResourceContext(resourceContext);
         var humans = Math.Max(0, spawn.HumanPlayerCount);
         var total = humans + spawn.AiPerFaction * 2;
         var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, total, _random);
@@ -318,11 +344,11 @@ public sealed class GameWorld
         ApplyMovement(dt);
     }
 
-    public void ApplyDamage(Character target, float amount)
+    public void ApplyDamage(Character target, int amount)
     {
-        if (!target.IsAlive || amount <= 0f)
+        if (!target.IsAlive || amount <= 0)
             return;
-        target.Health = MathF.Max(0f, target.Health - amount);
+        target.Health = Math.Max(0, target.Health - amount);
     }
 
     /// <summary>Remove a living character and detach its controller (player drop).</summary>

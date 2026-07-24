@@ -7,6 +7,10 @@
   "activation": {
     "kind": "modal"
   },
+  "resource": {
+    "id": "seeds",
+    "startingAmount": 3
+  },
   "effects": [
     {
       "type": "place_random_object",

@@ -12,7 +12,7 @@ public static class ShootEffectFactory
     {
         var fireInterval = RequireFloat(effectObject, "fireIntervalSeconds", index, sourcePath);
         var missileSpeed = RequireFloat(effectObject, "missileSpeed", index, sourcePath);
-        var missileDamage = RequireFloat(effectObject, "missileDamage", index, sourcePath);
+        var missileDamage = RequireInt(effectObject, "missileDamage", index, sourcePath);
         var friendlyFire = true;
         if (effectObject.TryGetProperty("friendlyFire", out var ff) &&
             (ff.ValueKind == JsonValueKind.True || ff.ValueKind == JsonValueKind.False))
@@ -47,6 +47,25 @@ public static class ShootEffectFactory
             throw new InvalidOperationException(
                 AppendSource(
                     $"Accessory effect '{TypeId}' at index {index} must include {field}.",
+                    sourcePath));
+        }
+
+        return value;
+    }
+
+    private static int RequireInt(
+        JsonElement effectObject,
+        string field,
+        int index,
+        string? sourcePath)
+    {
+        if (!effectObject.TryGetProperty(field, out var prop) ||
+            prop.ValueKind != JsonValueKind.Number ||
+            !prop.TryGetInt32(out var value))
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory effect '{TypeId}' at index {index} must include integer {field}.",
                     sourcePath));
         }
 

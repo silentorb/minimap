@@ -8,14 +8,14 @@ public sealed class ShootEffect : AccessoryEffect, IShootEffect
     public ShootEffect(
         float fireIntervalSeconds,
         float missileSpeed,
-        float missileDamage,
+        int missileDamage,
         bool friendlyFire = true)
     {
         if (fireIntervalSeconds <= 0f)
             throw new ArgumentOutOfRangeException(nameof(fireIntervalSeconds));
         if (missileSpeed <= 0f)
             throw new ArgumentOutOfRangeException(nameof(missileSpeed));
-        if (missileDamage < 0f)
+        if (missileDamage < 0)
             throw new ArgumentOutOfRangeException(nameof(missileDamage));
 
         FireIntervalSeconds = fireIntervalSeconds;
@@ -26,7 +26,7 @@ public sealed class ShootEffect : AccessoryEffect, IShootEffect
 
     public float FireIntervalSeconds { get; }
     public float MissileSpeed { get; }
-    public float MissileDamage { get; }
+    public int MissileDamage { get; }
     public bool FriendlyFire { get; }
     public float CooldownRemaining { get; set; }
 

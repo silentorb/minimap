@@ -10,6 +10,7 @@ public static class DefinitionConfig
     public const string AccessoriesDirectoryName = "accessories";
     public const string CharactersDirectoryName = "characters";
     public const string PlacedObjectsDirectoryName = "placed_objects";
+    public const string ResourcesDirectoryName = "resources";
 
     /// <summary>
     /// Content root beside a loaded extension DLL:
@@ -88,6 +89,8 @@ public static class DefinitionConfig
         var activation = ParseActivationProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
         TryGetStringProperty(root, "description", out var description);
+        var (consumedResourceTag, startingResourceAmount) =
+            ParseAccessoryResourceProperty(root, registry, sourcePath);
         return new AccessoryDefinition(
             id,
             effects,
@@ -97,7 +100,9 @@ public static class DefinitionConfig
             pointCost,
             displayName,
             description,
-            activation);
+            activation,
+            consumedResourceTag,
+            startingResourceAmount);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -207,7 +212,7 @@ public static class DefinitionConfig
 
     /// <summary>
     /// Registers JSON definitions from <paramref name="contentDirectory"/> into
-    /// <paramref name="registry"/> (placed objects, accessories, then characters).
+    /// <paramref name="registry"/> (placed objects, resources, accessories, then characters).
     /// Effect <c>type</c> values must already be registered via
     /// <see cref="IExtensionRegistry.AddAccessoryEffectFactory"/>.
     /// </summary>
@@ -220,6 +225,11 @@ public static class DefinitionConfig
         foreach (var placed in LoadPlacedObjectsFromDirectory(placedObjectsDir))
             registry.AddPlacedObjectDefinition(placed);
 
+        var resourcesDir = Path.Combine(contentDirectory, ResourcesDirectoryName);
+        foreach (var resource in LoadResourcesFromDirectory(resourcesDir, registry.Tags))
+            registry.AddResourceDefinition(resource);
+        ValidateResourceLimits(registry.ResourceDefinitions);
+
         var accessoriesDir = Path.Combine(contentDirectory, AccessoriesDirectoryName);
         foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir, registry))
             registry.AddAccessoryDefinition(accessory);
@@ -227,6 +237,122 @@ public static class DefinitionConfig
         var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
         foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
             registry.AddCharacterDefinition(character);
+    }
+
+    public static IReadOnlyList<ResourceDefinition> LoadResourcesFromDirectory(
+        string directory,
+        TagRegistry tags)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        ArgumentNullException.ThrowIfNull(tags);
+
+        if (!Directory.Exists(directory))
+            return Array.Empty<ResourceDefinition>();
+
+        var pending = new List<(string Path, string Id, string? DisplayName, IconConfig? Icon, bool Visible, int UiPriority, string? LimitId)>();
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
+            pending.Add(ParseResourcePending(File.ReadAllText(path), path));
+
+        var byId = new Dictionary<string, ResourceDefinition>(StringComparer.Ordinal);
+        foreach (var item in pending)
+        {
+            var tag = tags.GetOrCreate(item.Id);
+            var definition = new ResourceDefinition(
+                item.Id,
+                tag,
+                item.DisplayName,
+                item.Icon,
+                limitTag: null,
+                item.Visible,
+                item.UiPriority);
+            if (!byId.TryAdd(item.Id, definition))
+            {
+                throw new InvalidOperationException(
+                    AppendSource($"Duplicate resource definition id '{item.Id}'.", item.Path));
+            }
+        }
+
+        var result = new List<ResourceDefinition>(pending.Count);
+        foreach (var item in pending)
+        {
+            TagId? limitTag = null;
+            if (!string.IsNullOrWhiteSpace(item.LimitId))
+            {
+                if (!byId.TryGetValue(item.LimitId, out var limitDef))
+                {
+                    throw new InvalidOperationException(
+                        AppendSource(
+                            $"Resource '{item.Id}' limit '{item.LimitId}' is not a registered resource type.",
+                            item.Path));
+                }
+
+                limitTag = limitDef.Tag;
+            }
+
+            result.Add(new ResourceDefinition(
+                item.Id,
+                byId[item.Id].Tag,
+                item.DisplayName,
+                item.Icon,
+                limitTag,
+                item.Visible,
+                item.UiPriority));
+        }
+
+        return result;
+    }
+
+    public static ResourceDefinition LoadResourceFromJson(
+        string json,
+        TagRegistry tags,
+        string? sourcePath = null)
+    {
+        ArgumentNullException.ThrowIfNull(tags);
+        var pending = ParseResourcePending(json, sourcePath);
+        var tag = tags.GetOrCreate(pending.Id);
+        return new ResourceDefinition(
+            pending.Id,
+            tag,
+            pending.DisplayName,
+            pending.Icon,
+            limitTag: null,
+            pending.Visible,
+            pending.UiPriority);
+    }
+
+    public static void ValidateResourceLimits(IEnumerable<ResourceDefinition> resources)
+    {
+        ArgumentNullException.ThrowIfNull(resources);
+        var list = resources.ToList();
+        var byTag = list.ToDictionary(r => r.Tag);
+
+        foreach (var resource in list)
+        {
+            if (resource.LimitTag is not { } limitTag)
+                continue;
+
+            if (!byTag.ContainsKey(limitTag))
+            {
+                throw new InvalidOperationException(
+                    $"Resource '{resource.Id}' limit tag does not resolve to a registered resource type.");
+            }
+        }
+
+        var usedAsLimit = new HashSet<TagId>();
+        foreach (var resource in list)
+        {
+            if (resource.LimitTag is { } limitTag)
+                usedAsLimit.Add(limitTag);
+        }
+
+        foreach (var resource in list)
+        {
+            if (usedAsLimit.Contains(resource.Tag) && resource.LimitTag is not null)
+            {
+                throw new InvalidOperationException(
+                    $"Resource '{resource.Id}' is used as a limit and must not itself be limited by another resource.");
+            }
+        }
     }
 
     public static IReadOnlyList<PlacedObjectDefinition> LoadPlacedObjectsFromDirectory(string directory)
@@ -290,6 +416,134 @@ public static class DefinitionConfig
             throw new InvalidOperationException(
                 FormatParseError(kind, sourcePath), ex);
         }
+    }
+
+    private static (string Path, string Id, string? DisplayName, IconConfig? Icon, bool Visible, int UiPriority, string? LimitId)
+        ParseResourcePending(string json, string? sourcePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
+        using var document = ParseDocument(json, "resource", sourcePath);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                FormatEmptyObjectError("resource", sourcePath));
+        }
+
+        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidOperationException(
+                FormatRequiredFieldError("resource", "id", sourcePath));
+        }
+
+        TryGetStringProperty(root, "displayName", out var displayName);
+        var icon = ParseIconProperty(root, sourcePath);
+        var visible = ParseVisibleProperty(root, sourcePath);
+        var uiPriority = ParseUiPriorityProperty(root, sourcePath);
+        string? limitId = null;
+        if (root.TryGetProperty("limit", out var limitElement) &&
+            limitElement.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined))
+        {
+            if (limitElement.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(limitElement.GetString()))
+            {
+                throw new InvalidOperationException(
+                    AppendSource("Resource limit must be a non-empty string.", sourcePath));
+            }
+
+            limitId = limitElement.GetString();
+        }
+
+        return (sourcePath ?? "", id!, displayName, icon, visible, uiPriority, limitId);
+    }
+
+    private static bool ParseVisibleProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("visible", out var visibleElement))
+            return true;
+
+        if (visibleElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return true;
+
+        if (visibleElement.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Resource visible must be a boolean.", sourcePath));
+        }
+
+        return visibleElement.GetBoolean();
+    }
+
+    private static int ParseUiPriorityProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("uiPriority", out var priorityElement))
+            return 0;
+
+        if (priorityElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return 0;
+
+        if (priorityElement.ValueKind != JsonValueKind.Number ||
+            !priorityElement.TryGetInt32(out var priority))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Resource uiPriority must be an integer.", sourcePath));
+        }
+
+        return priority;
+    }
+
+    private static (TagId? ConsumedResourceTag, int StartingResourceAmount) ParseAccessoryResourceProperty(
+        JsonElement root,
+        IExtensionRegistry registry,
+        string? sourcePath)
+    {
+        if (!root.TryGetProperty("resource", out var resourceElement))
+            return (null, 0);
+
+        if (resourceElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return (null, 0);
+
+        if (resourceElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory resource must be a JSON object or null.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(resourceElement, "id", out var resourceId) ||
+            string.IsNullOrWhiteSpace(resourceId))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory resource must include id.", sourcePath));
+        }
+
+        if (!registry.TryGetResourceDefinition(resourceId, out var definition) || definition is null)
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory resource id '{resourceId}' is not a registered resource type.",
+                    sourcePath));
+        }
+
+        var startingAmount = 0;
+        if (resourceElement.TryGetProperty("startingAmount", out var amountElement))
+        {
+            if (amountElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                startingAmount = 0;
+            }
+            else if (amountElement.ValueKind != JsonValueKind.Number ||
+                     !amountElement.TryGetInt32(out startingAmount) ||
+                     startingAmount < 0)
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        "Accessory resource startingAmount must be a non-negative integer.",
+                        sourcePath));
+            }
+        }
+
+        return (definition.Tag, startingAmount);
     }
 
     private static IReadOnlyList<TagId> ParseTagsProperty(

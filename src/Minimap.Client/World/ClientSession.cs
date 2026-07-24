@@ -1,4 +1,5 @@
 using Minimap.Simulation;
+using Minimap.Simulation.Types;
 
 namespace Minimap.Client.World;
 
@@ -74,8 +75,7 @@ public sealed class ClientSession
             models.Add(new PlayerHudModel
             {
                 DisplayName = $"Player {i + 1}",
-                Health = pawn is { IsAlive: true } ? pawn.Health : 0f,
-                MaxHealth = pawn?.MaxHealth ?? CombatTuning.DefaultMaxHealth,
+                Resources = BuildResourceModels(pawn, _session.Content),
             });
         }
 
@@ -92,6 +92,56 @@ public sealed class ClientSession
         controller.Unpossess();
         _players.RemoveAt(playerIndex);
         return _session.DropHumanPlayer(playerIndex);
+    }
+
+    private static IReadOnlyList<PlayerHudResourceModel> BuildResourceModels(
+        Character? pawn,
+        GameContent content)
+    {
+        var rows = new List<PlayerHudResourceModel>();
+        foreach (var definition in content.Resources
+                     .Where(r => r.Visible)
+                     .OrderByDescending(r => r.UiPriority)
+                     .ThenBy(r => r.Id, StringComparer.Ordinal))
+        {
+            var amount = 0;
+            int? maxAmount = null;
+            if (pawn is not null)
+            {
+                amount = pawn.GetResource(definition.Tag);
+                if (definition.LimitTag is { } limitTag)
+                    maxAmount = pawn.GetResource(limitTag);
+            }
+            else if (definition.LimitTag is { } limitTag &&
+                     content.TryGetResource(limitTag, out var limitDef) &&
+                     limitDef is not null)
+            {
+                // Dead / missing pawn: still show health as 0 / default max when possible.
+                if (definition.Tag == content.HealthTag)
+                {
+                    amount = 0;
+                    maxAmount = CombatTuning.DefaultMaxHealth;
+                }
+            }
+
+            var isHealth = definition.Tag == content.HealthTag;
+            if (!isHealth && amount <= 0 && maxAmount is null)
+                continue;
+
+            if (isHealth && pawn is { IsAlive: false })
+                amount = 0;
+
+            rows.Add(new PlayerHudResourceModel
+            {
+                Id = definition.Id,
+                DisplayName = definition.DisplayName ?? definition.Id,
+                IconPath = definition.IconConfig?.ResourcePath,
+                Amount = amount,
+                MaxAmount = maxAmount,
+            });
+        }
+
+        return rows;
     }
 
     private void AttachHumanPlayers()

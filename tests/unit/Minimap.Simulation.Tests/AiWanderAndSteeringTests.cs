@@ -8,7 +8,7 @@ public class AiWanderAndSteeringTests
     public void DirectMoveSteering_moves_toward_goal()
     {
         var steering = new DirectMoveSteering(arriveDistance: 1f);
-        var pawn = new Character(0, 1, SimVec2.Zero, TestContent.Generic);
+        var pawn = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
         steering.SetGoal(new SimVec2(40f, 0f));
 
         var intent = steering.SampleMoveIntent(pawn, 0.016f);
@@ -20,7 +20,7 @@ public class AiWanderAndSteeringTests
     public void DirectMoveSteering_clears_to_zero_intent()
     {
         var steering = new DirectMoveSteering();
-        var pawn = new Character(0, 1, SimVec2.Zero, TestContent.Generic);
+        var pawn = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
         steering.SetGoal(new SimVec2(40f, 0f));
         steering.ClearGoal();
         Assert.Equal(SimVec2.Zero, steering.SampleMoveIntent(pawn, 0.016f));
@@ -30,7 +30,7 @@ public class AiWanderAndSteeringTests
     public void DirectMoveSteering_arrives_with_zero_intent()
     {
         var steering = new DirectMoveSteering(arriveDistance: 10f);
-        var pawn = new Character(0, 1, new SimVec2(5f, 0f), TestContent.Generic);
+        var pawn = new Character(0, 1, new SimVec2(5f, 0f), TestContent.Generic, TestContent.ResourceContext);
         steering.SetGoal(new SimVec2(8f, 0f));
         Assert.Equal(SimVec2.Zero, steering.SampleMoveIntent(pawn, 0.016f));
     }
@@ -71,7 +71,7 @@ public class AiWanderAndSteeringTests
     {
         var gen = new AllGrassGenerator();
         var w = GameWorld.Create(3, 3, 1, gen);
-        w.SetSpawnCharacterDefinition(TestContent.Generic);
+        w.ApplyGameContent(TestContent.Content);
         var pawn = w.AddCharacter(1, SimVec2.Zero);
         var steering = new DirectMoveSteering(arriveDistance: 1f);
         var ai = new AiController(new FixedDoubleRandom(0.5), steering);
@@ -89,7 +89,7 @@ public class AiWanderAndSteeringTests
     {
         var gen = new AllGrassGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
-        w.SetSpawnCharacterDefinition(TestContent.Generic);
+        w.ApplyGameContent(TestContent.Content);
         var pawn = w.AddCharacter(1, SimVec2.Zero);
         var ai = new AiController(new Random(1));
         w.AttachController(ai, pawn);

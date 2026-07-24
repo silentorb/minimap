@@ -43,6 +43,7 @@ internal static class TestWorldHelpers
         var config = spawn ?? new SpawnConfig { AiPerFaction = 0 };
         var def = definition ?? TestContent.Generic;
         var w = GameWorld.Create(radiusX, radiusY, seed, generator);
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(def);
         w.SpawnHumanPlayers(config);
         var human = FindUnpossessedHuman(w, config.PlayerFactionId);

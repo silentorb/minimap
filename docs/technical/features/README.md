@@ -14,16 +14,17 @@
 | [controllers.md](controllers.md) | Working on **IController**, possess/unpossess, PlayerController / AiController, **IMoveSteering**, or tick order. |
 | [navigation.md](navigation.md) | Working on **navmesh**, Godot **NavigationAgent2D** / crowd avoidance, **Minimap.Simulation.Navigation**, or AI path steering. |
 | [characters.md](characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |
-| [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Plant Vegetable, or `Character` effect cache add/remove. |
+| [resources.md](resources.md) | Working on **ResourceDefinition**, character resource bags, limits, or accessory resource consume. |
+| [accessories.md](accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Plant Vegetable, Geek, or `Character` effect cache add/remove. |
 | [active-abilities.md](active-abilities.md) | Working on **AbilityLoadout**, dedicated/modal activation, or PlayerController ability intents. |
 | [cell-placement.md](cell-placement.md) | Working on **PlacedObject**, cell occupancy, `ICellPlacementEffect`, or placement preview. |
-| [tags.md](tags.md) | Working on **TagId**, `TagRegistry`, extension `RegisterTags`, or definition tag strings. |
+| [tags.md](tags.md) | Working on **TagId**, `TagRegistry`, extension `RegisterTags`, definition tag strings, or resource type tags. |
 | [players.md](players.md) | Working on Simulation **`Player`**, accessory points, or controller↔player association. |
-| [definition-config.md](definition-config.md) | Changing **accessory/character/placed_object JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
+| [definition-config.md](definition-config.md) | Changing **accessory/character/placed_object/resource JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
 | [depiction.md](depiction.md) | Working on **DepictionConfig**, SpriteFrames / texture depictions, or CompuQuest Kenney art under `assets/compuquest/`. |
 | [ui-icons.md](ui-icons.md) | Working on **IconConfig**, definition `icon` JSON, or CompuQuest game-icons under `assets/compuquest/game-icons/`. |
 | [characters-and-factions.md](characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
-| [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, or App→Client HUD wiring. |
+| [player-hud.md](player-hud.md) | Working on **player HUD** panel, HUD models, resource rows, or App→Client HUD wiring. |
 | [missiles-and-damage.md](missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |
 | [hex-grid-shape.md](hex-grid-shape.md) | Changing **HexGrid** rectangle inclusion, RadiusX/RadiusY, camera fit, or map geometry contracts. |
 | [core-settings.md](core-settings.md) | Changing **core.json**, App settings load APIs, or the JSON vector-as-array convention. |

@@ -8,7 +8,7 @@ public interface IShootEffect
 {
     float FireIntervalSeconds { get; }
     float MissileSpeed { get; }
-    float MissileDamage { get; }
+    int MissileDamage { get; }
     bool FriendlyFire { get; }
     float CooldownRemaining { get; set; }
 }

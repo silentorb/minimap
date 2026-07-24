@@ -23,7 +23,7 @@ public class GameplaySimulationFunctionalTests
     public void Seeded_world_has_characters_on_floor_within_grid()
     {
         var w = GameWorld.Create(3, 3, 42);
-        w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 }, Generic);
+        w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 }, Generic, TestContent.ResourceContext);
         Assert.Equal(1 + 1 + 1, w.Characters.Count);
         foreach (var p in w.Characters)
         {
@@ -38,6 +38,7 @@ public class GameplaySimulationFunctionalTests
     {
         var gen = new FixedLayoutGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
@@ -59,6 +60,7 @@ public class GameplaySimulationFunctionalTests
     public void Evolution_loop_maintains_tick_count_and_valid_terrain()
     {
         var w = GameWorld.Create(3, 3, 100);
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var rng = new Random(999);
@@ -84,6 +86,7 @@ public class GameplaySimulationFunctionalTests
     public void Zero_health_quietly_removes_character()
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var victim = w.AddCharacter(2, SimVec2.Zero);
@@ -96,6 +99,7 @@ public class GameplaySimulationFunctionalTests
     public void Missile_hit_kills_hostile_and_removes_from_world()
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var player = FindUnpossessedHuman(w, 1);
@@ -120,6 +124,7 @@ public class GameplaySimulationFunctionalTests
     public void Holding_into_east_wall_does_not_tunnel_through()
     {
         var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator());
+        w.ApplyGameContent(TestContent.Content);
         w.SetSpawnCharacterDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);

@@ -65,8 +65,7 @@ public sealed class GameSession
         };
 
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
-        world.SetSpawnCharacterDefinition(content.DefaultCharacter);
-        world.SetPlacedObjectDefinitions(content.PlacedObjects);
+        world.ApplyGameContent(content);
 
         var session = new GameSession(
             world,

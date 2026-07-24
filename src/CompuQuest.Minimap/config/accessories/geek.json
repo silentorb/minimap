@@ -1,0 +1,23 @@
+{
+  "id": "geek",
+  "displayName": "Geek",
+  "description": "Place a computer on the grass cell in front of you. Functionality forthcoming.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "modal"
+  },
+  "resource": {
+    "id": "computers",
+    "startingAmount": 1
+  },
+  "effects": [
+    {
+      "type": "place_random_object",
+      "pool": ["computer"]
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/laptop.svg"
+  }
+}

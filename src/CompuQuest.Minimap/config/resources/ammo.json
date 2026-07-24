@@ -1,0 +1,9 @@
+{
+  "id": "ammo",
+  "displayName": "Ammo",
+  "visible": true,
+  "uiPriority": 80,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/sbed/ammo-box.svg"
+  }
+}

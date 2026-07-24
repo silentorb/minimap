@@ -89,7 +89,7 @@ public class ScenarioRunnerTests
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
         var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
-        player.Health = 10f;
+        player.Health = 10;
         var runner = EnabledRunner();
 
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
@@ -147,7 +147,7 @@ public class ScenarioRunnerTests
         [
             new WeightedEntry<SpawnerDefinition>(emptySpawner, 1),
         ]);
-        var content = new GameContent(TestContent.Generic, pool);
+        var content = new GameContent(TestContent.Generic, pool, resources: TestContent.Resources);
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);

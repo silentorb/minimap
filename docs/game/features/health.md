@@ -1,10 +1,10 @@
 # Health
 
-Character hit points. Related: [damage.md](damage.md), [combat.md](combat.md), [factions.md](factions.md).
+Character hit points as resources. Related: [resources.md](resources.md), [damage.md](damage.md), [combat.md](combat.md), [factions.md](factions.md).
 
 ## Requirements
 
-- Every character has **current health** and **max health**.
+- Every character has **current health** (`health` resource) and **max health** (`max_health` resource). Health is limited by max health.
 - Default **max health** (and starting health) is **100**.
 - When health reaches **0 or below**, the character **dies**.
 - Death **quietly removes** the character from the map: no death animation, VFX, or UI for now. The character (and its controller) are gone on the next simulation update.
@@ -15,4 +15,4 @@ Character hit points. Related: [damage.md](damage.md), [combat.md](combat.md), [
 
 - Regeneration, armor, or invulnerability frames
 
-Player health is shown on the local HUD; see [player-hud.md](player-hud.md).
+Player health is shown on the local HUD as part of the resource list; see [player-hud.md](player-hud.md) and [resources.md](resources.md).
