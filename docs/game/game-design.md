@@ -1,18 +1,16 @@
-# Minimap - Game design
+# Minimap CompuQuest - Game design
 
-Note: Minimap is a working title
+**Minimap** is the higher-level game engine built on Godot. **CompuQuest** is the surface game built on Minimap.
+
+CompuQuest has been used as the setting for a variety of unfinished games across various genres over the years, so this is called "Minimap CompuQuest" to differentiate it from other CompuQuest games.
 
 ## Game summary and primary features
 
-- A 2D action/strategy game in the Vampire Survivor / roguelite genre
-- Single screen world, no scrolling (rectangular hex arena — see [features/map-layout.md](features/map-layout.md))
-- 1-4 player, local-coop (lobby join → hex arena; see [features/lobby.md](features/lobby.md))
+- A 2D action/strategy sandbox game
+- Single screen world, no scrolling
+- 1-4 player, local-coop
 - Retro pixel art graphics
 - Hex grid world with mutable cell types
-- Realtime cartesian movement (screen-axis input); hex walls and other characters are solid colliders with slide
-- Characters belong to factions; hostiles are other factions ([features/factions.md](features/factions.md))
-- Health, damage, and missile combat ([features/health.md](features/health.md), [features/damage.md](features/damage.md), [features/combat.md](features/combat.md))
-- AI characters wander (floor goals + navigation steering) and shoot hostiles ([features/ai.md](features/ai.md))
 - Dense, close quarters tactics
 - Minimally procedurally generated world
 - World transforms over the course of each playthrough
@@ -24,3 +22,7 @@ To create a game I can play with my sons which is both chill and tense and has a
 ## Setting
 
 Takes place in my CompuQuest universe, focusing on office workers fighting supernatural horrors, laced with a 90s computer theme.
+
+## Additional features
+
+Secondary and implementation detail lives in the [game features index](features/README.md)—do not expand this document with feature lists that belong there.

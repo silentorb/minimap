@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Sample/content **extension** library: default home for concrete accessory effects and shipped accessory/character JSON. Built as a **loadable DLL** under `extensions/`—a **build-only** dependency of the Godot host (**not** linked into the main assembly).
+**CompuQuest** surface-game **content extension**: default home for concrete accessory effects and shipped accessory/character JSON. Built as a **loadable DLL** under `extensions/`—a **build-only** dependency of the Godot host (**not** linked into the main assembly). Minimap is the engine layer; this assembly is the CompuQuest content on top.
 
 ## What may live here
 

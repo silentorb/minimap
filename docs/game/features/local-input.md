@@ -1,6 +1,6 @@
 # Local input
 
-Input devices for local human players. Related: [lobby.md](lobby.md), [player-hud.md](player-hud.md), [combat.md](combat.md).
+Input devices for local human players. Related: [lobby.md](lobby.md), [movement.md](movement.md), [player-hud.md](player-hud.md), [combat.md](combat.md).
 
 ## Requirements
 

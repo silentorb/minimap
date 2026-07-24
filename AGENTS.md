@@ -2,7 +2,8 @@
 
 ## Project
 
-- **Engine**: Godot **4.6**, Forward Plus renderer; gameplay is **2D** (single-screen hex arena—see [docs/game/game-design.md](docs/game/game-design.md)).
+- **Minimap** is the higher-level game engine built on **Godot**. **CompuQuest** is the surface game built on Minimap (content extension `CompuQuest.Minimap`).
+- **Engine stack**: Godot **4.6**, Forward Plus renderer; Minimap simulation/client on top; gameplay is **2D** (see [docs/game/game-design.md](docs/game/game-design.md) and [docs/game/features/](docs/game/features/)).
 - **Entry**: `run/main_scene` is `res://scenes/lobby.tscn` for normal play; `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
@@ -12,7 +13,7 @@
   - **`Minimap.Extensive`** — extension contracts, registry, and default integrator; see [`src/Minimap.Extensive/AGENTS.md`](src/Minimap.Extensive/AGENTS.md).
   - **`Minimap.Client`** — Godot scripts, rendering, input, HUD; see [`src/Minimap.Client/AGENTS.md`](src/Minimap.Client/AGENTS.md).
   - **`Minimap.App`** — settings/extension file I/O and host hooks (not a scene root); see [`src/Minimap.App/AGENTS.md`](src/Minimap.App/AGENTS.md).
-  - **`CompuQuest.Minimap`** — content extension library; see [`src/CompuQuest.Minimap/AGENTS.md`](src/CompuQuest.Minimap/AGENTS.md).
+  - **`CompuQuest.Minimap`** — CompuQuest surface-game content extension; see [`src/CompuQuest.Minimap/AGENTS.md`](src/CompuQuest.Minimap/AGENTS.md).
   - **`Minimap.Automation.Contracts`** — automation protobuf/gRPC and playbook interfaces; see [`src/Minimap.Automation.Contracts/AGENTS.md`](src/Minimap.Automation.Contracts/AGENTS.md).
   - **`Minimap.Automation`** — in-process Godot automation helpers; see [`src/Minimap.Automation/AGENTS.md`](src/Minimap.Automation/AGENTS.md).
   - Root [minimap.csproj](minimap.csproj) is the Godot host and **compiles App + Client scripts into the main assembly** (Godot only resolves C# scripts from that assembly), referencing Simulation + Simulation.Navigation + Extensive + Automation.Contracts.
@@ -38,6 +39,7 @@ Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.cspr
 - **Line endings:** Use **Unix (LF)** for all text in this repo. [`.gitattributes`](.gitattributes) enforces `eol=lf` on checkout/commit; [`.editorconfig`](.editorconfig) sets `end_of_line = lf`. The dev container sets **`files.eol`** to `\n` in VS Code / Cursor so new files default to LF. If you create or edit files on Windows outside the setup, set the editor to LF (not CRLF) and avoid reintroducing `\r\n`; use `git add --renormalize .` if you need to fix a batch of files after changing `.gitattributes`.
 - Prefer changing game logic and scenes in this repo; keep Godot editor–managed files (`*.tscn`, `project.godot`) consistent with how Godot serializes them.
 - Match existing script language and style in the files you touch (GDScript vs C#).
+- **`docs/game/game-design.md` is locked:** Do **not** create, edit, or delete that file unless the **user explicitly instructed** changes to it in the current conversation. Put secondary design detail in [docs/game/features/](docs/game/features/) instead. Reading it is fine; proposing edits without that instruction is not.
 - **Bug regressions:** When fixing a user-reported bug the suite missed, add a regression test at the lowest sound layer—or escalate instead of brittle/flaky coverage. See [`.cursor/rules/bug-regression-tests.mdc`](.cursor/rules/bug-regression-tests.mdc) and [docs/technical/features/testing.md](docs/technical/features/testing.md) (**Bug regressions / debugging**).
 - **Error handling:** Prefer explicit outcomes for expected failures; use exceptions only for truly exceptional cases or documented fail-fast abort boundaries. Non-trivial paths need a deliberate failure strategy. See [`.cursor/rules/error-handling.mdc`](.cursor/rules/error-handling.mdc) and [docs/technical/features/error-handling.md](docs/technical/features/error-handling.md).
 
@@ -49,13 +51,14 @@ Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.cspr
 
 [`docs/`](docs/) is the **source of truth for functionality**. Code and tests implement the docs; when they disagree, update code to match docs (and keep docs current when changing behavior).
 
-- [docs/game/game-design.md](docs/game/game-design.md) — Vision, genre, pillars (2D hex, co-op, proc gen, evolving world). Read when changing **gameplay feel, scope, or player count**.
-- [docs/technical/technical-design.md](docs/technical/technical-design.md) — Engine, C#, TDD, docs-as-SoT, simulation vs. visual separation, **Godot project layout**. Read when choosing **architecture, tests, or Godot/C# boundaries**.
+- [docs/game/game-design.md](docs/game/game-design.md) — CompuQuest vision and primary pillars (locked; see Conventions). Read when needing **gameplay feel, scope, or player count**; do not edit without explicit user instruction.
+- [docs/game/features/README.md](docs/game/features/README.md) — Game **features index** (secondary design / player-facing rules).
+- [docs/technical/technical-design.md](docs/technical/technical-design.md) — Minimap/Godot architecture, C#, TDD, docs-as-SoT, simulation vs. visual separation, **Godot project layout**. Read when choosing **architecture, tests, or Godot/C# boundaries**.
 
 ## Feature documentation (read on demand)
 
 Do **not** preload the whole `docs/` tree for routine tasks. Skim the feature README trigger tables, then read **only** the matching file(s):
 
-- **Game** (design / player-facing rules): [`docs/game/features/README.md`](docs/game/features/README.md)
+- **Game** (features index / player-facing rules): [`docs/game/features/README.md`](docs/game/features/README.md)
 - **Technical** (architecture / contracts): [`docs/technical/features/README.md`](docs/technical/features/README.md)
 - Automated testing (unit vs functional, xUnit, gRPC-based Godot automation, `dotnet test`, in-container `GODOT_BIN` for client smoke, bug regressions): [`docs/technical/features/testing.md`](docs/technical/features/testing.md), layout: [`tests/functional/README.md`](tests/functional/README.md).

@@ -10,7 +10,7 @@
 | [error-handling.md](error-handling.md) | Adding or changing **APIs**, loaders, boot paths, RPC, or any **multi-step** logic where failures must be chosen (throw vs explicit outcome vs abort). |
 | [testing.md](testing.md) | Working on **automated tests**: unit vs functional layout, **xUnit**, protobuf gRPC Godot automation, `dotnet test`, **Godot-dependent** tests (`GODOT_BIN`), or **bug-driven regression** policy (failing test first / escalate brittle coverage). |
 | [../technical-design.md](../technical-design.md) | **Architecture**, docs-as-SoT, simulation vs. client boundaries, **Godot directory layout**, TDD, or global-state rules. |
-| [../../game/game-design.md](../../game/game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
+| [../../game/game-design.md](../../game/game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [controllers.md](controllers.md) | Working on **IController**, possess/unpossess, PlayerController / AiController, **IMoveSteering**, or tick order. |
 | [navigation.md](navigation.md) | Working on **navmesh**, Godot **NavigationAgent2D** / crowd avoidance, **Minimap.Simulation.Navigation**, or AI path steering. |
 | [characters.md](characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |

@@ -1,14 +1,15 @@
 # Game feature docs (read on demand)
 
-**Source of truth** for design, feel, and player-facing rules. Do **not** open every file for general engineering tasks.
+**Features index** for CompuQuest (the surface game on Minimap). **Source of truth** for design, feel, and player-facing rules beyond the high-level pillars in [game-design.md](../game-design.md). Do **not** open every file for general engineering tasks.
 
 1. Skim the **trigger** lines below.
 2. If a trigger matches your current task, read **only** that markdown file.
 
 | File | Read when… |
 |------|------------|
-| [../game-design.md](../game-design.md) | Changing **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. |
+| [../game-design.md](../game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [health.md](health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
+| [movement.md](movement.md) | Changing **realtime cartesian movement**, screen-axis move input, or wall/character **slide** collision. |
 | [damage.md](damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
 | [depiction.md](depiction.md) | Changing **depiction** on character/accessory definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [ui-icons.md](ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |

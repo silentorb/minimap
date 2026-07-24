@@ -2,10 +2,10 @@
 
 # High-level requirements
 
-- Godot is the game engine
+- **Minimap** is the higher-level game engine built on **Godot**; **CompuQuest** is the surface game (content extension) built on Minimap. Godot remains the underlying engine/runtime.
 - C# is the primary programming language
 - Mostly developed by AI agents
-- Heavily requirements-driven, documented under the `./docs` directory. **`./docs` is the source of truth for functionality**: game rules and feel live under `docs/game/`; architecture and contracts live under `docs/technical/`. Code and tests implement those documents. When behavior changes, update the docs in the same change (or first). If code and docs disagree, docs win and code is fixed.
+- Heavily requirements-driven, documented under the `./docs` directory. **`./docs` is the source of truth for functionality**: CompuQuest vision/pillars in `docs/game/game-design.md` (agents must not edit that file without explicit user instruction); secondary game rules under `docs/game/features/`; architecture and contracts under `docs/technical/`. Code and tests implement those documents. When behavior changes, update the docs in the same change (or first). If code and docs disagree, docs win and code is fixed.
 - Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks. User-reported gaps that the suite missed get a regression test when a sound one exists at the lowest practical layer; otherwise escalate rather than adding brittle or flaky coverage (see [features/testing.md](features/testing.md) **Bug regressions / debugging**).
 - Prefer **explicit error outcomes** for expected failures; use **exceptions** only for truly exceptional cases or documented fail-fast abort boundaries (see [features/error-handling.md](features/error-handling.md)).
 - No global state, except where needed for integration with Godot and third-party libraries
@@ -17,7 +17,7 @@
   - **Minimap.Extensive** — extension contracts, registry, and default integrator; see `src/Minimap.Extensive/AGENTS.md`
   - **Minimap.Client** — Godot rendering, input capture, HUD; see `src/Minimap.Client/AGENTS.md`
   - **Minimap.App** — settings/extension file I/O and host hooks (not a scene root); see `src/Minimap.App/AGENTS.md`
-  - **CompuQuest.Minimap** — sample/content extension library; see `src/CompuQuest.Minimap/AGENTS.md`
+  - **CompuQuest.Minimap** — CompuQuest surface-game content extension; see `src/CompuQuest.Minimap/AGENTS.md`
 
 # Godot project layout
 
