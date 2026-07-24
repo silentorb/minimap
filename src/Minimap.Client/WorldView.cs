@@ -17,17 +17,23 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private Random _rng = new(1);
     private Node2D? _hexLayer;
     private Node2D? _spawnerLayer;
+    private Node2D? _placedLayer;
     private Node2D? _playerLayer;
     private Node2D? _missileLayer;
+    private Node2D? _overlayLayer;
     private PackedScene? _hexScene;
     private PackedScene? _spawnerScene;
     private PackedScene? _playerScene;
     private readonly Dictionary<HexAxial, Node2D> _hexNodes = new();
     private readonly Dictionary<int, Node2D> _spawnerNodes = new();
+    private readonly Dictionary<int, Node2D> _placedNodes = new();
     private readonly Dictionary<int, Node2D> _characterNodes = new();
     private readonly Dictionary<int, Node2D> _missileNodes = new();
+    private readonly Dictionary<int, Line2D> _aimLines = new();
     private readonly HashSet<Key> _heldKeys = new();
     private readonly List<Character> _humanPawns = new();
+    private HexAxial? _previewCell;
+    private bool _previewValid;
 
     /// <summary>Raised after terrain visuals sync (evolution or level regen).</summary>
     public event Action? TerrainChanged;
@@ -47,12 +53,26 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             AddChild(_spawnerLayer);
         }
 
+        _placedLayer = GetNodeOrNull<Node2D>("PlacedLayer");
+        if (_placedLayer is null)
+        {
+            _placedLayer = new Node2D { Name = "PlacedLayer" };
+            AddChild(_placedLayer);
+        }
+
         _playerLayer = GetNode<Node2D>("PlayerLayer");
         _missileLayer = GetNodeOrNull<Node2D>("MissileLayer");
         if (_missileLayer is null)
         {
             _missileLayer = new Node2D { Name = "MissileLayer" };
             AddChild(_missileLayer);
+        }
+
+        _overlayLayer = GetNodeOrNull<Node2D>("OverlayLayer");
+        if (_overlayLayer is null)
+        {
+            _overlayLayer = new Node2D { Name = "OverlayLayer" };
+            AddChild(_overlayLayer);
         }
 
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
@@ -78,15 +98,18 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         else
             _heldKeys.Remove(k.Keycode);
 
-        if (IsGameplayAxisKey(k.Keycode))
+        if (IsMovementKey(k.Keycode))
             GetViewport().SetInputAsHandled();
     }
 
-    public void SyncFrame()
+    public void SyncFrame(IReadOnlyList<PlayerController>? localPlayers = null)
     {
         SyncCharacters();
         SyncMissiles();
         SyncSpawners();
+        SyncPlacedObjects();
+        SyncPlacementPreview(localPlayers);
+        SyncAimLines(localPlayers);
     }
 
     public void OnLevelRegenerated(IReadOnlyList<Character> humanPawns)
@@ -100,7 +123,14 @@ public partial class WorldView : Node2D, IMovementKeyTarget
 
     public SimVec2 ReadMoveInput() => ReadAxisFromKeys(Key.D, Key.A, Key.S, Key.W);
 
-    public SimVec2 ReadAimInput() => ReadAxisFromKeys(Key.Right, Key.Left, Key.Down, Key.Up);
+    public SimVec2 ReadMouseAimFrom(SimVec2 origin)
+    {
+        var mouse = GetGlobalMousePosition();
+        var dir = new SimVec2(mouse.X - origin.X, mouse.Y - origin.Y);
+        if (dir.LengthSquared < 1e-6f)
+            return SimVec2.Zero;
+        return dir.Normalized();
+    }
 
     private void OnEvolutionTick()
     {
@@ -116,6 +146,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     {
         SyncHexes();
         SyncSpawners();
+        SyncPlacedObjects();
         SyncCharacters();
         SyncMissiles();
     }
@@ -137,8 +168,24 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             node.Position = HexLayout.ToWorld(h, HexSize);
             var poly = node.GetNode<Polygon2D>("Polygon2D");
             poly.Polygon = polyTemplate;
-            poly.Color = ColorFor(_world.Grid.Get(h));
+            poly.Color = ColorForCell(h);
         }
+    }
+
+    private Color ColorForCell(HexAxial h)
+    {
+        if (_world is null)
+            return new Color(0.1f, 0.1f, 0.12f);
+
+        var baseColor = ColorFor(_world.Grid.Get(h));
+        if (_previewCell is HexAxial preview && preview.Equals(h))
+        {
+            return _previewValid
+                ? baseColor.Lerp(new Color(0.45f, 0.85f, 0.55f), 0.55f)
+                : baseColor.Lerp(new Color(0.9f, 0.25f, 0.3f), 0.65f);
+        }
+
+        return baseColor;
     }
 
     private void SyncSpawners()
@@ -168,6 +215,148 @@ public partial class WorldView : Node2D, IMovementKeyTarget
                 continue;
             _spawnerNodes[id].QueueFree();
             _spawnerNodes.Remove(id);
+        }
+    }
+
+    private void SyncPlacedObjects()
+    {
+        if (_world is null || _placedLayer is null)
+            return;
+
+        var live = new HashSet<int>();
+        foreach (var placed in _world.PlacedObjects.Values)
+        {
+            live.Add(placed.Id);
+            if (!_placedNodes.TryGetValue(placed.Id, out var node))
+            {
+                node = CreatePlacedObjectNode(placed);
+                _placedLayer.AddChild(node);
+                _placedNodes[placed.Id] = node;
+            }
+
+            var worldPos = HexLayout.ToWorld(placed.Cell, HexSize);
+            node.Position = new Vector2(worldPos.X, worldPos.Y);
+            node.ZIndex = 1;
+        }
+
+        foreach (var id in _placedNodes.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _placedNodes[id].QueueFree();
+            _placedNodes.Remove(id);
+        }
+    }
+
+    private static Node2D CreatePlacedObjectNode(PlacedObject placed)
+    {
+        var node = new Node2D();
+        var depiction = placed.Definition.DepictionConfig;
+        if (depiction is not null &&
+            depiction.Kind == DepictionKinds.Texture &&
+            TryApplyTexture(node, depiction))
+        {
+            return node;
+        }
+
+        var rect = new ColorRect
+        {
+            Color = new Color(0.55f, 0.75f, 0.35f),
+            OffsetLeft = -8,
+            OffsetTop = -8,
+            OffsetRight = 8,
+            OffsetBottom = 8,
+        };
+        node.AddChild(rect);
+        return node;
+    }
+
+    private static bool TryApplyTexture(Node2D node, DepictionConfig depiction)
+    {
+        var texture = GD.Load<Texture2D>(depiction.ResourcePath);
+        if (texture is null)
+            return false;
+
+        var sprite = new Sprite2D
+        {
+            Texture = texture,
+            Scale = new Vector2(0.045f, 0.045f),
+        };
+        node.AddChild(sprite);
+        return true;
+    }
+
+    private void SyncPlacementPreview(IReadOnlyList<PlayerController>? localPlayers)
+    {
+        HexAxial? preview = null;
+        var valid = false;
+        if (localPlayers is not null)
+        {
+            foreach (var player in localPlayers)
+            {
+                if (!player.IsPlacementPreviewing || player.PlacementPreviewCell is not HexAxial cell)
+                    continue;
+                preview = cell;
+                valid = player.PlacementPreviewValid;
+                break;
+            }
+        }
+
+        var changed = !_previewCell.Equals(preview) || _previewValid != valid;
+        _previewCell = preview;
+        _previewValid = valid;
+        if (changed)
+            SyncHexes();
+    }
+
+    private void SyncAimLines(IReadOnlyList<PlayerController>? localPlayers)
+    {
+        if (_overlayLayer is null)
+            return;
+
+        var live = new HashSet<int>();
+        if (localPlayers is not null)
+        {
+            foreach (var player in localPlayers)
+            {
+                var pawn = player.Pawn;
+                if (pawn is null || !pawn.IsAlive)
+                    continue;
+
+                live.Add(pawn.Id);
+                if (!_aimLines.TryGetValue(pawn.Id, out var line))
+                {
+                    line = new Line2D
+                    {
+                        Width = 2f,
+                        DefaultColor = new Color(1f, 1f, 1f, 0.65f),
+                        Antialiased = true,
+                    };
+                    _overlayLayer.AddChild(line);
+                    _aimLines[pawn.Id] = line;
+                }
+
+                var facing = pawn.Facing;
+                if (facing.LengthSquared < 1e-10f)
+                    facing = new SimVec2(1f, 0f);
+                facing = facing.Normalized();
+                const float length = 18f;
+                line.Points =
+                [
+                    Vector2.Zero,
+                    new Vector2(facing.X * length, facing.Y * length),
+                ];
+                line.Position = new Vector2(pawn.Position.X, pawn.Position.Y);
+                line.ZIndex = 4;
+            }
+        }
+
+        foreach (var id in _aimLines.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _aimLines[id].QueueFree();
+            _aimLines.Remove(id);
         }
     }
 
@@ -320,17 +509,11 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private static bool IsMovementKey(Key key) =>
         key is Key.W or Key.A or Key.S or Key.D;
 
-    private static bool IsAimKey(Key key) =>
-        key is Key.Up or Key.Down or Key.Left or Key.Right;
-
-    private static bool IsGameplayAxisKey(Key key) => IsMovementKey(key) || IsAimKey(key);
-
     private static Color ColorFor(CellType t) =>
         t switch
         {
-            CellType.Floor => new Color(0.35f, 0.42f, 0.38f),
+            CellType.Grass => new Color(0.35f, 0.42f, 0.38f),
             CellType.Wall => new Color(0.18f, 0.16f, 0.22f),
-            CellType.Hazard => new Color(0.75f, 0.2f, 0.35f),
             _ => new Color(0.1f, 0.1f, 0.12f),
         };
 

@@ -22,7 +22,7 @@ public class WorldEvolutionTests
         Assert.True(before > 0);
 
         foreach (var h in w.Grid.AllHexes())
-            w.Grid.Set(h, CellType.Floor);
+            w.Grid.Set(h, CellType.Grass);
         w.RebuildWallColliders();
         var floorsOnly = w.WallPolygons.Count;
 

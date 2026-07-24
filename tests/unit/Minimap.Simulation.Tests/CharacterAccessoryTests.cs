@@ -35,12 +35,13 @@ public class CharacterAccessoryTests
     [Fact]
     public void Shoot_does_not_fire_without_shoot_effect()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(
             3, 3, 1, gen, definition: TestContent.Bare);
         w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
 
         driver.SetAimInput(new SimVec2(1f, 0f));
+        driver.SetFireHeld(true);
         w.Tick(0.016f);
         Assert.Empty(w.Missiles);
     }
@@ -48,24 +49,25 @@ public class CharacterAccessoryTests
     [Fact]
     public void Shoot_cooldown_lives_on_effect()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
 
         var effect = Assert.IsType<TestShootEffect>(player.Effects[0]);
         Assert.Equal(0f, effect.CooldownRemaining);
 
         driver.SetAimInput(new SimVec2(1f, 0f));
+        driver.SetFireHeld(true);
         w.Tick(0.016f);
         Assert.True(w.Missiles.Count >= 1);
         Assert.Equal(effect.FireIntervalSeconds, effect.CooldownRemaining);
     }
 
-    private sealed class AllFloorGenerator : IWorldGenerator
+    private sealed class AllGrassGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)
         {
             foreach (var h in grid.AllHexes())
-                grid.Set(h, CellType.Floor);
+                grid.Set(h, CellType.Grass);
         }
     }
 }

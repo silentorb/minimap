@@ -29,7 +29,7 @@ public class GameplaySimulationFunctionalTests
         {
             var hex = HexWorldLayout.WorldToAxial(p.Position, w.HexSize);
             Assert.True(w.Grid.Contains(hex));
-            Assert.Equal(CellType.Floor, w.Grid.Get(hex));
+            Assert.Equal(CellType.Grass, w.Grid.Get(hex));
         }
     }
 
@@ -70,7 +70,7 @@ public class GameplaySimulationFunctionalTests
         foreach (var h in w.Grid.AllHexes())
         {
             var t = w.Grid.Get(h);
-            Assert.True(t == CellType.Floor || t == CellType.Wall || t == CellType.Hazard);
+            Assert.True(t == CellType.Grass || t == CellType.Wall);
         }
 
         foreach (var p in w.Characters)
@@ -180,7 +180,7 @@ public class GameplaySimulationFunctionalTests
             if (Pawn is null || !Pawn.IsAlive)
                 return;
             Pawn.MoveIntent = _moveInput;
-            Shoot.Tick(world, Pawn, dt, _aimInput);
+            Shoot.Tick(world, Pawn, dt, _aimInput, wantsFire: true);
         }
     }
 }

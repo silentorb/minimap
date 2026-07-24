@@ -9,6 +9,7 @@ public static class DefinitionConfig
 {
     public const string AccessoriesDirectoryName = "accessories";
     public const string CharactersDirectoryName = "characters";
+    public const string PlacedObjectsDirectoryName = "placed_objects";
 
     /// <summary>
     /// Content root beside a loaded extension DLL:
@@ -84,6 +85,7 @@ public static class DefinitionConfig
         var icon = ParseIconProperty(root, sourcePath);
         var tags = ParseTagsProperty(root, registry.Tags, sourcePath);
         var pointCost = ParsePointCostProperty(root, sourcePath);
+        var activation = ParseActivationProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
         TryGetStringProperty(root, "description", out var description);
         return new AccessoryDefinition(
@@ -94,7 +96,8 @@ public static class DefinitionConfig
             tags,
             pointCost,
             displayName,
-            description);
+            description,
+            activation);
     }
 
     public static AccessoryDefinition LoadAccessoryFromFile(string path, IExtensionRegistry registry)
@@ -204,7 +207,7 @@ public static class DefinitionConfig
 
     /// <summary>
     /// Registers JSON definitions from <paramref name="contentDirectory"/> into
-    /// <paramref name="registry"/> (accessories, then characters).
+    /// <paramref name="registry"/> (placed objects, accessories, then characters).
     /// Effect <c>type</c> values must already be registered via
     /// <see cref="IExtensionRegistry.AddAccessoryEffectFactory"/>.
     /// </summary>
@@ -213,6 +216,10 @@ public static class DefinitionConfig
         ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
         ArgumentNullException.ThrowIfNull(registry);
 
+        var placedObjectsDir = Path.Combine(contentDirectory, PlacedObjectsDirectoryName);
+        foreach (var placed in LoadPlacedObjectsFromDirectory(placedObjectsDir))
+            registry.AddPlacedObjectDefinition(placed);
+
         var accessoriesDir = Path.Combine(contentDirectory, AccessoriesDirectoryName);
         foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir, registry))
             registry.AddAccessoryDefinition(accessory);
@@ -220,6 +227,52 @@ public static class DefinitionConfig
         var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
         foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
             registry.AddCharacterDefinition(character);
+    }
+
+    public static IReadOnlyList<PlacedObjectDefinition> LoadPlacedObjectsFromDirectory(string directory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+
+        if (!Directory.Exists(directory))
+            return Array.Empty<PlacedObjectDefinition>();
+
+        var definitions = new List<PlacedObjectDefinition>();
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
+            definitions.Add(LoadPlacedObjectFromFile(path));
+
+        return definitions;
+    }
+
+    public static PlacedObjectDefinition LoadPlacedObjectFromFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"Placed object definition file not found: {path}", path);
+
+        return LoadPlacedObjectFromJson(File.ReadAllText(path), path);
+    }
+
+    public static PlacedObjectDefinition LoadPlacedObjectFromJson(string json, string? sourcePath = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
+        using var document = ParseDocument(json, "placed object", sourcePath);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                FormatEmptyObjectError("placed object", sourcePath));
+        }
+
+        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidOperationException(
+                FormatRequiredFieldError("placed object", "id", sourcePath));
+        }
+
+        var depiction = ParseDepictionProperty(root, sourcePath);
+        TryGetStringProperty(root, "displayName", out var displayName);
+        return new PlacedObjectDefinition(id, depiction, displayName);
     }
 
     private static JsonDocument ParseDocument(string json, string kind, string? sourcePath)
@@ -297,6 +350,66 @@ public static class DefinitionConfig
         }
 
         return cost;
+    }
+
+    private static AccessoryActivation ParseActivationProperty(JsonElement root, string? sourcePath)
+    {
+        if (!root.TryGetProperty("activation", out var activationElement))
+            return AccessoryActivation.None;
+
+        if (activationElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return AccessoryActivation.None;
+
+        if (activationElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory activation must be a JSON object or null.", sourcePath));
+        }
+
+        if (!TryGetStringProperty(activationElement, "kind", out var kindRaw) ||
+            string.IsNullOrWhiteSpace(kindRaw))
+        {
+            throw new InvalidOperationException(
+                AppendSource("Accessory activation must include kind.", sourcePath));
+        }
+
+        var kind = kindRaw.Trim().ToLowerInvariant() switch
+        {
+            "none" => AccessoryActivationKind.None,
+            "dedicated" => AccessoryActivationKind.Dedicated,
+            "modal" => AccessoryActivationKind.Modal,
+            _ => throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory activation kind '{kindRaw}' is not supported.",
+                    sourcePath)),
+        };
+
+        string? bind = null;
+        if (activationElement.TryGetProperty("bind", out var bindElement))
+        {
+            if (bindElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                bind = null;
+            }
+            else if (bindElement.ValueKind == JsonValueKind.String)
+            {
+                bind = bindElement.GetString();
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    AppendSource("Accessory activation bind must be a string or null.", sourcePath));
+            }
+        }
+
+        try
+        {
+            return new AccessoryActivation(kind, bind);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new InvalidOperationException(AppendSource(ex.Message, sourcePath), ex);
+        }
     }
 
     /// <summary>

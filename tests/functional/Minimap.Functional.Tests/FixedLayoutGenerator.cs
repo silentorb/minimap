@@ -8,6 +8,6 @@ internal sealed class FixedLayoutGenerator : IWorldGenerator
     public void GenerateTerrain(HexGrid grid, Random random)
     {
         foreach (var h in grid.AllHexes())
-            grid.Set(h, CellType.Floor);
+            grid.Set(h, CellType.Grass);
     }
 }

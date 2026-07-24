@@ -66,13 +66,13 @@ public sealed class AiController : IController
                 fireDir = d;
         }
 
-        Shoot.Tick(world, Pawn, dt, fireDir);
+        Shoot.Tick(world, Pawn, dt, fireDir, wantsFire: fireDir.LengthSquared >= 1e-10f);
     }
 
     private void PickNewWander(GameWorld world)
     {
         _retargetTimer = AiWanderGoals.NextRetargetDelay(_random);
-        var goal = AiWanderGoals.PickFloorGoalOrPause(world, _random);
+        var goal = AiWanderGoals.PickGrassGoalOrPause(world, _random);
         if (goal is null)
             _steering.ClearGoal();
         else

@@ -14,7 +14,8 @@ public sealed class AccessoryDefinition
         IEnumerable<TagId>? tags = null,
         int pointCost = 0,
         string? displayName = null,
-        string? description = null)
+        string? description = null,
+        AccessoryActivation? activation = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Accessory definition id must be non-empty.", nameof(id));
@@ -30,6 +31,7 @@ public sealed class AccessoryDefinition
         PointCost = pointCost;
         DisplayName = displayName;
         Description = description;
+        Activation = activation ?? AccessoryActivation.None;
     }
 
     public string Id { get; }
@@ -47,6 +49,8 @@ public sealed class AccessoryDefinition
     public string? DisplayName { get; }
 
     public string? Description { get; }
+
+    public AccessoryActivation Activation { get; }
 
     public bool HasTag(TagId tag) => _tags.Contains(tag);
 

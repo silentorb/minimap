@@ -11,6 +11,9 @@ public class DefinitionConfigTests
     {
         var registry = new ExtensionRegistry();
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            PlaceRandomObjectEffectFactory.TypeId,
+            PlaceRandomObjectEffectFactory.Create);
         return registry;
     }
 
@@ -252,7 +255,15 @@ public class DefinitionConfigTests
             gun.IconConfig.ResourcePath);
 
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
+        var plant = registry.AccessoryDefinitions.Single(a => a.Id == "plant_vegetable");
+        Assert.Equal(AccessoryActivationKind.Modal, plant.Activation.Kind);
+        Assert.IsType<PlaceRandomObjectEffect>(Assert.Single(plant.EffectTemplates));
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "use_computer");
+
+        Assert.Equal(3, registry.PlacedObjectDefinitions.Count);
+        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "carrot");
+        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "corn");
+        Assert.Contains(registry.PlacedObjectDefinitions, p => p.Id == "melon");
 
         Assert.Equal(2, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");

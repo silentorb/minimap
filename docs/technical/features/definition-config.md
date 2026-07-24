@@ -5,13 +5,14 @@ JSON configuration for accessory and character definitions (and the pattern for 
 ## Requirements
 
 - Shipped definitions are **extension content**, authored next to the extension project and copied beside the loadable DLL on build:
-  - Source: `src/CompuQuest.Minimap/config/accessories/*.json`, `src/CompuQuest.Minimap/config/characters/*.json`
-  - Runtime: `extensions/CompuQuest.Minimap/accessories/`, `extensions/CompuQuest.Minimap/characters/` (directory named after the assembly, next to `CompuQuest.Minimap.dll`)
+  - Source: `src/CompuQuest.Minimap/config/accessories/*.json`, `src/CompuQuest.Minimap/config/characters/*.json`, `src/CompuQuest.Minimap/config/placed_objects/*.json`
+  - Runtime: `extensions/CompuQuest.Minimap/accessories/`, `characters/`, `placed_objects/` (directory named after the assembly, next to `CompuQuest.Minimap.dll`)
 - One definition per file. **Minimap.App** `DefinitionConfig` loads every `*.json` in each directory (sorted by filename for stable registration order). Missing directories are treated as empty.
 - Load order inside `ExtensionLoader` (for each configured extension DLL, after that DLL’s `Register`, before `CreateGameContent`):
-  1. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/`
-  2. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry, including any C#-registered defs and earlier extensions)
-- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`). The host does **not** hardcode concrete effect classes.
+  1. Register placed-object definitions from `{dllDir}/{assemblyName}/placed_objects/`
+  2. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/`
+  3. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry, including any C#-registered defs and earlier extensions)
+- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_object"`). The host does **not** hardcode concrete effect classes.
 - Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
 - Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory ids, malformed `depiction` or `icon`, or duplicate ids fail fast (same boot/preflight boundary as extensions).
 - Optional **`depiction`** object on accessory and character JSON maps to **`DepictionConfig`** (see [depiction.md](depiction.md)). App does not validate that Godot resources exist at load time.
@@ -26,6 +27,10 @@ JSON configuration for accessory and character definitions (and the pattern for 
   "description": "Fire missiles at foes.",
   "pointCost": 1,
   "tags": ["player_selectable"],
+  "activation": {
+    "kind": "dedicated",
+    "bind": "primary_fire"
+  },
   "effects": [
     {
       "type": "shoot",
@@ -46,10 +51,12 @@ JSON configuration for accessory and character definitions (and the pattern for 
 }
 ```
 
-- `id` and `effects` are required. `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, and `description` are optional.
+- `id` and `effects` are required. `activation`, `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, and `description` are optional.
+- `activation.kind`: `none` | `dedicated` | `modal`. Dedicated requires `bind` (e.g. `primary_fire`).
 - `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`shoot`** → CompuQuest `ShootEffect` (`IShootEffect`) — requires `fireIntervalSeconds`, `missileSpeed`, `missileDamage`; `friendlyFire` optional (default **true**).
+  - **`place_random_object`** → CompuQuest `PlaceRandomObjectEffect` (`ICellPlacementEffect`) — requires non-empty `pool` of placed-object definition ids.
 
 ### Character schema
 

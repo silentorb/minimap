@@ -29,7 +29,7 @@ public class FactionAndCombatTests
     [Fact]
     public void Missile_damages_hostile_and_removes_at_zero_health()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, _, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage; // one hit kills
@@ -51,7 +51,7 @@ public class FactionAndCombatTests
     [Fact]
     public void Missile_damages_same_faction_when_friendly_fire()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
@@ -76,7 +76,7 @@ public class FactionAndCombatTests
     [Fact]
     public void Missile_does_not_damage_same_faction_when_friendly_fire_off()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
@@ -102,12 +102,13 @@ public class FactionAndCombatTests
     [Fact]
     public void Shoot_with_aim_fires_along_aim_direction()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         // Closer hostile to the left — aim right must not auto-aim at them.
         w.AddCharacter(2, player.Position + new SimVec2(-20f, 0f));
 
         driver.SetAimInput(new SimVec2(1f, 0f));
+        driver.SetFireHeld(true);
         w.Tick(0.016f);
         Assert.True(w.Missiles.Count >= 1);
         var m = w.Missiles[0];
@@ -117,21 +118,35 @@ public class FactionAndCombatTests
     }
 
     [Fact]
-    public void Shoot_with_zero_aim_does_not_fire()
+    public void Shoot_with_zero_aim_and_no_fire_does_not_fire()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
 
         driver.SetAimInput(SimVec2.Zero);
+        driver.SetFireHeld(false);
         w.Tick(0.016f);
         Assert.Empty(w.Missiles);
     }
 
     [Fact]
+    public void Shoot_with_zero_aim_and_fire_uses_facing()
+    {
+        var gen = new AllGrassGenerator();
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
+        player.Facing = new SimVec2(0f, 1f);
+        driver.SetAimInput(SimVec2.Zero);
+        driver.SetFireHeld(true);
+        w.Tick(0.016f);
+        Assert.True(w.Missiles.Count >= 1);
+        Assert.True(w.Missiles[0].Velocity.Y > 0f);
+    }
+
+    [Fact]
     public void Ai_shoots_toward_nearest_hostile()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(3, 3, 1, gen);
         w.SetSpawnCharacterDefinition(TestContent.Generic);
         var shooter = w.AddCharacter(1, SimVec2.Zero);
@@ -154,12 +169,12 @@ public class FactionAndCombatTests
         Assert.Equal(CombatTuning.DefaultMaxHealth, c.Health);
     }
 
-    private sealed class AllFloorGenerator : IWorldGenerator
+    private sealed class AllGrassGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)
         {
             foreach (var h in grid.AllHexes())
-                grid.Set(h, CellType.Floor);
+                grid.Set(h, CellType.Grass);
         }
     }
 }

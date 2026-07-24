@@ -22,7 +22,7 @@ public sealed class HexGrid
         RadiusX = radiusX;
         RadiusY = radiusY;
         foreach (var h in EnumerateRectangle(radiusX, radiusY, hexSize))
-            _cells[h] = CellType.Floor;
+            _cells[h] = CellType.Grass;
     }
 
     public int RadiusX { get; }

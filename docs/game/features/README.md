@@ -14,11 +14,13 @@
 | [depiction.md](depiction.md) | Changing **depiction** on character/accessory definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [ui-icons.md](ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
 | [characters.md](characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
-| [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
+| [accessories.md](accessories.md) | Changing **accessories**, accessory effects, Gun, Plant Vegetable, CompuQuest `config/accessories/` JSON, or character effect-cache rules. |
+| [active-abilities.md](active-abilities.md) | Changing **dedicated vs modal** ability activation, D-pad / 1–4 select, or ability activate binds. |
+| [cell-placement.md](cell-placement.md) | Changing **cell occupancy**, placing objects on cells, placement preview, or Plant Vegetable rules. |
 | [tags.md](tags.md) | Changing **tags** on definitions (e.g. `player_selectable`) or tag naming policy. |
 | [players.md](players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
-| [ai.md](ai.md) | Changing **AI** wander / floor goals, AI combat behavior, or AI spawn counts per faction. |
-| [combat.md](combat.md) | Changing **missiles**, shoot effect, fire rate, twin-stick aim, or AI nearest-hostile aim. |
+| [ai.md](ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |
+| [combat.md](combat.md) | Changing **missiles**, shoot effect, fire rate, fire button, mouse/stick aim, or AI nearest-hostile aim. |
 | [factions.md](factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
 | [map-layout.md](map-layout.md) | Changing **map shape or size** (rectangle extents, single-screen arena). |
 | [player-hud.md](player-hud.md) | Changing **player HUD** slots, names, or on-screen health display. |

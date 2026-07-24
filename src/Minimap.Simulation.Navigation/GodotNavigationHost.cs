@@ -50,7 +50,7 @@ public sealed class GodotNavigationHost : IDisposable
         var any = false;
         foreach (var h in world.Grid.AllHexes())
         {
-            if (world.Grid.Get(h) != CellType.Floor)
+            if (world.Grid.Get(h) != CellType.Grass)
                 continue;
 
             any = true;

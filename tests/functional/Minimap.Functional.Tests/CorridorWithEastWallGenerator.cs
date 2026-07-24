@@ -8,7 +8,7 @@ internal sealed class CorridorWithEastWallGenerator : IWorldGenerator
     public void GenerateTerrain(HexGrid grid, Random random)
     {
         foreach (var h in grid.AllHexes())
-            grid.Set(h, CellType.Floor);
+            grid.Set(h, CellType.Grass);
         grid.Set(new HexAxial(1, 0), CellType.Wall);
     }
 }

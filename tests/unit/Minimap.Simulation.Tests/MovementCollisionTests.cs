@@ -9,7 +9,7 @@ public class MovementCollisionTests
     [Fact]
     public void Move_along_plus_x_increases_x()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var before = pawn.Position;
         driver.SetMoveInput(new SimVec2(1f, 0f));
@@ -21,7 +21,7 @@ public class MovementCollisionTests
     [Fact]
     public void Move_along_minus_y_decreases_y()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, driver, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var before = pawn.Position;
         driver.SetMoveInput(new SimVec2(0f, -1f));
@@ -82,7 +82,7 @@ public class MovementCollisionTests
     [Fact]
     public void Head_on_into_other_character_stalls_without_overlap()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var blocker = w.AddCharacter(2, new SimVec2(40f, 0f));
         pawn.Position = new SimVec2(0f, 0f);
@@ -105,7 +105,7 @@ public class MovementCollisionTests
     [Fact]
     public void Angled_approach_slides_around_other_character()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
         var blocker = w.AddCharacter(2, new SimVec2(0f, 0f));
         pawn.Position = new SimVec2(-(w.PlayerRadius * 2f + 6f), -8f);
@@ -125,12 +125,12 @@ public class MovementCollisionTests
             $"Expected no overlap; dist={MathF.Sqrt(delta.LengthSquared)} min={minDist}");
     }
 
-    private sealed class AllFloorGenerator : IWorldGenerator
+    private sealed class AllGrassGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)
         {
             foreach (var h in grid.AllHexes())
-                grid.Set(h, CellType.Floor);
+                grid.Set(h, CellType.Grass);
         }
     }
 
@@ -139,7 +139,7 @@ public class MovementCollisionTests
         public void GenerateTerrain(HexGrid grid, Random random)
         {
             foreach (var h in grid.AllHexes())
-                grid.Set(h, CellType.Floor);
+                grid.Set(h, CellType.Grass);
             grid.Set(new HexAxial(1, 0), CellType.Wall);
         }
     }

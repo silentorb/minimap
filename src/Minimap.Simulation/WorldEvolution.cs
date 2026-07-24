@@ -28,10 +28,9 @@ public static class WorldEvolution
     {
         return from switch
         {
-            CellType.Hazard => random.NextDouble() < 0.5 ? CellType.Hazard : CellType.Floor,
-            CellType.Wall => random.NextDouble() < 0.15 ? CellType.Floor : CellType.Wall,
-            CellType.Floor => random.NextDouble() < 0.12 ? CellType.Hazard : CellType.Floor,
-            _ => CellType.Floor,
+            CellType.Wall => random.NextDouble() < 0.15 ? CellType.Grass : CellType.Wall,
+            CellType.Grass => random.NextDouble() < 0.08 ? CellType.Wall : CellType.Grass,
+            _ => CellType.Grass,
         };
     }
 }

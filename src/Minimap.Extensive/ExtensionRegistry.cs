@@ -11,6 +11,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, AccessoryDefinition> _accessoryById = new(StringComparer.Ordinal);
     private readonly List<CharacterDefinition> _characterDefinitions = new();
     private readonly Dictionary<string, CharacterDefinition> _characterById = new(StringComparer.Ordinal);
+    private readonly List<PlacedObjectDefinition> _placedObjectDefinitions = new();
+    private readonly Dictionary<string, PlacedObjectDefinition> _placedObjectById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AccessoryEffectFactory> _effectFactories =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -22,6 +24,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     public IReadOnlyList<AccessoryDefinition> AccessoryDefinitions => _accessoryDefinitions;
 
     public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
+
+    public IReadOnlyList<PlacedObjectDefinition> PlacedObjectDefinitions => _placedObjectDefinitions;
 
     public void RegisterTags(IEnumerable<string> tagNames)
     {
@@ -109,6 +113,29 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         }
 
         return _characterById.TryGetValue(id, out definition);
+    }
+
+    public void AddPlacedObjectDefinition(PlacedObjectDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (!_placedObjectById.TryAdd(definition.Id, definition))
+        {
+            throw new InvalidOperationException(
+                $"Duplicate placed object definition id '{definition.Id}'.");
+        }
+
+        _placedObjectDefinitions.Add(definition);
+    }
+
+    public bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _placedObjectById.TryGetValue(id, out definition);
     }
 
     public void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory)

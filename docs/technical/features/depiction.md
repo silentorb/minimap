@@ -5,7 +5,8 @@ Opaque visual presentation references on content definitions. Implements [../../
 ## Requirements
 
 - **`DepictionConfig`** lives in **`Minimap.Simulation.Types`**: `Kind`, `ResourcePath`, optional `DefaultAnimation`. No Godot types.
-- **`DepictionKinds.SpriteFrames`** (`"sprite_frames"`) means `ResourcePath` is a Godot `SpriteFrames` `.tres` (atlas regions / animations authored in Godot, not frame lists in JSON).
+- **`DepictionKinds.SpriteFrames`** (`"sprite_frames"`) means `ResourcePath` is a Godot `SpriteFrames` `.tres`.
+- **`DepictionKinds.Texture`** (`"texture"`) means `ResourcePath` is a static texture (including imported SVG); used for prototype placed-object art.
 - Optional on **`CharacterDefinition`** and **`AccessoryDefinition`** (`DepictionConfig?`).
 - JSON field `"depiction"`: `{ "kind", "path", "animation"? }` parsed by **`DefinitionConfig`**. Omit or null → no depiction.
 - **Client** (`WorldView`): for characters with `kind == sprite_frames`, load `SpriteFrames`, drive `AnimatedSprite2D` on `player_visual.tscn`, hide the ColorRect placeholder; on missing/unknown kind, keep ColorRect + faction tint. Scale 16×16 tiles by **1.25** so pawns stay near the former ~20px footprint.

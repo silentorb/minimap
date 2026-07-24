@@ -29,6 +29,12 @@ public interface IExtensionRegistry
 
     bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition);
 
+    void AddPlacedObjectDefinition(PlacedObjectDefinition definition);
+
+    IReadOnlyList<PlacedObjectDefinition> PlacedObjectDefinitions { get; }
+
+    bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition);
+
     /// <summary>
     /// Registers a JSON effect <paramref name="type"/> factory (case-insensitive).
     /// Duplicate type ids fail fast.

@@ -39,10 +39,16 @@ public static class Shoot
     }
 
     /// <summary>
-    /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready and
-    /// <paramref name="fireDirection"/> is non-zero, spawns a missile in that direction.
+    /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready,
+    /// <paramref name="wantsFire"/> is true, and a fire direction is available
+    /// (aim, else facing), spawns a missile.
     /// </summary>
-    public static void Tick(GameWorld world, Character shooter, float dt, SimVec2 fireDirection)
+    public static void Tick(
+        GameWorld world,
+        Character shooter,
+        float dt,
+        SimVec2 aimDirection,
+        bool wantsFire)
     {
         var effect = FindShootEffect(shooter);
         if (effect is null)
@@ -52,6 +58,12 @@ public static class Shoot
         if (effect.CooldownRemaining > 0f)
             return;
 
+        if (!wantsFire)
+            return;
+
+        var fireDirection = aimDirection;
+        if (fireDirection.LengthSquared < 1e-10f)
+            fireDirection = shooter.Facing;
         if (fireDirection.LengthSquared < 1e-10f)
             return;
 

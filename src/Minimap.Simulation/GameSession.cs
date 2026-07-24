@@ -66,6 +66,7 @@ public sealed class GameSession
 
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
         world.SetSpawnCharacterDefinition(content.DefaultCharacter);
+        world.SetPlacedObjectDefinitions(content.PlacedObjects);
 
         var session = new GameSession(
             world,
@@ -136,7 +137,7 @@ public sealed class GameSession
         if (_players.Count == 0)
             return;
 
-        var hexes = SeededWorldGenerator.PickFloorSpawns(World.Grid, _players.Count, Rng);
+        var hexes = SeededWorldGenerator.PickGrassSpawns(World.Grid, _players.Count, Rng);
         for (var i = 0; i < _players.Count; i++)
         {
             var character = World.AddCharacter(

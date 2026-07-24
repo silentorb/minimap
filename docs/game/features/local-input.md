@@ -1,17 +1,21 @@
 # Local input
 
-Input devices for local human players. Related: [lobby.md](lobby.md), [movement.md](movement.md), [player-hud.md](player-hud.md), [combat.md](combat.md).
+Input devices for local human players. Related: [lobby.md](lobby.md), [movement.md](movement.md), [player-hud.md](player-hud.md), [combat.md](combat.md), [active-abilities.md](active-abilities.md).
 
 ## Requirements
 
-- Target **universal gamepad** support using Godot’s joypad names (`JoyButton.A`, `JoyButton.B`, `JoyButton.Start`, left stick, right stick, D-pad) — not vendor-specific labels.
+- Target **universal gamepad** support using Godot’s joypad names (`JoyButton.A`, `JoyButton.B`, `JoyButton.X`, `JoyButton.Start`, left stick, right stick, D-pad) — not vendor-specific labels.
 - **Keyboard** may be used instead of a gamepad for one player.
 - Each local player may bind **multiple devices** under the hood (one-to-many: one player aggregates input from every device in their set). The lobby UI only assigns the activating device on claim; there is no UI yet to attach extra devices (e.g. foot switches mapped to keyboard).
 - **Lobby activate** (claim slot, reconnect): `JoyButton.A` or `JoyButton.Start`; keyboard **Enter** or **Space**.
 - **Lobby ready**: `JoyButton.Start` while Claimed; keyboard Enter/Space.
 - **Lobby back**: `JoyButton.B`; keyboard **Escape**.
-- **In-world movement**: merge move axes from all devices bound to that player (**WASD**; left stick + D-pad on joypads).
-- **In-world aim / fire**: merge aim axes from all devices bound to that player (**arrow keys**; right stick on joypads). Holding a non-zero aim direction fires on cooldown per [combat.md](combat.md) — no separate fire button.
+- **In-world movement**: **WASD**; joypad **left stick only** (D-pad does **not** move).
+- **In-world aim**: joypad **right stick**; keyboard **mouse** (direction from pawn to cursor). Arrow keys do not aim.
+- **In-world primary fire** (dedicated Gun): joypad **Right Trigger**; keyboard **Left mouse button**. Aim alone does not fire.
+- **Modal ability select**: joypad **D-pad** (up/right/down/left → slots 1–4); keyboard **1–4**.
+- **Modal ability activate**: joypad **`JoyButton.X`**; keyboard **Space**. (`JoyButton.A` reserved for future environment interact.)
+- **Cancel placement preview**: joypad **`JoyButton.B`**; keyboard **Escape**.
 - **Direct world start** (no lobby): default **solo keyboard** on player 1 for developers and automation.
 
 ### Disconnect / reconnect
@@ -28,4 +32,4 @@ Input devices for local human players. Related: [lobby.md](lobby.md), [movement.
 
 ## Xbox crosswalk (informative)
 
-On common Xbox layouts: A ≈ `JoyButton.A`, B ≈ `JoyButton.B`, Menu ≈ `JoyButton.Start`. Implementation uses Godot universal ids only.
+On common Xbox layouts: A ≈ `JoyButton.A`, B ≈ `JoyButton.B`, X ≈ `JoyButton.X`, Menu ≈ `JoyButton.Start`. Implementation uses Godot universal ids only.

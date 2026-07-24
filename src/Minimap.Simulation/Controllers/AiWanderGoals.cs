@@ -1,6 +1,6 @@
 namespace Minimap.Simulation;
 
-/// <summary>Shared wander policy: pause or pick a random floor world position.</summary>
+/// <summary>Shared wander policy: pause or pick a random grass world position.</summary>
 public static class AiWanderGoals
 {
     public const float RetargetMinSeconds = 0.6f;
@@ -15,9 +15,9 @@ public static class AiWanderGoals
     }
 
     /// <summary>
-    /// Returns null to pause; otherwise a world-space floor cell center.
+    /// Returns null to pause; otherwise a world-space grass cell center.
     /// </summary>
-    public static SimVec2? PickFloorGoalOrPause(GameWorld world, Random random)
+    public static SimVec2? PickGrassGoalOrPause(GameWorld world, Random random)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(random);
@@ -25,25 +25,25 @@ public static class AiWanderGoals
         if (random.NextDouble() < PauseChance)
             return null;
 
-        return TryPickRandomFloorWorld(world, random);
+        return TryPickRandomGrassWorld(world, random);
     }
 
-    public static SimVec2? TryPickRandomFloorWorld(GameWorld world, Random random)
+    public static SimVec2? TryPickRandomGrassWorld(GameWorld world, Random random)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(random);
 
-        var floors = new List<HexAxial>();
+        var grass = new List<HexAxial>();
         foreach (var h in world.Grid.AllHexes())
         {
-            if (world.Grid.Get(h) == CellType.Floor)
-                floors.Add(h);
+            if (world.Grid.Get(h) == CellType.Grass)
+                grass.Add(h);
         }
 
-        if (floors.Count == 0)
+        if (grass.Count == 0)
             return null;
 
-        var hex = floors[random.Next(floors.Count)];
+        var hex = grass[random.Next(grass.Count)];
         return HexWorldLayout.ToWorld(hex, world.HexSize);
     }
 }

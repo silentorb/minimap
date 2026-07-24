@@ -35,6 +35,34 @@ public sealed class ClientSession
         _players[playerIndex].SetAimInput(direction);
     }
 
+    public void SetFireHeld(int playerIndex, bool held)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetFireHeld(held);
+    }
+
+    public void SetAbilityActivatePressed(int playerIndex, bool pressed)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetAbilityActivatePressed(pressed);
+    }
+
+    public void SetAbilityBackPressed(int playerIndex, bool pressed)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetAbilityBackPressed(pressed);
+    }
+
+    public void SetModalSelect(int playerIndex, int? slotIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetModalSelect(slotIndex);
+    }
+
     public void OnLevelRegenerated() => ReattachHumanPlayers();
 
     public IReadOnlyList<PlayerHudModel> BuildHudModels()
@@ -70,7 +98,7 @@ public sealed class ClientSession
     {
         foreach (var player in _session.Players)
         {
-            var controller = new PlayerController(player);
+            var controller = new PlayerController(player, _session.Rng);
             if (player.Character is not null)
                 _session.World.AttachController(controller, player.Character);
             _players.Add(controller);

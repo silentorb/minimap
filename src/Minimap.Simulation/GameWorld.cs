@@ -9,6 +9,9 @@ public sealed class GameWorld
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
     private readonly List<Spawner> _spawners = new();
+    private readonly Dictionary<HexAxial, PlacedObject> _placedByCell = new();
+    private readonly Dictionary<string, PlacedObjectDefinition> _placedObjectDefinitions =
+        new(StringComparer.Ordinal);
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly List<SimVec2> _characterObstacleCenters = new();
     private readonly Random _random;
@@ -17,6 +20,7 @@ public sealed class GameWorld
     private int _nextCharacterId;
     private int _nextMissileId;
     private int _nextSpawnerId;
+    private int _nextPlacedObjectId;
 
 
     public static GameWorld Create(
@@ -65,6 +69,7 @@ public sealed class GameWorld
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
     public IReadOnlyList<Spawner> Spawners => _spawners;
+    public IReadOnlyDictionary<HexAxial, PlacedObject> PlacedObjects => _placedByCell;
 
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
     public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
@@ -78,6 +83,60 @@ public sealed class GameWorld
     {
         ArgumentNullException.ThrowIfNull(definition);
         _spawnCharacterDefinition = definition;
+    }
+
+    public void SetPlacedObjectDefinitions(IEnumerable<PlacedObjectDefinition> definitions)
+    {
+        ArgumentNullException.ThrowIfNull(definitions);
+        _placedObjectDefinitions.Clear();
+        foreach (var def in definitions)
+        {
+            ArgumentNullException.ThrowIfNull(def);
+            if (!_placedObjectDefinitions.TryAdd(def.Id, def))
+            {
+                throw new InvalidOperationException(
+                    $"Duplicate placed object definition id '{def.Id}'.");
+            }
+        }
+    }
+
+    public bool TryGetPlacedObjectDefinition(string id, out PlacedObjectDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _placedObjectDefinitions.TryGetValue(id, out definition);
+    }
+
+    public bool IsCellOccupied(HexAxial cell) => _placedByCell.ContainsKey(cell);
+
+    /// <summary>
+    /// Places a static object on <paramref name="cell"/> if the cell is in the grid and empty.
+    /// Returns false for expected rejection (missing cell / occupied); does not validate terrain.
+    /// </summary>
+    public bool TryPlaceObject(HexAxial cell, PlacedObjectDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (!Grid.Contains(cell) || _placedByCell.ContainsKey(cell))
+            return false;
+
+        _placedByCell[cell] = new PlacedObject(_nextPlacedObjectId++, cell, definition);
+        return true;
+    }
+
+    public bool TryRemoveObjectAt(HexAxial cell, out PlacedObject? removed)
+    {
+        if (_placedByCell.Remove(cell, out var obj))
+        {
+            removed = obj;
+            return true;
+        }
+
+        removed = null;
+        return false;
     }
 
     public Character AddCharacter(
@@ -140,6 +199,7 @@ public sealed class GameWorld
     {
         ClearRivalsAndMissiles(spawn.RivalFactionId);
         _spawners.Clear();
+        _placedByCell.Clear();
 
         var rng = new Random(WorldSeed + levelIndex);
         var gen = new SeededWorldGenerator();
@@ -156,7 +216,7 @@ public sealed class GameWorld
         if (humans == 0)
             return;
 
-        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, humans, _random);
+        var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, humans, _random);
         for (var h = 0; h < humans; h++)
             AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[h], HexSize));
     }
@@ -173,7 +233,7 @@ public sealed class GameWorld
         if (count <= 0 || pool.IsEmpty)
             return;
 
-        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, count, _random);
+        var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, count, _random);
         for (var i = 0; i < count; i++)
         {
             if (!pool.TryPick(_random, out var definition) || definition is null)
@@ -189,11 +249,11 @@ public sealed class GameWorld
         if (count <= 0 || spawner.CharacterPool.IsEmpty)
             return;
 
-        var candidates = CollectNearbyFloorHexes(spawner.Position, maxDistance: 2);
+        var candidates = CollectNearbyGrassHexes(spawner.Position, maxDistance: 2);
         if (candidates.Count == 0)
         {
             candidates = Grid.AllHexes()
-                .Where(h => Grid.Get(h) == CellType.Floor)
+                .Where(h => Grid.Get(h) == CellType.Grass)
                 .ToList();
         }
 
@@ -217,7 +277,7 @@ public sealed class GameWorld
         SetSpawnCharacterDefinition(characterDefinition);
         var humans = Math.Max(0, spawn.HumanPlayerCount);
         var total = humans + spawn.AiPerFaction * 2;
-        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, total, _random);
+        var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, total, _random);
         var i = 0;
 
         for (var h = 0; h < humans; h++)
@@ -298,7 +358,7 @@ public sealed class GameWorld
         if (humans.Count == 0)
             return;
 
-        var hexes = SeededWorldGenerator.PickFloorSpawns(Grid, humans.Count, _random);
+        var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, humans.Count, _random);
         for (var i = 0; i < humans.Count; i++)
         {
             humans[i].Position = HexWorldLayout.ToWorld(hexes[i], HexSize);
@@ -306,12 +366,12 @@ public sealed class GameWorld
         }
     }
 
-    private List<HexAxial> CollectNearbyFloorHexes(HexAxial center, int maxDistance)
+    private List<HexAxial> CollectNearbyGrassHexes(HexAxial center, int maxDistance)
     {
         var result = new List<HexAxial>();
         foreach (var h in Grid.AllHexes())
         {
-            if (Grid.Get(h) != CellType.Floor)
+            if (Grid.Get(h) != CellType.Grass)
                 continue;
 
             var distance = HexAxial.Distance(center, h);
@@ -324,7 +384,7 @@ public sealed class GameWorld
 
         foreach (var h in Grid.AllHexes())
         {
-            if (Grid.Get(h) == CellType.Floor && HexAxial.Distance(center, h) <= maxDistance)
+            if (Grid.Get(h) == CellType.Grass && HexAxial.Distance(center, h) <= maxDistance)
                 result.Add(h);
         }
 
@@ -352,7 +412,11 @@ public sealed class GameWorld
             var input = character.MoveIntent;
             var displacement = SimVec2.Zero;
             if (input.LengthSquared >= 1e-10f)
-                displacement = input.Normalized() * (MoveSpeed * dt);
+            {
+                var dir = input.Normalized();
+                character.Facing = dir;
+                displacement = dir * (MoveSpeed * dt);
+            }
 
             CollectCharacterObstacles(character.Id);
             character.Position = CircleHexCollision.MoveAndSlide(

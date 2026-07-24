@@ -4,6 +4,10 @@
   "description": "Fire missiles at foes. Classic and reliable.",
   "pointCost": 1,
   "tags": ["player_selectable"],
+  "activation": {
+    "kind": "dedicated",
+    "bind": "primary_fire"
+  },
   "effects": [
     {
       "type": "shoot",

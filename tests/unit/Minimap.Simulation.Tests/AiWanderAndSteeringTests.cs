@@ -36,40 +36,40 @@ public class AiWanderAndSteeringTests
     }
 
     [Fact]
-    public void TryPickRandomFloorWorld_returns_floor_cell_center()
+    public void TryPickRandomGrassWorld_returns_grass_cell_center()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
-        var goal = AiWanderGoals.TryPickRandomFloorWorld(w, new Random(7));
+        var goal = AiWanderGoals.TryPickRandomGrassWorld(w, new Random(7));
         Assert.NotNull(goal);
 
         var axial = HexWorldLayout.WorldToAxial(goal.Value, w.HexSize);
-        Assert.Equal(CellType.Floor, w.Grid.Get(axial));
+        Assert.Equal(CellType.Grass, w.Grid.Get(axial));
         Assert.Equal(HexWorldLayout.ToWorld(axial, w.HexSize), goal.Value);
     }
 
     [Fact]
-    public void PickFloorGoalOrPause_can_pause()
+    public void PickGrassGoalOrPause_can_pause()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
-        var goal = AiWanderGoals.PickFloorGoalOrPause(w, new FixedDoubleRandom(0.1));
+        var goal = AiWanderGoals.PickGrassGoalOrPause(w, new FixedDoubleRandom(0.1));
         Assert.Null(goal);
     }
 
     [Fact]
-    public void PickFloorGoalOrPause_can_pick_floor()
+    public void PickGrassGoalOrPause_can_pick_grass()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
-        var goal = AiWanderGoals.PickFloorGoalOrPause(w, new FixedDoubleRandom(0.5));
+        var goal = AiWanderGoals.PickGrassGoalOrPause(w, new FixedDoubleRandom(0.5));
         Assert.NotNull(goal);
     }
 
     [Fact]
     public void AiController_with_direct_steering_writes_intent_toward_goal()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(3, 3, 1, gen);
         w.SetSpawnCharacterDefinition(TestContent.Generic);
         var pawn = w.AddCharacter(1, SimVec2.Zero);
@@ -87,7 +87,7 @@ public class AiWanderAndSteeringTests
     [Fact]
     public void AiController_ReplaceSteering_swaps_backend()
     {
-        var gen = new AllFloorGenerator();
+        var gen = new AllGrassGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
         w.SetSpawnCharacterDefinition(TestContent.Generic);
         var pawn = w.AddCharacter(1, SimVec2.Zero);
@@ -100,12 +100,12 @@ public class AiWanderAndSteeringTests
         Assert.Same(replacement, ai.Steering);
     }
 
-    private sealed class AllFloorGenerator : IWorldGenerator
+    private sealed class AllGrassGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)
         {
             foreach (var h in grid.AllHexes())
-                grid.Set(h, CellType.Floor);
+                grid.Set(h, CellType.Grass);
         }
     }
 

@@ -170,8 +170,15 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
         for (var i = 0; i < _clientSession.Players.Count; i++)
         {
-            _clientSession.SetMoveInput(i, _input.ReadMove(i));
-            _clientSession.SetAimInput(i, _input.ReadAim(i));
+            var pawn = _clientSession.Players[i].Pawn;
+            var origin = pawn?.Position ?? SimVec2.Zero;
+            var input = _input.ReadPlayer(i, origin);
+            _clientSession.SetMoveInput(i, input.Move);
+            _clientSession.SetAimInput(i, input.Aim);
+            _clientSession.SetFireHeld(i, input.FireHeld);
+            _clientSession.SetAbilityActivatePressed(i, input.AbilityActivatePressed);
+            _clientSession.SetAbilityBackPressed(i, input.AbilityBackPressed);
+            _clientSession.SetModalSelect(i, input.ModalSelect);
         }
 
         EnsureGodotSteering();
@@ -190,7 +197,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _gameOverOverlay.ShowOverlay();
         }
 
-        _worldView.SyncFrame();
+        _worldView.SyncFrame(_clientSession.Players);
         _hudPanel.Apply(_clientSession.BuildHudModels());
     }
 
