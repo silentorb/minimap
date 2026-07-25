@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cworldroot01"]
+[gd_scene load_steps=7 format=3 uid="uid://cworldroot01"]
 
 [ext_resource type="Script" path="res://src/Minimap.Client/World/WorldApp.cs" id="1_app"]
 [ext_resource type="Script" path="res://src/Minimap.Client/WorldView.cs" id="2_wv"]
 [ext_resource type="PackedScene" path="res://ui/player_hud_panel.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://ui/reconnect_overlay.tscn" id="4_reconnect"]
 [ext_resource type="PackedScene" path="res://ui/game_over_overlay.tscn" id="5_gameover"]
+[ext_resource type="PackedScene" path="res://ui/main_menu_popup.tscn" id="6_mainmenu"]
 
 [node name="WorldApp" type="Node"]
 script = ExtResource("1_app")
@@ -27,3 +28,5 @@ script = ExtResource("2_wv")
 [node name="ReconnectOverlay" parent="." instance=ExtResource("4_reconnect")]
 
 [node name="GameOverOverlay" parent="." instance=ExtResource("5_gameover")]
+
+[node name="MainMenuPopup" parent="." instance=ExtResource("6_mainmenu")]

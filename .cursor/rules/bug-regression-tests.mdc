@@ -20,4 +20,4 @@ When fixing a **user-reported bug** that the current suite did not catch, treat 
 
 Stop and explain trade-offs to the user; wait for direction to skip the test, expand testing capabilities, or redesign for testability.
 
-Full detail: [docs/technical/features/testing.md](docs/technical/features/testing.md) (**Bug regressions / debugging**).
+Full detail: [docs/technical/features/platform/testing.md](docs/technical/features/platform/testing.md) (**Bug regressions / debugging**).

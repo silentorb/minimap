@@ -37,6 +37,9 @@ public static class WorldHostHooks
     /// <summary>Process environment → optional world seed override.</summary>
     public static Func<int?>? TryGetWorldSeedFromEnvironment { get; set; }
 
+    /// <summary>Process environment → whether boot should redirect main menu to lobby.</summary>
+    public static Func<bool>? ShouldStartAtLobby { get; set; }
+
     public static SimVec2I RequireCoreMapRadius(string absolutePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
@@ -93,6 +96,9 @@ public static class WorldHostHooks
 
     public static int? TryResolveWorldSeedFromEnvironment() =>
         TryGetWorldSeedFromEnvironment?.Invoke();
+
+    public static bool ResolveShouldStartAtLobby() =>
+        ShouldStartAtLobby?.Invoke() ?? false;
 }
 
 /// <summary>Client-facing snapshot of a successful extension load.</summary>

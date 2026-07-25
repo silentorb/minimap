@@ -236,6 +236,7 @@ public partial class GodotRpcHost : Node
                     Visible = overlay?.OverlayVisible ?? false,
                     DropButtonVisible = overlay?.DropButtonVisible ?? false,
                     TreePaused = game?.GameplayPaused ?? false,
+                    MainMenuVisible = game?.MainMenuPopupVisible ?? false,
                 };
             });
 
@@ -244,6 +245,14 @@ public partial class GodotRpcHost : Node
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 owner.GetGameTarget()?.SimulateJoypadDisconnectForTests(playerIndex);
+                return Task.CompletedTask;
+            });
+
+        public Task ForceGameOverAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                owner.GetGameTarget()?.ForceGameOverForTests();
                 return Task.CompletedTask;
             });
 
@@ -291,6 +300,33 @@ public partial class GodotRpcHost : Node
                     MinHeight = min.Y,
                     ClassName = control.GetClass(),
                 };
+            });
+
+        public Task<string?> GetLabelTextAsync(
+            string nodePath,
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(async () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await owner.WaitFramesAsync(1);
+                var scene = owner.GetTree().CurrentScene;
+                if (scene is null || string.IsNullOrWhiteSpace(nodePath))
+                    return null;
+                return scene.GetNodeOrNull<Label>(nodePath)?.Text;
+            });
+
+        public Task PressButtonAsync(
+            string nodePath,
+            CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var scene = owner.GetTree().CurrentScene
+                    ?? throw new InvalidOperationException("No current scene.");
+                var button = scene.GetNodeOrNull<Button>(nodePath)
+                    ?? throw new InvalidOperationException($"Button missing: {nodePath}");
+                button.EmitSignal(BaseButton.SignalName.Pressed);
+                return Task.CompletedTask;
             });
 
         public Task<PlaybookControlRectSnapshot> GetViewportVisibleRectAsync(

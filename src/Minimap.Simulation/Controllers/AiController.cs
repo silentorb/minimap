@@ -1,6 +1,6 @@
 namespace Minimap.Simulation;
 
-/// <summary>AI floor-goal wander + nearest-hostile shoot aim (docs/game/features/ai.md).</summary>
+/// <summary>AI floor-goal wander + nearest-hostile shoot aim (docs/game/features/gameplay/ai.md).</summary>
 public sealed class AiController : IController
 {
     private readonly Random _random;

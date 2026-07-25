@@ -1,6 +1,6 @@
 namespace Minimap.Simulation;
 
-/// <summary>Projectile owned by a faction (docs/technical/features/missiles-and-damage.md).</summary>
+/// <summary>Projectile owned by a faction (docs/technical/features/gameplay/missiles-and-damage.md).</summary>
 public sealed class Missile
 {
     public Missile(

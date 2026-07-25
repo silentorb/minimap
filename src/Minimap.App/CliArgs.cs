@@ -6,6 +6,8 @@ public static class CliArgs
     public const string DefaultScenarioPath = "res://config/scenarios/default.json";
     public const string ScenarioEnvVar = "MINIMAP_SCENARIO";
     public const string WorldSeedEnvVar = "MINIMAP_WORLD_SEED";
+    public const string StartScreenEnvVar = "START_SCREEN";
+    public const string StartScreenLobby = "lobby";
 
     public static string? TryGetScenarioPath(IReadOnlyList<string> args)
     {
@@ -39,5 +41,19 @@ public static class CliArgs
             return null;
 
         return int.TryParse(value.Trim(), out var seed) ? seed : null;
+    }
+
+    /// <summary>Optional start screen id from <see cref="StartScreenEnvVar"/> (trimmed; may be empty).</summary>
+    public static string? TryGetStartScreenFromEnvironment()
+    {
+        var value = Environment.GetEnvironmentVariable(StartScreenEnvVar);
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>True when <see cref="StartScreenEnvVar"/> is exactly <see cref="StartScreenLobby"/> after trim.</summary>
+    public static bool ShouldStartAtLobby()
+    {
+        var value = TryGetStartScreenFromEnvironment();
+        return string.Equals(value, StartScreenLobby, StringComparison.Ordinal);
     }
 }

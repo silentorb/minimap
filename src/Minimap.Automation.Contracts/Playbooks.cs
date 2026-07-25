@@ -35,6 +35,8 @@ public interface IPlaybookContext
 
     Task SimulateJoypadDisconnectAsync(int playerIndex, CancellationToken cancellationToken = default);
 
+    Task ForceGameOverAsync(CancellationToken cancellationToken = default);
+
     Task FocusReconnectDropAsync(CancellationToken cancellationToken = default);
 
     Task ClearLocalPlayContextAsync(CancellationToken cancellationToken = default);
@@ -53,6 +55,12 @@ public interface IPlaybookContext
 
     /// <summary>Resize the main window (forces a layout pass after the next frames).</summary>
     Task SetWindowSizeAsync(int width, int height, CancellationToken cancellationToken = default);
+
+    /// <summary>Text of a <see cref="PlaybookControlRectSnapshot"/>-style Label at <paramref name="nodePath"/>, or null.</summary>
+    Task<string?> GetLabelTextAsync(string nodePath, CancellationToken cancellationToken = default);
+
+    /// <summary>Emit <c>Pressed</c> on a Button at <paramref name="nodePath"/> under the current scene.</summary>
+    Task PressButtonAsync(string nodePath, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Outcome of a playbook run (also mirrored on the gRPC wire).</summary>
@@ -90,12 +98,13 @@ public sealed class PlaybookLobbySnapshot
     public bool CanStartGame { get; init; }
 }
 
-/// <summary>Reconnect pause overlay snapshot.</summary>
+/// <summary>Reconnect / main-menu pause overlay snapshot.</summary>
 public sealed class PlaybookPauseOverlaySnapshot
 {
     public bool Visible { get; init; }
     public bool DropButtonVisible { get; init; }
     public bool TreePaused { get; init; }
+    public bool MainMenuVisible { get; init; }
 }
 
 /// <summary>Control or viewport rect for layout assertions (global coordinates).</summary>

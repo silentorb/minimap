@@ -32,7 +32,7 @@ public class WorldRootSceneFunctionalTest(GodotAutomationFixture fixture)
 public class LobbyFunctionalTest(GodotAutomationFixture fixture)
 {
     [Fact]
-    public async Task Lobby_main_scene_shows_four_available_panels()
+    public async Task Lobby_scene_shows_four_available_panels()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
         {
@@ -87,6 +87,50 @@ public class LobbyFunctionalTest(GodotAutomationFixture fixture)
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
         {
             PlaybookId = GodotAutomationFixture.ReconnectOverlayDropId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+}
+
+[Collection("GodotAutomation")]
+public class MainMenuFunctionalTest(GodotAutomationFixture fixture)
+{
+    [Fact]
+    public async Task Main_menu_shows_title_and_options()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuBootstrapId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
+    public async Task Main_menu_new_goes_to_lobby()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuNewGoesToLobbyId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
+    public async Task Main_menu_popup_pauses_and_continues()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuPopupPauseAndContinueId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
+    public async Task Game_over_new_and_main_menu_navigate()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.GameOverNewAndMainMenuId,
         });
         Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
     }

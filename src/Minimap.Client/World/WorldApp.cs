@@ -1,6 +1,7 @@
 using Godot;
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
+using Minimap.Client.MainMenu;
 using Minimap.Simulation;
 using Minimap.Simulation.Navigation;
 using Minimap.Simulation.Types;
@@ -11,7 +12,7 @@ namespace Minimap.Client.World;
 public partial class WorldApp : Node, IGameAutomationTarget
 {
     private const string LobbyScenePath = "res://scenes/lobby.tscn";
-    private const string WorldScenePath = "res://scenes/world.tscn";
+    private const string MainMenuScenePath = "res://scenes/main_menu.tscn";
 
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
     [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
@@ -32,6 +33,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
     private LocalInputAggregator? _input;
     private ReconnectOverlay? _reconnectOverlay;
     private GameOverOverlay? _gameOverOverlay;
+    private MainMenuPopup? _mainMenuPopup;
     private GodotNavigationHost? _navigation;
     private readonly ReconnectState _reconnect = new();
     private bool _gameplayPaused;
@@ -43,6 +45,8 @@ public partial class WorldApp : Node, IGameAutomationTarget
     public bool GameplayPaused => _gameplayPaused;
     public ReconnectOverlay? ReconnectOverlay => _reconnectOverlay;
     public GameOverOverlay? GameOverOverlay => _gameOverOverlay;
+    public MainMenuPopup? MainMenuPopup => _mainMenuPopup;
+    public bool MainMenuPopupVisible => _mainMenuPopup?.OverlayVisible ?? false;
     internal WorldSceneBoot Boot => _boot;
 
     public override void _Ready()
@@ -115,7 +119,12 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
             _reconnectOverlay.DropPlayerRequested += OnDropDisconnectedPlayer;
             _gameOverOverlay = GetNode<GameOverOverlay>("GameOverOverlay");
-            _gameOverOverlay.ContinueRequested += OnGameOverContinue;
+            _gameOverOverlay.NewGameRequested += OnGameOverNewGame;
+            _gameOverOverlay.MainMenuRequested += OnGameOverMainMenu;
+            _mainMenuPopup = GetNode<MainMenuPopup>("MainMenuPopup");
+            _mainMenuPopup.ContinueRequested += OnMainMenuContinue;
+            _mainMenuPopup.NewRequested += OnMainMenuNew;
+            _mainMenuPopup.QuitRequested += OnMainMenuQuit;
             Input.JoyConnectionChanged += OnJoyConnectionChanged;
             _boot.MarkViewsBound();
         }
@@ -160,7 +169,18 @@ public partial class WorldApp : Node, IGameAutomationTarget
         if (_worldView is not null)
             _worldView.TerrainChanged -= OnTerrainChanged;
         if (_gameOverOverlay is not null)
-            _gameOverOverlay.ContinueRequested -= OnGameOverContinue;
+        {
+            _gameOverOverlay.NewGameRequested -= OnGameOverNewGame;
+            _gameOverOverlay.MainMenuRequested -= OnGameOverMainMenu;
+        }
+
+        if (_mainMenuPopup is not null)
+        {
+            _mainMenuPopup.ContinueRequested -= OnMainMenuContinue;
+            _mainMenuPopup.NewRequested -= OnMainMenuNew;
+            _mainMenuPopup.QuitRequested -= OnMainMenuQuit;
+        }
+
         _navigation?.Dispose();
         _navigation = null;
     }
@@ -239,21 +259,55 @@ public partial class WorldApp : Node, IGameAutomationTarget
         if (!_boot.TryTick())
             return;
 
-        if (!_reconnect.IsWaiting || _reconnectOverlay is null || _playContext is null)
-            return;
-
         if (@event is InputEventKey key && !key.Echo && key.Pressed)
         {
-            if (HandleReconnectInput(GameInput.DeviceFromKeyEvent(key), key.Keycode, null))
+            var device = GameInput.DeviceFromKeyEvent(key);
+            if (HandleModalInput(device, key.Keycode, null))
                 GetViewport().SetInputAsHandled();
             return;
         }
 
         if (@event is InputEventJoypadButton joy && joy.Pressed)
         {
-            if (HandleReconnectInput(GameInput.DeviceFromJoyEvent(joy), null, joy.ButtonIndex))
+            var device = GameInput.DeviceFromJoyEvent(joy);
+            if (HandleModalInput(device, null, joy.ButtonIndex))
                 GetViewport().SetInputAsHandled();
         }
+    }
+
+    private bool HandleModalInput(InputDeviceId device, Key? key, JoyButton? button)
+    {
+        if (_reconnect.IsWaiting && _reconnectOverlay is not null && _playContext is not null)
+            return HandleReconnectInput(device, key, button);
+
+        if (_mainMenuPopup is not null && _mainMenuPopup.OverlayVisible)
+            return _mainMenuPopup.TryHandleOwnerDismiss(device, key, button);
+
+        if (_gameOverShown)
+            return false;
+
+        return TryOpenMainMenu(device, key, button);
+    }
+
+    private bool TryOpenMainMenu(InputDeviceId device, Key? key, JoyButton? button)
+    {
+        if (_mainMenuPopup is null || _playContext is null || _clientSession is null)
+            return false;
+
+        var openFromKey = key is Key k && GameInput.IsMenuOpenKey(k);
+        var openFromButton = button is JoyButton b && GameInput.IsMenuOpenButton(b);
+        if (!openFromKey && !openFromButton)
+            return false;
+
+        if (openFromKey && _clientSession.IsAnyPlacementPreviewing())
+            return false;
+
+        if (_playContext.Roster.FindPlayerIndexForDevice(device) is null)
+            return false;
+
+        _mainMenuPopup.ShowForOwner(device);
+        _gameplayPaused = true;
+        return true;
     }
 
     internal void CheckJoypadConnections()
@@ -364,16 +418,46 @@ public partial class WorldApp : Node, IGameAutomationTarget
         EndReconnectWait();
     }
 
-    private void OnGameOverContinue()
+    private void OnGameOverNewGame()
     {
         if (!_boot.TryTick())
             return;
 
-        if (_playContext is null)
+        ChangeSceneOrThrow(LobbyScenePath);
+    }
+
+    private void OnGameOverMainMenu()
+    {
+        if (!_boot.TryTick())
             return;
 
-        var nextScene = _playContext.EnteredFromLobby ? LobbyScenePath : WorldScenePath;
-        ChangeSceneOrThrow(nextScene);
+        ChangeSceneOrThrow(MainMenuScenePath);
+    }
+
+    private void OnMainMenuContinue()
+    {
+        if (!_boot.TryTick())
+            return;
+
+        _mainMenuPopup?.HideOverlay();
+        if (!_reconnect.IsWaiting && !_gameOverShown)
+            _gameplayPaused = false;
+    }
+
+    private void OnMainMenuNew()
+    {
+        if (!_boot.TryTick())
+            return;
+
+        ChangeSceneOrThrow(LobbyScenePath);
+    }
+
+    private void OnMainMenuQuit()
+    {
+        if (!_boot.TryTick())
+            return;
+
+        GetTree().Quit();
     }
 
     internal void EndReconnectWait()
@@ -395,4 +479,25 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
     public void SimulateJoypadDisconnectForTests(int playerIndex) =>
         BeginReconnectWait(playerIndex);
+
+    public void ForceGameOverForTests()
+    {
+        if (!_boot.TryTick() || _session is null || _gameOverOverlay is null)
+            return;
+
+        foreach (var player in _session.Players)
+        {
+            if (player.Character is { IsAlive: true } character)
+                _session.World.ApplyDamage(character, character.Health);
+        }
+
+        _session.Tick(1f / 60f);
+        if (!_session.IsGameOver)
+            return;
+
+        _gameOverShown = true;
+        _gameplayPaused = true;
+        _mainMenuPopup?.HideOverlay();
+        _gameOverOverlay.ShowOverlay();
+    }
 }

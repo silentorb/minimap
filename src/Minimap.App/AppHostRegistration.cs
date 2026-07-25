@@ -33,5 +33,6 @@ internal static class AppHostRegistration
         WorldHostHooks.TryGetScenarioPathFromArgs = CliArgs.TryGetScenarioPath;
         WorldHostHooks.TryGetScenarioPathFromEnvironment = CliArgs.TryGetScenarioPathFromEnvironment;
         WorldHostHooks.TryGetWorldSeedFromEnvironment = CliArgs.TryGetWorldSeedFromEnvironment;
+        WorldHostHooks.ShouldStartAtLobby = CliArgs.ShouldStartAtLobby;
     }
 }

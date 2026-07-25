@@ -13,7 +13,7 @@ Start from **AGENTS.md** for project defaults. Open files under `docs/` only whe
 
 ## Feature catalogs
 
-Task-scoped guides are listed in the README inside each features folder—do not preload every feature doc for routine work.
+Task-scoped guides are listed in the README inside each features folder—do not preload every feature doc for routine work. Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/`.
 
 - [Game features](game/features/README.md)
 - [Technical features](technical/features/README.md)

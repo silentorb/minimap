@@ -14,4 +14,4 @@ Standalone in-process Godot automation helpers (frame wait, movement keys, scene
 - Game Simulation rules or App composition
 - gRPC server hosting (Client’s `GodotRpcHost` owns that)
 
-Package dependency: **GodotSharp** only. See [testing.md](../../docs/technical/features/testing.md).
+Package dependency: **GodotSharp** only. See [testing.md](../../docs/technical/features/platform/testing.md).

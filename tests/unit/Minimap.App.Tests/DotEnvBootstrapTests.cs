@@ -113,4 +113,54 @@ public class CliArgsEnvironmentTests
             Environment.SetEnvironmentVariable(CliArgs.WorldSeedEnvVar, previous);
         }
     }
+
+    [Fact]
+    public void ShouldStartAtLobby_WhenUnset_ReturnsFalse()
+    {
+        var previous = Environment.GetEnvironmentVariable(CliArgs.StartScreenEnvVar);
+        try
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, null);
+            Assert.False(CliArgs.ShouldStartAtLobby());
+            Assert.Null(CliArgs.TryGetStartScreenFromEnvironment());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, previous);
+        }
+    }
+
+    [Fact]
+    public void ShouldStartAtLobby_WhenLobby_ReturnsTrue()
+    {
+        var previous = Environment.GetEnvironmentVariable(CliArgs.StartScreenEnvVar);
+        try
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, "  lobby  ");
+            Assert.True(CliArgs.ShouldStartAtLobby());
+            Assert.Equal("lobby", CliArgs.TryGetStartScreenFromEnvironment());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, previous);
+        }
+    }
+
+    [Fact]
+    public void ShouldStartAtLobby_WhenOtherOrWrongCase_ReturnsFalse()
+    {
+        var previous = Environment.GetEnvironmentVariable(CliArgs.StartScreenEnvVar);
+        try
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, "Lobby");
+            Assert.False(CliArgs.ShouldStartAtLobby());
+
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, "main");
+            Assert.False(CliArgs.ShouldStartAtLobby());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(CliArgs.StartScreenEnvVar, previous);
+        }
+    }
 }

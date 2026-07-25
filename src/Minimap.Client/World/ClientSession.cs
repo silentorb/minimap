@@ -61,6 +61,17 @@ public sealed class ClientSession
         _players[playerIndex].SetAbilityBackPressed(pressed);
     }
 
+    public bool IsAnyPlacementPreviewing()
+    {
+        foreach (var player in _players)
+        {
+            if (player.IsPlacementPreviewing)
+                return true;
+        }
+
+        return false;
+    }
+
     public void SetInteractPressed(int playerIndex, bool pressed)
     {
         if (playerIndex < 0 || playerIndex >= _players.Count)

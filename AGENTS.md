@@ -4,7 +4,7 @@
 
 - **Minimap** is the higher-level game engine built on **Godot**. **CompuQuest** is the surface game built on Minimap (content extension `CompuQuest.Minimap`).
 - **Engine stack**: Godot **4.6**, Forward Plus renderer; Minimap simulation/client on top; gameplay is **2D** (see [docs/game/game-design.md](docs/game/game-design.md) and [docs/game/features/](docs/game/features/)).
-- **Entry**: `run/main_scene` is `res://scenes/lobby.tscn` for normal play; `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
+- **Entry**: `run/main_scene` is `res://scenes/main_menu.tscn` for normal play; `START_SCREEN=lobby` boots the lobby instead. `res://scenes/world.tscn` remains for direct load (developers, automation). See [project.godot](project.godot).
 - **Name / assembly**: Application id is `minimap`; [project.godot](project.godot) sets `[dotnet]` `project/assembly_name` for C# when used.
 - **C# modules**:
   - **`Minimap.Simulation.Types`** — shared contracts only; see [`src/Minimap.Simulation.Types/AGENTS.md`](src/Minimap.Simulation.Types/AGENTS.md).
@@ -40,8 +40,9 @@ Also at repo root: [project.godot](project.godot), [minimap.csproj](minimap.cspr
 - Prefer changing game logic and scenes in this repo; keep Godot editor–managed files (`*.tscn`, `project.godot`) consistent with how Godot serializes them.
 - Match existing script language and style in the files you touch (GDScript vs C#).
 - **`docs/game/game-design.md` is locked:** Do **not** create, edit, or delete that file unless the **user explicitly instructed** changes to it in the current conversation. Put secondary design detail in [docs/game/features/](docs/game/features/) instead. Reading it is fine; proposing edits without that instruction is not.
-- **Bug regressions:** When fixing a user-reported bug the suite missed, add a regression test at the lowest sound layer—or escalate instead of brittle/flaky coverage. See [`.cursor/rules/bug-regression-tests.mdc`](.cursor/rules/bug-regression-tests.mdc) and [docs/technical/features/testing.md](docs/technical/features/testing.md) (**Bug regressions / debugging**).
-- **Error handling:** Prefer explicit outcomes for expected failures; use exceptions only for truly exceptional cases or documented fail-fast abort boundaries. Non-trivial paths need a deliberate failure strategy. See [`.cursor/rules/error-handling.mdc`](.cursor/rules/error-handling.mdc) and [docs/technical/features/error-handling.md](docs/technical/features/error-handling.md).
+- **Bug regressions:** When fixing a user-reported bug the suite missed, add a regression test at the lowest sound layer—or escalate instead of brittle/flaky coverage. See [`.cursor/rules/bug-regression-tests.mdc`](.cursor/rules/bug-regression-tests.mdc) and [docs/technical/features/platform/testing.md](docs/technical/features/platform/testing.md) (**Bug regressions / debugging**).
+- **Error handling:** Prefer explicit outcomes for expected failures; use exceptions only for truly exceptional cases or documented fail-fast abort boundaries. Non-trivial paths need a deliberate failure strategy. See [`.cursor/rules/error-handling.mdc`](.cursor/rules/error-handling.mdc) and [docs/technical/features/platform/error-handling.md](docs/technical/features/platform/error-handling.md).
+- **Plans:** Every Cursor plan must include a dedicated **Testing** section and a **Commit strategy** (see [`.cursor/rules/plan-commit-workflow.mdc`](.cursor/rules/plan-commit-workflow.mdc)).
 
 ## Environment
 
@@ -61,4 +62,4 @@ Do **not** preload the whole `docs/` tree for routine tasks. Skim the feature RE
 
 - **Game** (features index / player-facing rules): [`docs/game/features/README.md`](docs/game/features/README.md)
 - **Technical** (architecture / contracts): [`docs/technical/features/README.md`](docs/technical/features/README.md)
-- Automated testing (unit vs functional, xUnit, gRPC-based Godot automation, `dotnet test`, in-container `GODOT_BIN` for client smoke, bug regressions): [`docs/technical/features/testing.md`](docs/technical/features/testing.md), layout: [`tests/functional/README.md`](tests/functional/README.md).
+- Automated testing (unit vs functional, xUnit, gRPC-based Godot automation, `dotnet test`, in-container `GODOT_BIN` for client smoke, bug regressions): [`docs/technical/features/platform/testing.md`](docs/technical/features/platform/testing.md), layout: [`tests/functional/README.md`](tests/functional/README.md).

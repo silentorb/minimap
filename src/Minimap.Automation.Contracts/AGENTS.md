@@ -15,4 +15,4 @@ Protobuf/gRPC wire protocol and playbook interfaces for Godot functional automat
 - Playbook implementations or xUnit test projects (under `tests/`)
 - Game Simulation or Client presentation logic
 
-See [testing.md](../../docs/technical/features/testing.md).
+See [testing.md](../../docs/technical/features/platform/testing.md).

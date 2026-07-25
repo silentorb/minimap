@@ -1,7 +1,7 @@
 namespace Minimap.Simulation;
 
 /// <summary>
-/// Playable hex map. Default shape is a screen-space rectangle (see docs/technical/features/hex-grid-shape.md).
+/// Playable hex map. Default shape is a screen-space rectangle (see docs/technical/features/session/hex-grid-shape.md).
 /// </summary>
 public sealed class HexGrid
 {

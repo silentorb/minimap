@@ -19,4 +19,4 @@ Host-side settings and extension **file I/O**, plus ModuleInitializer hooks so C
 - Deep gameplay rules (belong in Simulation)
 - Concrete extension content / sealed accessory effects (belong in content extensions)
 
-Simulation has **no I/O**. Client may do light device/engine I/O but must not load shipped settings/extension files—**App owns that file I/O**. See [extensions.md](../../docs/technical/features/extensions.md), [core-settings.md](../../docs/technical/features/core-settings.md).
+Simulation has **no I/O**. Client may do light device/engine I/O but must not load shipped settings/extension files—**App owns that file I/O**. See [extensions.md](../../docs/technical/features/platform/extensions.md), [core-settings.md](../../docs/technical/features/platform/core-settings.md).

@@ -1,11 +1,21 @@
 ---
-description: Include per-repo commit strategy in every Cursor plan; defer commits until user explicitly requests
+description: Include Testing and Commit strategy sections in every Cursor plan; defer commits until user explicitly requests
 alwaysApply: true
 ---
 
 # Plan commit workflow
 
-When creating or updating a plan, include a **Commit strategy** section and a final **commit-await-approval** todo. Do not auto-commit when implementation finishes.
+When creating or updating a plan, include a dedicated **Testing** section, a **Commit strategy** section, and a final **commit-await-approval** todo. Do not auto-commit when implementation finishes.
+
+## Testing section (required)
+
+Every plan must include at least one dedicated `## Testing` section (same class of requirement as Commit strategy). Cover:
+
+- What will be tested and at which layer (unit / simulation functional / Godot playbook) as applicable
+- What is out of scope for automated tests
+- A short fallout / regression run note after implementation
+
+Doc-only or pure-config plans still need a short Testing section (e.g. “no automated tests; manual check …” or “link updates only”).
 
 ## Workspace git layout
 

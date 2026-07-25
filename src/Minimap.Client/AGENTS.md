@@ -6,12 +6,12 @@ Godot-facing presentation and local play: rendering, device input, HUD, world/lo
 
 ## What may live here
 
-- Godot nodes/scripts for world visuals, world scene root (`WorldApp`), lobby scene root (`LobbyApp`), lobby panels, HUD (`PlayerHud*`)
-- Lobby / world boot sequencing (`LobbySceneBoot`, `WorldSceneBoot`) and pure lobby state (`LobbyStateMachine`)
+- Godot nodes/scripts for world visuals, world scene root (`WorldApp`), lobby scene root (`LobbyApp`), main menu (`MainMenuApp` / `MainMenuPopup`), lobby panels, HUD (`PlayerHud*`)
+- Lobby / world boot sequencing (`LobbySceneBoot`, `WorldSceneBoot`) and pure lobby / main-menu state (`LobbyStateMachine`, `MainMenuModel`, `MainMenuOwnership`)
 - Local session adapter (`ClientSession`): attach `PlayerController`s, feed input, map HUD models over Simulation `GameSession`
 - Input capture helpers (`LocalInputAggregator`, device binding UI)
 - Godot navigation host upgrade for AI (via **Minimap.Simulation.Navigation**)
-- Automation RPC host (`GodotRpcHost`) implementing contracts from **Minimap.Automation.Contracts** (see [testing.md](../../docs/technical/features/testing.md))
+- Automation RPC host (`GodotRpcHost`) implementing contracts from **Minimap.Automation.Contracts** (see [testing.md](../../docs/technical/features/platform/testing.md))
 - `ExtensionPreflight` / `WorldHostHooks` (Client invokes; App registers the real loaders)
 
 ## What must not live here

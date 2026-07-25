@@ -11,7 +11,7 @@ public static class CombatTuning
     public const float MoveSpeed = 120f;
 }
 
-/// <summary>Generic faction hostility (docs/game/features/factions.md).</summary>
+/// <summary>Generic faction hostility (docs/game/features/gameplay/factions.md).</summary>
 public static class FactionRules
 {
     public static bool AreHostile(int factionA, int factionB) => factionA != factionB;

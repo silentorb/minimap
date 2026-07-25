@@ -2,7 +2,7 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller (docs/game/features/combat.md).</summary>
+/// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller (docs/game/features/gameplay/combat.md).</summary>
 public static class Shoot
 {
     public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters)

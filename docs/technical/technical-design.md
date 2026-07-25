@@ -6,8 +6,8 @@
 - C# is the primary programming language
 - Mostly developed by AI agents
 - Heavily requirements-driven, documented under the `./docs` directory. **`./docs` is the source of truth for functionality**: CompuQuest vision/pillars in `docs/game/game-design.md` (agents must not edit that file without explicit user instruction); secondary game rules under `docs/game/features/`; architecture and contracts under `docs/technical/`. Code and tests implement those documents. When behavior changes, update the docs in the same change (or first). If code and docs disagree, docs win and code is fixed.
-- Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks. User-reported gaps that the suite missed get a regression test when a sound one exists at the lowest practical layer; otherwise escalate rather than adding brittle or flaky coverage (see [features/testing.md](features/testing.md) **Bug regressions / debugging**).
-- Prefer **explicit error outcomes** for expected failures; use **exceptions** only for truly exceptional cases or documented fail-fast abort boundaries (see [features/error-handling.md](features/error-handling.md)).
+- Heavily test-driven, using both unit tests and functional tests. Tests verify **documented** requirements (values and rules stated in feature docs), not undocumented code quirks. User-reported gaps that the suite missed get a regression test when a sound one exists at the lowest practical layer; otherwise escalate rather than adding brittle or flaky coverage (see [features/platform/testing.md](features/platform/testing.md) **Bug regressions / debugging**).
+- Prefer **explicit error outcomes** for expected failures; use **exceptions** only for truly exceptional cases or documented fail-fast abort boundaries (see [features/platform/error-handling.md](features/platform/error-handling.md)).
 - No global state, except where needed for integration with Godot and third-party libraries
 - Clean separation between visual game state and simulation game state
 - **C# project boundaries** (details in each project’s `AGENTS.md`):
@@ -30,7 +30,7 @@ It is not an exhaustive list of all the directories in this project.
 | `./assets` | All game assets (images, sound effects, etc.) |
 | `./config` | Shipped host JSON settings (e.g. `core.json`, `extensions.json`, scenarios) |
 | `./entities` | All scenes for game elements within a root scene |
-| `./extensions` | Built extension DLLs and copied per-extension content dirs for local load (see [extensions](features/extensions.md)) |
+| `./extensions` | Built extension DLLs and copied per-extension content dirs for local load (see [extensions](features/platform/extensions.md)) |
 | `./scenes` | All root scenes |
 | `./src` | Source code (`Minimap.Simulation.Types`, `Minimap.Simulation`, `Minimap.Simulation.Navigation`, `Minimap.Extensive`, `Minimap.Client`, `Minimap.App`, `CompuQuest.Minimap`, …) |
 | `./tests` | Test suite |

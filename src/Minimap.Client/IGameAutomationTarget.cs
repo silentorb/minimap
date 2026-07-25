@@ -7,7 +7,11 @@ public interface IGameAutomationTarget
 
     bool GameplayPaused { get; }
 
+    bool MainMenuPopupVisible { get; }
+
     ReconnectOverlay? ReconnectOverlay { get; }
 
     void SimulateJoypadDisconnectForTests(int playerIndex);
+
+    void ForceGameOverForTests();
 }

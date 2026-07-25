@@ -19,4 +19,4 @@ For any code path longer than a line or two, choose a deliberate failure strateg
 - Prefer a single catch/abort boundary for boot/load paths that must exit (lobby pattern), not scattered uncaught throws.
 - Match layer norms in the feature doc; do not invent a shared `Result<T>` library unless design explicitly adds one.
 
-Full detail: [docs/technical/features/error-handling.md](docs/technical/features/error-handling.md).
+Full detail: [docs/technical/features/platform/error-handling.md](docs/technical/features/platform/error-handling.md).

@@ -18,6 +18,10 @@ public static class GameInput
 
     public static bool IsBackButton(JoyButton button) => button is JoyButton.B;
 
+    public static bool IsMenuOpenKey(Key key) => key is Key.Escape;
+
+    public static bool IsMenuOpenButton(JoyButton button) => button is JoyButton.Start;
+
     public static InputDeviceId DeviceFromKeyEvent(InputEventKey key) => InputDeviceId.Keyboard;
 
     public static InputDeviceId DeviceFromJoyEvent(InputEventJoypadButton joy) =>

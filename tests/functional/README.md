@@ -38,4 +38,4 @@ dotnet test tests/unit/Minimap.Simulation.Tests/Minimap.Simulation.Tests.csproj
 dotnet test tests/functional/Minimap.Functional.Tests/Minimap.Functional.Tests.csproj
 ```
 
-See [docs/technical/features/testing.md](../../docs/technical/features/testing.md) for the full testing overview.
+See [docs/technical/features/platform/testing.md](../../docs/technical/features/platform/testing.md) for the full testing overview.

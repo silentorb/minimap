@@ -2,7 +2,7 @@ using Minimap.Automation.Contracts;
 
 namespace Minimap.Functional.Godot.Playbooks;
 
-/// <summary>Default main scene shows lobby with four Available panels.</summary>
+/// <summary>Lobby scene shows four Available panels.</summary>
 public sealed class LobbyBootstrapPlaybook : IPlaybook
 {
     public string Id => "LobbyBootstrap";
