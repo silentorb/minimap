@@ -67,6 +67,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _playContext.ScenarioPath = scenarioPath;
             var scenario = WorldHostHooks.RequireScenario(
                 ProjectSettings.GlobalizePath(scenarioPath));
+            var worldSeed = ResolveWorldSeed();
             _boot.MarkSettingsLoaded();
 
             var spawn = new SpawnConfig
@@ -84,7 +85,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _session = GameSession.Create(
                 mapRadius.X,
                 mapRadius.Y,
-                WorldSeed,
+                worldSeed,
                 HexSize,
                 spawn,
                 scenario,
@@ -134,11 +135,18 @@ public partial class WorldApp : Node, IGameAutomationTarget
         if (!string.IsNullOrWhiteSpace(cliPath))
             return cliPath;
 
+        var envPath = WorldHostHooks.TryResolveScenarioPathFromEnvironment();
+        if (!string.IsNullOrWhiteSpace(envPath))
+            return envPath;
+
         if (!string.IsNullOrWhiteSpace(_playContext?.ScenarioPath))
             return _playContext.ScenarioPath;
 
         return DefaultScenarioPath;
     }
+
+    private int ResolveWorldSeed() =>
+        WorldHostHooks.TryResolveWorldSeedFromEnvironment() ?? WorldSeed;
 
     private void OnJoyConnectionChanged(long device, bool connected)
     {

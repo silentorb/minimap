@@ -41,6 +41,7 @@ See also [tests/functional/README.md](../../../tests/functional/README.md).
    - `MINIMAP_AUTOMATION_ENABLED=1`
    - `MINIMAP_AUTOMATION_HOST`
    - `MINIMAP_AUTOMATION_PORT`
+   - `MINIMAP_DOTENV_DISABLED=1` (dotenv must never load in the SUT; see [dotenv.md](dotenv.md))
 2. Autoload `GodotRpcHost` starts gRPC server inside Godot.
 3. Fixture calls `LoadPlaybookLibrary` with the path to a playbook DLL (multiple libraries supported; ids are `AssemblyName.PlaybookId`).
 4. Each test calls `RunPlaybook` — assertions and scene/input orchestration run **inside** Godot in the playbook.
@@ -109,4 +110,5 @@ Agent rule: [`.cursor/rules/bug-regression-tests.mdc`](../../../.cursor/rules/bu
 | Topic | Document |
 |-------|----------|
 | Simulation vs client boundaries, `./tests` in tree | [Technical design](../technical-design.md) |
+| Manual-play `.env` (disabled in all tests) | [Dotenv](dotenv.md) |
 | Gameplay vision (not test mechanics) | [Game design](../../game/game-design.md) |

@@ -9,7 +9,7 @@ Host-side settings and extension **file I/O**, plus ModuleInitializer hooks so C
 - Settings/config load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionConfig`, `ExtensionsSettings`)
 - Extension loading (`ExtensionLoader`, `ExtensionPathResolver`) and registering Client hooks (`AppHostRegistration` → `ExtensionPreflight`, `WorldHostHooks`)
 - Extension content deploy helper (`ExtensionContentMirror` — wipe+copy JSON trees for gitignored `extensions/*/`)
-- CLI bootstrap parsing (`CliArgs`)
+- CLI / env bootstrap parsing (`CliArgs`) and optional dotenv (`DotEnvBootstrap` — manual play only; never in tests)
 
 ## What must not live here
 

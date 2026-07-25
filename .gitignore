@@ -22,3 +22,6 @@
 
 # Temporary mounts
 .mnt/
+
+# Local dotenv (manual play overrides; see .env.example)
+.env

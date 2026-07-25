@@ -1,9 +1,11 @@
 namespace Minimap.App;
 
-/// <summary>Parses Godot command-line arguments for bootstrap overrides.</summary>
+/// <summary>Parses Godot command-line arguments and process env for bootstrap overrides.</summary>
 public static class CliArgs
 {
     public const string DefaultScenarioPath = "res://config/scenarios/default.json";
+    public const string ScenarioEnvVar = "MINIMAP_SCENARIO";
+    public const string WorldSeedEnvVar = "MINIMAP_WORLD_SEED";
 
     public static string? TryGetScenarioPath(IReadOnlyList<string> args)
     {
@@ -20,5 +22,22 @@ public static class CliArgs
         }
 
         return null;
+    }
+
+    /// <summary>Optional scenario resource/filesystem path from <see cref="ScenarioEnvVar"/>.</summary>
+    public static string? TryGetScenarioPathFromEnvironment()
+    {
+        var value = Environment.GetEnvironmentVariable(ScenarioEnvVar);
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>Optional world seed from <see cref="WorldSeedEnvVar"/> when parseable as int.</summary>
+    public static int? TryGetWorldSeedFromEnvironment()
+    {
+        var value = Environment.GetEnvironmentVariable(WorldSeedEnvVar);
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return int.TryParse(value.Trim(), out var seed) ? seed : null;
     }
 }

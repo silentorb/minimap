@@ -12,6 +12,8 @@ internal static class AppHostRegistration
     [SuppressMessage("Performance", "CA2255:The 'ModuleInitializer' attribute should not be used in libraries", Justification = "Registers Client host hooks before lobby/world scene roots run; App is host composition.")]
     internal static void RegisterClientHooks()
     {
+        DotEnvBootstrap.TryApply();
+
         ExtensionPreflight.LoadFromAbsolutePath = path => ExtensionLoader.LoadFromFile(path);
         WorldHostHooks.LoadCoreMapRadiusFromAbsolutePath = path =>
             CoreSettings.LoadFromFile(path).Map.Radius;
@@ -29,5 +31,7 @@ internal static class AppHostRegistration
                 loaded.Registry.DomainDefinitions);
         };
         WorldHostHooks.TryGetScenarioPathFromArgs = CliArgs.TryGetScenarioPath;
+        WorldHostHooks.TryGetScenarioPathFromEnvironment = CliArgs.TryGetScenarioPathFromEnvironment;
+        WorldHostHooks.TryGetWorldSeedFromEnvironment = CliArgs.TryGetWorldSeedFromEnvironment;
     }
 }

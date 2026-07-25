@@ -31,6 +31,12 @@ public static class WorldHostHooks
     /// <summary>Godot cmdline args → optional scenario resource path override.</summary>
     public static Func<IReadOnlyList<string>, string?>? TryGetScenarioPathFromArgs { get; set; }
 
+    /// <summary>Process environment → optional scenario resource path override.</summary>
+    public static Func<string?>? TryGetScenarioPathFromEnvironment { get; set; }
+
+    /// <summary>Process environment → optional world seed override.</summary>
+    public static Func<int?>? TryGetWorldSeedFromEnvironment { get; set; }
+
     public static SimVec2I RequireCoreMapRadius(string absolutePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
@@ -81,6 +87,12 @@ public static class WorldHostHooks
         ArgumentNullException.ThrowIfNull(args);
         return TryGetScenarioPathFromArgs?.Invoke(args);
     }
+
+    public static string? TryResolveScenarioPathFromEnvironment() =>
+        TryGetScenarioPathFromEnvironment?.Invoke();
+
+    public static int? TryResolveWorldSeedFromEnvironment() =>
+        TryGetWorldSeedFromEnvironment?.Invoke();
 }
 
 /// <summary>Client-facing snapshot of a successful extension load.</summary>

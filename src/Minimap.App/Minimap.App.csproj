@@ -13,6 +13,7 @@
     <CompilerVisibleProperty Include="GodotProjectDir" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="GodotSharp" Version="4.6.1" />
     <PackageReference Include="Godot.SourceGenerators" Version="4.6.1">
       <PrivateAssets>all</PrivateAssets>

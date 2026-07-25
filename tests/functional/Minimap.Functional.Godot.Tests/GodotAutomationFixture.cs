@@ -52,6 +52,8 @@ public sealed class GodotAutomationFixture : IAsyncLifetime
         startInfo.Environment["MINIMAP_AUTOMATION_ENABLED"] = "1";
         startInfo.Environment["MINIMAP_AUTOMATION_HOST"] = "127.0.0.1";
         startInfo.Environment["MINIMAP_AUTOMATION_PORT"] = _port.ToString();
+        // Belt-and-suspenders: never load repo-root .env in the Godot SUT.
+        startInfo.Environment["MINIMAP_DOTENV_DISABLED"] = "1";
 
         _godotProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Failed to start GODOT_BIN process.");
