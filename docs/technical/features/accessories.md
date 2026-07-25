@@ -15,4 +15,4 @@ Accessory definitions, instances, and actor effect cache. Implements [../../game
 - **`IIntegrator.GetPlayerSelectableAccessories`** returns accessories that carry the content tag `player_selectable` (CompuQuest policy).
 - **`Actor.AddAccessory` / `RemoveAccessory`**: append or drop; sync effect refs; invoke `IOnAccessoryAcquired`; rebuild `AbilityLoadout` on characters (also rebuild when enable state flips).
 - Simulation systems read flat effects / loadout; shoot/place/interact/instant-use gate and consume via **`IEffectUseCost`** on the activating effect. Passive effects tick via **`IPassiveEffect`**.
-- Shipped CompuQuest accessories under **`src/CompuQuest.Minimap/config/accessories/`**: `gun`, `farm`, `geek`, `energy_upkeep`, `eat`, plus passive `grow_*` on vegetable actors. See [hunger.md](hunger.md).
+- Shipped CompuQuest accessories under **`src/CompuQuest.Minimap/config/accessories/`**: `gun`, `farm`, `geek` (place + `use_computer` interact), `energy_upkeep`, `eat`, plus passive `grow_*` on vegetable actors. See [hunger.md](hunger.md).

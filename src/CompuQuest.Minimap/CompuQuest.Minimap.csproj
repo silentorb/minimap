@@ -6,6 +6,9 @@
     <RootNamespace>CompuQuest.Minimap</RootNamespace>
     <AssemblyName>CompuQuest.Minimap</AssemblyName>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <_RepoExtensionsDir>$(MSBuildThisFileDirectory)..\..\extensions</_RepoExtensionsDir>
+    <_ExtensionContentDir>$(_RepoExtensionsDir)\$(AssemblyName)</_ExtensionContentDir>
+    <_ExtensionContentStamp>$(_ExtensionContentDir)\.content.stamp</_ExtensionContentStamp>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Minimap.Extensive/Minimap.Extensive.csproj">
@@ -17,22 +20,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="config\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <_ExtensionConfigFiles Include="$(MSBuildThisFileDirectory)config\**\*.json" />
   </ItemGroup>
-  <Target Name="CopyExtensionToRepoExtensions" AfterTargets="Build">
-    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\extensions" />
-    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\extensions\$(AssemblyName)" />
+  <!--
+    Mirror (wipe + copy) gitignored extensions/$(AssemblyName)/ so pull survivors
+    (e.g. retired plant_vegetable.json on a Windows clone) cannot linger beside new content.
+    Inputs/Outputs ensure JSON add/remove/rename re-runs the target even when C# is up-to-date.
+  -->
+  <Target Name="CopyExtensionToRepoExtensions"
+          AfterTargets="Build"
+          Inputs="$(TargetPath);@(_ExtensionConfigFiles)"
+          Outputs="$(MSBuildThisFileDirectory)..\..\extensions\$(AssemblyName).dll;$(_ExtensionContentStamp)">
+    <MakeDir Directories="$(_RepoExtensionsDir)" />
     <Copy SourceFiles="$(TargetPath)"
-          DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
+          DestinationFolder="$(_RepoExtensionsDir)"
           SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
-          DestinationFolder="$(MSBuildThisFileDirectory)..\..\extensions"
+          DestinationFolder="$(_RepoExtensionsDir)"
           SkipUnchangedFiles="true"
           Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-    <ItemGroup>
-      <_ExtensionConfigFiles Include="$(MSBuildThisFileDirectory)config\**\*.json" />
-    </ItemGroup>
+    <RemoveDir Directories="$(_ExtensionContentDir)" Condition="Exists('$(_ExtensionContentDir)')" />
+    <MakeDir Directories="$(_ExtensionContentDir)" />
     <Copy SourceFiles="@(_ExtensionConfigFiles)"
-          DestinationFiles="@(_ExtensionConfigFiles->'$(MSBuildThisFileDirectory)..\..\extensions\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true" />
+          DestinationFiles="@(_ExtensionConfigFiles->'$(_ExtensionContentDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <WriteLinesToFile File="$(_ExtensionContentStamp)"
+                      Lines="$([System.DateTime]::UtcNow.ToString('o'))"
+                      Overwrite="true" />
   </Target>
 </Project>

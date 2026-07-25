@@ -20,6 +20,9 @@ public class DefinitionConfigTests
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
+            UseComputerEffectFactory.TypeId,
+            UseComputerEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
             DrainResourceEffectFactory.TypeId,
             DrainResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
@@ -190,6 +193,15 @@ public class DefinitionConfigTests
 
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
+        Assert.Contains(geek.EffectTemplates, e => e is PlaceRandomActorEffect);
+        Assert.Contains(geek.EffectTemplates, e => e is UseComputerEffect);
+
+        var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
+        Assert.Equal(
+            new HashSet<string>(StringComparer.Ordinal) { "gun", "farm", "geek" },
+            selectable.Select(a => a.Id).ToHashSet(StringComparer.Ordinal));
+        Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
+        Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "use_computer");
 
         var eat = registry.AccessoryDefinitions.Single(a => a.Id == "eat");
         Assert.Equal(AccessoryActivationKind.Modal, eat.Activation.Kind);

@@ -7,7 +7,7 @@ Player characters interacting with actors in the map. Related: [actors.md](actor
 - Players interact with certain actors by **facing** them and being in **close proximity** (the map cell in front of the player).
 - Whether a target is valid depends on **interaction effects** on the player’s **currently selected** ability (modal accessory). Effects expose whether an actor is a valid target.
 - When a valid interact target exists, that actor is **highlighted** so the player knows interact is available.
-- Interact invoke: gamepad **`JoyButton.A`** / keyboard **E**. The selected ability’s interaction effects perform the action (e.g. Farm harvest).
+- Interact invoke: gamepad **`JoyButton.A`** / keyboard **E**. The selected ability’s interaction effects perform the action (e.g. Farm harvest, Geek use computer).
 - Modal activate (`X` / Space) remains separate and is not used for environment interact.
 
 ## Non-goals (for now)
