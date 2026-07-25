@@ -26,8 +26,8 @@ Specialization lives in externally built playbook DLLs under `tests/`; the proce
 
 | Area | Typical location | References | Purpose |
 |------|------------------|------------|---------|
-| **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`, `Minimap.App.Tests`) | Simulation-only or App (settings load) | Grid math, generators, evolution rules, `GameWorld` APIs, core settings JSON—no Godot runtime dependency. |
-| **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, combat, evolution loops). CI-friendly with `dotnet test` only. |
+| **Unit** | `tests/unit/` (`Minimap.Simulation.Tests`, `Minimap.App.Tests`) | Simulation-only or App (settings load) | Grid math, generators, `GameWorld` APIs, core settings JSON—no Godot runtime dependency. |
+| **Functional (simulation)** | `tests/functional/Minimap.Functional.Tests` | `Minimap.Simulation` only | Broader simulation journeys (seeded world, movement, combat). CI-friendly with `dotnet test` only. |
 | **Functional (Godot playbooks)** | `tests/functional/Minimap.Functional.Godot.Playbooks` | Contracts + `Minimap.Automation` | One or more `IPlaybook` types per library; loaded into Godot after start. |
 | **Functional (Godot client)** | `tests/functional/Minimap.Functional.Godot.Tests` | Contracts (gRPC client) | xUnit tests that launch Godot, `LoadPlaybookLibrary`, and `RunPlaybook`. |
 | **Automation helpers** | `src/Minimap.Automation` | GodotSharp only | Standalone in-process helpers (frame wait, movement keys, scene lookup). No Contracts/playbook/test references. |

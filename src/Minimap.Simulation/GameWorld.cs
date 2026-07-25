@@ -64,8 +64,6 @@ public sealed class GameWorld
     public float MoveSpeed { get; set; }
     public float PlayerRadius { get; set; }
     public float MissileRadius { get; set; }
-    public int TickIndex { get; private set; }
-
     public IReadOnlyList<Character> Characters => _characters;
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<IController> Controllers => _controllers;
@@ -80,8 +78,6 @@ public sealed class GameWorld
 
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
-
-    public void AdvanceTick() => TickIndex++;
 
     public void SetSpawnCharacterDefinition(CharacterDefinition definition)
     {
@@ -570,7 +566,7 @@ public sealed class GameWorld
         }
     }
 
-    /// <summary>Rebuild solid hex colliders from current terrain (call after evolution).</summary>
+    /// <summary>Rebuild solid hex colliders from current terrain.</summary>
     public void RebuildWallColliders()
     {
         _wallPolygons.Clear();

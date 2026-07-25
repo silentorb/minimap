@@ -96,7 +96,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
             _worldView = GetNode<WorldView>("WorldView");
             _worldView.HexSize = HexSize;
-            _worldView.Bind(_session.World, _session.Rng, _session.HumanPawns);
+            _worldView.Bind(_session.World, _session.HumanPawns);
             _worldView.TerrainChanged += OnTerrainChanged;
 
             _navigation = GodotNavigationHost.Create(

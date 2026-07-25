@@ -57,32 +57,6 @@ public class GameplaySimulationFunctionalTests
     }
 
     [Fact]
-    public void Evolution_loop_maintains_tick_count_and_valid_terrain()
-    {
-        var w = GameWorld.Create(3, 3, 100);
-        w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(Generic);
-        w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
-        var rng = new Random(999);
-        const int n = 30;
-        for (var i = 0; i < n; i++)
-            WorldEvolution.Tick(w, rng);
-
-        Assert.Equal(n, w.TickIndex);
-        foreach (var h in w.Grid.AllHexes())
-        {
-            var t = w.Grid.Get(h);
-            Assert.True(t == CellType.Grass || t == CellType.Wall);
-        }
-
-        foreach (var p in w.Characters)
-        {
-            var hex = HexWorldLayout.WorldToAxial(p.Position, w.HexSize);
-            Assert.True(w.Grid.Contains(hex));
-        }
-    }
-
-    [Fact]
     public void Zero_health_quietly_removes_character()
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());

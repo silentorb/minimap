@@ -14,7 +14,6 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     [Export] public float HexSize { get; set; } = HexLayout.DefaultHexSize;
 
     private GameWorld? _world;
-    private Random _rng = new(1);
     private Node2D? _hexLayer;
     private Node2D? _spawnerLayer;
     private Node2D? _placedLayer;
@@ -35,13 +34,12 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private HexAxial? _previewCell;
     private bool _previewValid;
 
-    /// <summary>Raised after terrain visuals sync (evolution or level regen).</summary>
+    /// <summary>Raised after terrain visuals sync (e.g. level regen).</summary>
     public event Action? TerrainChanged;
 
-    public void Bind(GameWorld world, Random rng, IReadOnlyList<Character> humanPawns)
+    public void Bind(GameWorld world, IReadOnlyList<Character> humanPawns)
     {
         _world = world;
-        _rng = rng;
         _humanPawns.Clear();
         _humanPawns.AddRange(humanPawns);
 
@@ -78,9 +76,6 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         _hexScene = GD.Load<PackedScene>("res://entities/hex_cell.tscn");
         _spawnerScene = GD.Load<PackedScene>("res://entities/wave_spawner_visual.tscn");
         _playerScene = GD.Load<PackedScene>("res://entities/player_visual.tscn");
-        var timer = GetNodeOrNull<Godot.Timer>("EvolutionTimer");
-        if (timer is not null)
-            timer.Timeout += OnEvolutionTick;
 
         SyncAll();
         RecenterCamera();
@@ -130,16 +125,6 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         if (dir.LengthSquared < 1e-6f)
             return SimVec2.Zero;
         return dir.Normalized();
-    }
-
-    private void OnEvolutionTick()
-    {
-        if (_world is null)
-            return;
-        WorldEvolution.Tick(_world, _rng);
-        SyncHexes();
-        SyncCharacters();
-        TerrainChanged?.Invoke();
     }
 
     private void SyncAll()
