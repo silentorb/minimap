@@ -12,16 +12,31 @@ public sealed class ClientSession
     private readonly GameSession _session;
     private readonly IReadOnlyList<DomainDefinition> _domains;
     private readonly List<PlayerController> _players = new();
+    private readonly List<string?> _displayNames = new();
+    private readonly List<Guid?> _profileIds = new();
 
     public ClientSession(
         GameSession session,
-        IReadOnlyList<DomainDefinition>? domains = null)
+        IReadOnlyList<DomainDefinition>? domains = null,
+        IReadOnlyList<string?>? displayNames = null,
+        IReadOnlyList<Guid?>? profileIds = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
         _domains = domains ?? Array.Empty<DomainDefinition>();
+        for (var i = 0; i < session.Players.Count; i++)
+        {
+            _displayNames.Add(
+                displayNames is not null && i < displayNames.Count ? displayNames[i] : null);
+            _profileIds.Add(
+                profileIds is not null && i < profileIds.Count ? profileIds[i] : null);
+        }
+
         AttachHumanPlayers();
     }
+
+    public Guid? GetProfileId(int playerIndex) =>
+        playerIndex >= 0 && playerIndex < _profileIds.Count ? _profileIds[playerIndex] : null;
 
     public GameSession Simulation => _session;
     public IReadOnlyList<PlayerController> Players => _players;
@@ -101,9 +116,12 @@ public sealed class ClientSession
         for (var i = 0; i < _players.Count; i++)
         {
             var pawn = _players[i].Pawn;
+            var displayName = !string.IsNullOrWhiteSpace(_displayNames[i])
+                ? _displayNames[i]!
+                : $"Player {i + 1}";
             models.Add(new PlayerHudModel
             {
-                DisplayName = $"Player {i + 1}",
+                DisplayName = displayName,
                 Resources = BuildResourceModels(pawn, _session.Content),
                 SelectedAbility = BuildSelectedAbilityModel(pawn, _domains),
             });
@@ -121,7 +139,14 @@ public sealed class ClientSession
         var controller = _players[playerIndex];
         controller.Unpossess();
         _players.RemoveAt(playerIndex);
-        return _session.DropHumanPlayer(playerIndex);
+        if (!_session.DropHumanPlayer(playerIndex))
+            return false;
+
+        if (playerIndex < _displayNames.Count)
+            _displayNames.RemoveAt(playerIndex);
+        if (playerIndex < _profileIds.Count)
+            _profileIds.RemoveAt(playerIndex);
+        return true;
     }
 
     private static IReadOnlyList<PlayerHudResourceModel> BuildResourceModels(

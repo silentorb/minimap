@@ -1,17 +1,21 @@
 using Godot;
+using Minimap.Client.Profiles;
 using Minimap.Simulation.Types;
 
 namespace Minimap.Client.Lobby;
 
-/// <summary>One of four lobby player panels with optional accessory selection.</summary>
+/// <summary>One of four lobby player panels with profile carousel and accessory selection.</summary>
 public partial class LobbyPanel : PanelContainer
 {
     private Label? _title;
     private Label? _status;
     private Control? _customizeArea;
     private AccessorySelectionPanel? _accessoryPanel;
+    private ProfileSelectionPanel? _profilePanel;
 
     public AccessorySelectionPanel? AccessoryPanel => _accessoryPanel;
+
+    public ProfileSelectionPanel? ProfilePanel => _profilePanel;
 
     public override void _Ready()
     {
@@ -30,6 +34,19 @@ public partial class LobbyPanel : PanelContainer
         _accessoryPanel.OffsetRight = 0;
         _accessoryPanel.OffsetBottom = 0;
         _customizeArea!.AddChild(_accessoryPanel);
+
+        _profilePanel = new ProfileSelectionPanel
+        {
+            Name = "ProfileSelection",
+            Visible = false,
+        };
+        _profilePanel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _profilePanel.OffsetLeft = 0;
+        _profilePanel.OffsetTop = 0;
+        _profilePanel.OffsetRight = 0;
+        _profilePanel.OffsetBottom = 0;
+        _customizeArea.AddChild(_profilePanel);
+
         _customizeArea.Resized += OnCustomizeAreaResized;
 
         ApplyMode(LobbySlotMode.Available, 0);
@@ -42,16 +59,18 @@ public partial class LobbyPanel : PanelContainer
         base._ExitTree();
     }
 
-    public void ApplyMode(LobbySlotMode mode, int slotIndex)
+    public void ApplyMode(LobbySlotMode mode, int slotIndex, string? profileDisplayName = null)
     {
         if (_title is null || _status is null)
             return;
 
-        _title.Text = $"Player {slotIndex + 1}";
+        _title.Text = string.IsNullOrWhiteSpace(profileDisplayName)
+            ? $"Player {slotIndex + 1}"
+            : profileDisplayName;
         _status.Text = mode switch
         {
             LobbySlotMode.Available => "Available",
-            LobbySlotMode.Claimed => "Joined",
+            LobbySlotMode.SelectingProfile or LobbySlotMode.SelectingAccessories => "Joined",
             LobbySlotMode.Ready => "Ready",
             _ => "Available",
         };
@@ -59,7 +78,8 @@ public partial class LobbyPanel : PanelContainer
         var baseColor = mode switch
         {
             LobbySlotMode.Available => new Color(0.15f, 0.16f, 0.2f),
-            LobbySlotMode.Claimed => new Color(0.18f, 0.28f, 0.38f),
+            LobbySlotMode.SelectingProfile or LobbySlotMode.SelectingAccessories =>
+                new Color(0.18f, 0.28f, 0.38f),
             LobbySlotMode.Ready => new Color(0.15f, 0.32f, 0.22f),
             _ => new Color(0.15f, 0.16f, 0.2f),
         };
@@ -82,6 +102,26 @@ public partial class LobbyPanel : PanelContainer
         });
     }
 
+    public void ShowProfileSelection(IReadOnlyList<PlayerProfileRecord> available, LobbyProfileSelectionState state)
+    {
+        if (_profilePanel is null)
+            return;
+        HideAccessorySelection();
+        state.SyncCarouselIndex(available);
+        if (available.Count == 0)
+        {
+            _profilePanel.ShowEmpty();
+            return;
+        }
+
+        _profilePanel.ShowProfile(available[state.CarouselIndex], state.CarouselIndex, available.Count);
+    }
+
+    public void HideProfileSelection()
+    {
+        _profilePanel?.HideSelection();
+    }
+
     public void ShowAccessorySelection(
         IReadOnlyList<AccessoryDefinition> catalog,
         LobbyAccessorySelectionState state,
@@ -90,6 +130,7 @@ public partial class LobbyPanel : PanelContainer
     {
         if (_accessoryPanel is null || _customizeArea is null)
             return;
+        HideProfileSelection();
         _accessoryPanel.Configure(catalog, state, interactive, domains);
         _accessoryPanel.Visible = interactive;
         CallDeferred(nameof(RelayoutAccessorySelection));

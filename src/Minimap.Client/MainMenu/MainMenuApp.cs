@@ -2,18 +2,21 @@ using Godot;
 
 namespace Minimap.Client.MainMenu;
 
-/// <summary>Start / main menu screen: title, New → lobby, Quit.</summary>
+/// <summary>Start / main menu screen: title, New → lobby, Profiles, Quit.</summary>
 public partial class MainMenuApp : Control
 {
     public const string LobbyScenePath = "res://scenes/lobby.tscn";
+    public const string ProfilesScenePath = "res://scenes/profiles.tscn";
     public const string TitleText = "CompuQuest Mini";
 
     private Label? _title;
     private Button? _newButton;
+    private Button? _profilesButton;
     private Button? _quitButton;
 
     public Label? TitleLabel => _title;
     public Button? NewButton => _newButton;
+    public Button? ProfilesButton => _profilesButton;
     public Button? QuitButton => _quitButton;
 
     public override void _Ready()
@@ -26,9 +29,11 @@ public partial class MainMenuApp : Control
 
         _title = GetNode<Label>("Center/VBox/Title");
         _newButton = GetNode<Button>("Center/VBox/NewButton");
+        _profilesButton = GetNode<Button>("Center/VBox/ProfilesButton");
         _quitButton = GetNode<Button>("Center/VBox/QuitButton");
         _title.Text = TitleText;
         _newButton.Pressed += OnNewPressed;
+        _profilesButton.Pressed += OnProfilesPressed;
         _quitButton.Pressed += OnQuitPressed;
         _newButton.GrabFocus();
     }
@@ -46,6 +51,8 @@ public partial class MainMenuApp : Control
     }
 
     private void OnNewPressed() => ChangeSceneOrThrow(LobbyScenePath);
+
+    private void OnProfilesPressed() => ChangeSceneOrThrow(ProfilesScenePath);
 
     private void OnQuitPressed() => GetTree().Quit();
 

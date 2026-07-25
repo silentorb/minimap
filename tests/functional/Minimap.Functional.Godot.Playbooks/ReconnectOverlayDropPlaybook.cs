@@ -13,13 +13,18 @@ public sealed class ReconnectOverlayDropPlaybook : IPlaybook
         string argsJson,
         CancellationToken cancellationToken)
     {
+        PlaybookProfileSeed.EnsureProfiles("PlaybookA", "PlaybookB");
+
         await context.LoadSceneAsync("res://scenes/lobby.tscn", cancellationToken);
         await context.WaitFramesAsync(10, cancellationToken);
 
-        // Claim both players before readying either (single ready auto-starts).
+        // Claim both players before advancing either (ready auto-starts when all claimed are ready).
         await TapActivate(context, cancellationToken);
         await TapJoy(context, 0, JoyButton.A, cancellationToken);
 
+        // Confirm profiles, then ready.
+        await TapActivate(context, cancellationToken);
+        await TapJoy(context, 0, JoyButton.Start, cancellationToken);
         await TapActivate(context, cancellationToken);
         await TapJoy(context, 0, JoyButton.Start, cancellationToken);
         await context.WaitFramesAsync(20, cancellationToken);

@@ -5,7 +5,7 @@ using Minimap.Automation.Contracts;
 namespace Minimap.Functional.Godot.Playbooks;
 
 /// <summary>
-/// After keyboard claim, accessory selection fills CustomizeArea with three
+/// After keyboard claim + profile confirm, accessory selection fills CustomizeArea with three
 /// vertically scrolling child panels and fits horizontally without whole-panel clip.
 /// </summary>
 public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
@@ -19,6 +19,8 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
         string argsJson,
         CancellationToken cancellationToken)
     {
+        PlaybookProfileSeed.EnsureProfiles("Playbook");
+
         await context.LoadSceneAsync("res://scenes/lobby.tscn", cancellationToken);
         await context.WaitFramesAsync(10, cancellationToken);
 
@@ -28,8 +30,23 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
         await context.WaitFramesAsync(10, cancellationToken);
 
         var claimed = await context.GetLobbySnapshotAsync(cancellationToken);
-        if (claimed.SlotModes.FirstOrDefault() != "Claimed")
-            return PlaybookResult.Fail($"Slot 0 should be Claimed; got {claimed.SlotModes.FirstOrDefault()}.");
+        if (claimed.SlotModes.FirstOrDefault() != "SelectingProfile")
+        {
+            return PlaybookResult.Fail(
+                $"Slot 0 should be SelectingProfile; got {claimed.SlotModes.FirstOrDefault()}.");
+        }
+
+        await context.SetActivateKeyAsync(true, cancellationToken);
+        await context.WaitFramesAsync(2, cancellationToken);
+        await context.SetActivateKeyAsync(false, cancellationToken);
+        await context.WaitFramesAsync(10, cancellationToken);
+
+        var accessories = await context.GetLobbySnapshotAsync(cancellationToken);
+        if (accessories.SlotModes.FirstOrDefault() != "SelectingAccessories")
+        {
+            return PlaybookResult.Fail(
+                $"Slot 0 should be SelectingAccessories; got {accessories.SlotModes.FirstOrDefault()}.");
+        }
 
         const string panelPath = "Margin/PanelRow/LobbyPanel";
         const string areaPath = "Margin/PanelRow/LobbyPanel/Margin/VBox/CustomizeArea";
@@ -52,7 +69,7 @@ public sealed class LobbyAccessorySelectionFitsPlaybook : IPlaybook
         if (!selectionSnap.Found)
             return PlaybookResult.Fail($"AccessorySelection not found at {selectionPath}.");
         if (!selectionSnap.Visible)
-            return PlaybookResult.Fail("AccessorySelection should be visible after claim.");
+            return PlaybookResult.Fail("AccessorySelection should be visible after profile confirm.");
 
         var viewportSnap = await context.GetViewportVisibleRectAsync(cancellationToken);
         if (!viewportSnap.Found)

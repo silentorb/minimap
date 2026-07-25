@@ -8,7 +8,7 @@ Input devices for local human players. Related: [lobby.md](../ui/lobby.md), [mai
 - **Keyboard** may be used instead of a gamepad for one player.
 - Each local player may bind **multiple devices** under the hood (one-to-many: one player aggregates input from every device in their set). The lobby UI only assigns the activating device on claim; there is no UI yet to attach extra devices (e.g. foot switches mapped to keyboard).
 - **Lobby activate** (claim slot, reconnect): `JoyButton.A` or `JoyButton.Start`; keyboard **Enter** or **Space**.
-- **Lobby ready**: `JoyButton.Start` while Claimed; keyboard Enter/Space.
+- **Lobby profile confirm / ready**: `JoyButton.Start` while Selecting profile or Selecting accessories; keyboard **Enter** (not Space). Space / A take or return accessories while Selecting accessories.
 - **Lobby back**: `JoyButton.B`; keyboard **Escape**.
 - **In-world movement**: **WASD**; joypad **left stick only** (D-pad does **not** move).
 - **In-world aim**: joypad **right stick**; keyboard **mouse** (direction from pawn to cursor). Arrow keys do not aim.

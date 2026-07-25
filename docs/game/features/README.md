@@ -27,6 +27,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/tags.md](gameplay/tags.md) | Changing **tags** on definitions (e.g. `player_selectable`), resource type ids as tags, or tag naming policy. |
 | [gameplay/domains.md](gameplay/domains.md) | Changing **domains** (gardening / computing themes), domain tags on accessories, or domain-colored icon swatches. |
 | [session/players.md](session/players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
+| [session/user-profiles.md](session/user-profiles.md) | Changing **user profiles**, Profiles screen, lobby profile selection, or persistent death counts. |
 | [gameplay/ai.md](gameplay/ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |
 | [gameplay/combat.md](gameplay/combat.md) | Changing **missiles**, **Swing**, shoot/swing effects, fire rate, primary/secondary fire, mouse/stick aim, or AI nearest-hostile aim. |
 | [gameplay/factions.md](gameplay/factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |

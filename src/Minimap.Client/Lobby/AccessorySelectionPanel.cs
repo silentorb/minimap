@@ -5,7 +5,7 @@ namespace Minimap.Client.Lobby;
 
 /// <summary>
 /// Accessory picker: Available / Description / Owned panels that share parent height.
-/// Interactive only while the parent lobby panel is Claimed.
+/// Interactive only while the parent lobby panel is SelectingAccessories.
 /// </summary>
 public partial class AccessorySelectionPanel : VBoxContainer
 {

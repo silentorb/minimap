@@ -1,5 +1,6 @@
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
+using Minimap.Client.Profiles;
 using Minimap.Simulation.Types;
 using Xunit;
 
@@ -10,6 +11,16 @@ public class LobbyStateMachineTests
     private static readonly InputDeviceId Keyboard = InputDeviceId.Keyboard;
     private static readonly InputDeviceId Pad0 = InputDeviceId.Joypad(0);
     private static readonly InputDeviceId Pad1 = InputDeviceId.Joypad(1);
+
+    private static LobbyStateMachine CreateLobby(params string[] profileNames)
+    {
+        var catalog = new PlayerProfileCatalog();
+        foreach (var name in profileNames)
+            Assert.True(catalog.TryCreate(name, out _, out _));
+        var lobby = new LobbyStateMachine();
+        lobby.ConfigureProfiles(catalog);
+        return lobby;
+    }
 
     [Fact]
     public void Starts_with_four_available_slots()
@@ -24,17 +35,17 @@ public class LobbyStateMachineTests
     [Fact]
     public void Claim_assigns_lowest_available_slot()
     {
-        var lobby = new LobbyStateMachine();
+        var lobby = CreateLobby("Alex");
         Assert.True(lobby.TryClaim(Pad1, out var slot));
         Assert.Equal(0, slot);
-        Assert.Equal(LobbySlotMode.Claimed, lobby.GetMode(0));
+        Assert.Equal(LobbySlotMode.SelectingProfile, lobby.GetMode(0));
         Assert.True(lobby.IsDeviceBound(Pad1));
     }
 
     [Fact]
     public void Rejects_double_claim_from_same_device()
     {
-        var lobby = new LobbyStateMachine();
+        var lobby = CreateLobby("Alex");
         Assert.True(lobby.TryClaim(Pad0, out _));
         Assert.False(lobby.TryClaim(Pad0, out _));
     }
@@ -42,26 +53,31 @@ public class LobbyStateMachineTests
     [Fact]
     public void Ready_and_start_gate_requires_all_claimed_ready()
     {
-        var lobby = new LobbyStateMachine();
+        var lobby = CreateLobby("Alex", "Blake");
         Assert.True(lobby.TryClaim(Pad0, out _));
+        Assert.True(lobby.TryConfirmProfile(Pad0));
         Assert.False(lobby.CanStartGame);
         Assert.True(lobby.TryReady(Pad0));
         Assert.True(lobby.CanStartGame);
 
         Assert.True(lobby.TryClaim(Pad1, out _));
+        Assert.True(lobby.TryConfirmProfile(Pad1));
         Assert.False(lobby.CanStartGame);
         Assert.True(lobby.TryReady(Pad1));
         Assert.True(lobby.CanStartGame);
     }
 
     [Fact]
-    public void Back_steps_ready_claimed_available_and_releases_devices()
+    public void Back_steps_ready_accessories_profile_available_and_releases_devices()
     {
-        var lobby = new LobbyStateMachine();
+        var lobby = CreateLobby("Alex");
         Assert.True(lobby.TryClaim(Pad0, out var slot));
+        Assert.True(lobby.TryConfirmProfile(Pad0));
         Assert.True(lobby.TryReady(Pad0));
         Assert.True(lobby.TryBack(Pad0));
-        Assert.Equal(LobbySlotMode.Claimed, lobby.GetMode(slot));
+        Assert.Equal(LobbySlotMode.SelectingAccessories, lobby.GetMode(slot));
+        Assert.True(lobby.TryBack(Pad0));
+        Assert.Equal(LobbySlotMode.SelectingProfile, lobby.GetMode(slot));
         Assert.True(lobby.TryBack(Pad0));
         Assert.Equal(LobbySlotMode.Available, lobby.GetMode(slot));
         Assert.False(lobby.IsDeviceBound(Pad0));
@@ -70,8 +86,9 @@ public class LobbyStateMachineTests
     [Fact]
     public void BuildRoster_includes_claimed_devices_only()
     {
-        var lobby = new LobbyStateMachine();
+        var lobby = CreateLobby("Alex", "Blake");
         Assert.True(lobby.TryClaim(Pad0, out _));
+        Assert.True(lobby.TryConfirmProfile(Pad0));
         Assert.True(lobby.TryReady(Pad0));
         Assert.True(lobby.TryClaim(Pad1, out _));
 
@@ -91,6 +108,7 @@ public class LocalPlayRosterTests
         roster.ApplyDefaultSoloKeyboard();
         Assert.Equal(1, roster.PlayerCount);
         Assert.True(roster.Players[0].HasKeyboard);
+        Assert.Null(roster.Players[0].ProfileId);
     }
 
     [Fact]
@@ -104,17 +122,19 @@ public class LocalPlayRosterTests
     }
 
     [Fact]
-    public void CopyFrom_preserves_devices_and_selected_accessories()
+    public void CopyFrom_preserves_devices_profile_and_selected_accessories()
     {
         var farm = new AccessoryDefinition(
             "farm",
             Array.Empty<AccessoryEffect>(),
             pointCost: 1,
             displayName: "Farm");
+        var profileId = Guid.NewGuid();
         var source = new LocalPlayRoster();
         source.SetPlayerCount(1);
         source.Players[0].AddDevice(InputDeviceId.Joypad(0));
         source.Players[0].SetSelectedAccessories([farm]);
+        source.Players[0].SetProfile(profileId, "Alex");
 
         var target = new LocalPlayRoster();
         target.CopyFrom(source);
@@ -122,6 +142,8 @@ public class LocalPlayRosterTests
         Assert.Equal(1, target.PlayerCount);
         Assert.True(target.Players[0].HasJoypad(0));
         Assert.Equal(["farm"], target.Players[0].SelectedAccessories.Select(a => a.Id));
+        Assert.Equal(profileId, target.Players[0].ProfileId);
+        Assert.Equal("Alex", target.Players[0].DisplayName);
     }
 }
 

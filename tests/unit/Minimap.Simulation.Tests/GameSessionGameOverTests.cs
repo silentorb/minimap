@@ -25,6 +25,20 @@ public class GameSessionGameOverTests
         session.Tick(0.016f);
 
         Assert.True(session.IsGameOver);
+        Assert.Equal(new[] { 0 }, session.HumanDeathsThisTick);
+    }
+
+    [Fact]
+    public void Drop_human_player_does_not_report_a_death()
+    {
+        var scenario = Scenario.Defaults;
+        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 2, TestContent.Content);
+
+        Assert.True(session.DropHumanPlayer(0));
+        session.Tick(0.016f);
+        Assert.Empty(session.HumanDeathsThisTick);
     }
 
     [Fact]

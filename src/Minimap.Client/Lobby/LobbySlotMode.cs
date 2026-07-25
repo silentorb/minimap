@@ -3,6 +3,7 @@ namespace Minimap.Client.Lobby;
 public enum LobbySlotMode
 {
     Available,
-    Claimed,
+    SelectingProfile,
+    SelectingAccessories,
     Ready,
 }

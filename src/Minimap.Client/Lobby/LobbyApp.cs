@@ -4,7 +4,7 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Client.Lobby;
 
-/// <summary>Local multiplayer lobby: claim slots, ready up, start world.</summary>
+/// <summary>Local multiplayer lobby: claim slots, select profile, accessories, ready, start world.</summary>
 public partial class LobbyApp : Control, ILobbySnapshotSource
 {
     private const string WorldScenePath = "res://scenes/world.tscn";
@@ -13,6 +13,7 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
     private readonly LobbySceneBoot _boot = new();
     private LobbyPanel[] _panels = Array.Empty<LobbyPanel>();
     private LocalPlayContextNode? _playContext;
+    private string _profilesAbsolutePath = string.Empty;
 
     [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
@@ -43,6 +44,10 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
                 accessoryPoints,
                 extensions.PlayerSelectableAccessories,
                 extensions.Domains);
+
+            _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
+            _lobby.ConfigureProfiles(WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath));
+
             _boot.MarkExtensionsLoaded();
             RefreshPanels();
         }
@@ -84,6 +89,12 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         if (!_boot.TryAcceptInput())
             return;
 
+        if (TryHandleProfileNavigation(device, key, button, motion))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
         if (TryHandleAccessoryNavigation(device, key, button, motion))
         {
             GetViewport().SetInputAsHandled();
@@ -102,7 +113,7 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
             if (GameInput.IsActivateKey(k))
             {
-                if (TryActivateOrReady(device, k, null))
+                if (TryActivateOrAdvance(device, k, null))
                     GetViewport().SetInputAsHandled();
                 return;
             }
@@ -120,10 +131,45 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
             if (GameInput.IsActivateButton(b))
             {
-                if (TryActivateOrReady(device, null, b))
+                if (TryActivateOrAdvance(device, null, b))
                     GetViewport().SetInputAsHandled();
             }
         }
+    }
+
+    private bool TryHandleProfileNavigation(
+        InputDeviceId device,
+        Key? key,
+        JoyButton? button,
+        InputEventJoypadMotion? motion)
+    {
+        if (_lobby.FindSlotForDevice(device) is not int slot)
+            return false;
+        if (_lobby.GetMode(slot) != LobbySlotMode.SelectingProfile)
+            return false;
+
+        var delta = 0;
+        if (key is Key.Left)
+            delta = -1;
+        else if (key is Key.Right)
+            delta = 1;
+        else if (button is JoyButton.DpadLeft)
+            delta = -1;
+        else if (button is JoyButton.DpadRight)
+            delta = 1;
+        else if (motion is { Axis: JoyAxis.LeftX } stick && Math.Abs(stick.AxisValue) > 0.5f)
+            delta = stick.AxisValue > 0 ? 1 : -1;
+
+        if (delta == 0)
+            return false;
+
+        if (_lobby.TryCycleProfile(device, delta))
+        {
+            RefreshPanels();
+            return true;
+        }
+
+        return false;
     }
 
     private bool TryHandleAccessoryNavigation(
@@ -134,14 +180,14 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
     {
         if (_lobby.FindSlotForDevice(device) is not int slot)
             return false;
-        if (_lobby.GetMode(slot) != LobbySlotMode.Claimed)
+        if (_lobby.GetMode(slot) != LobbySlotMode.SelectingAccessories)
             return false;
 
         var panel = _panels[slot].AccessoryPanel;
         if (panel is null || !panel.Visible)
             return false;
 
-        // A alone selects accessory while Claimed; Start still readies via TryActivateOrReady.
+        // A alone selects accessory while SelectingAccessories; Start still advances via TryActivateOrAdvance.
         if (button is JoyButton.A)
             return panel.HandleActivate();
 
@@ -174,7 +220,6 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         else if (motion is { Axis: JoyAxis.LeftX or JoyAxis.LeftY } stick
                  && Math.Abs(stick.AxisValue) > 0.5f)
         {
-            // One-shot style: treat strong stick tilt as a step (simple lobby nav).
             if (stick.Axis == JoyAxis.LeftX)
                 delta = new Vector2I(stick.AxisValue > 0 ? 1 : -1, 0);
             else
@@ -187,27 +232,37 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         return false;
     }
 
-    private bool TryActivateOrReady(InputDeviceId device, Key? key, JoyButton? button)
+    private bool TryActivateOrAdvance(InputDeviceId device, Key? key, JoyButton? button)
     {
         if (_lobby.FindSlotForDevice(device) is int slot)
         {
-            if (_lobby.GetMode(slot) != LobbySlotMode.Claimed)
-                return false;
-
-            var ready = key is Key k && GameInput.IsActivateKey(k)
+            var mode = _lobby.GetMode(slot);
+            var confirm = (key is Key k && (k is Key.Enter or Key.KpEnter))
                 || button is JoyButton.Start;
-            if (!ready)
+            if (!confirm)
                 return false;
 
-            // Enter readies; Space is used for accessory activate above.
-            if (key is Key.Space)
-                return false;
-
-            if (_lobby.TryReady(device))
+            if (mode == LobbySlotMode.SelectingProfile)
             {
-                RefreshPanels();
-                TryStartGame();
-                return true;
+                if (_lobby.TryConfirmProfile(device))
+                {
+                    RefreshPanels();
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (mode == LobbySlotMode.SelectingAccessories)
+            {
+                if (_lobby.TryReady(device))
+                {
+                    RefreshPanels();
+                    TryStartGame();
+                    return true;
+                }
+
+                return false;
             }
 
             return false;
@@ -249,9 +304,16 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
         {
             var mode = _lobby.GetMode(i);
-            _panels[i].ApplyMode(mode, i);
-            if (mode == LobbySlotMode.Claimed
-                && _lobby.GetAccessorySelection(i) is { } selection)
+            var profileName = ResolveProfileDisplayName(i);
+            _panels[i].ApplyMode(mode, i, profileName);
+
+            if (mode == LobbySlotMode.SelectingProfile
+                && _lobby.GetProfileSelection(i) is { } profileState)
+            {
+                _panels[i].ShowProfileSelection(_lobby.GetAvailableProfilesForSlot(i), profileState);
+            }
+            else if (mode == LobbySlotMode.SelectingAccessories
+                     && _lobby.GetAccessorySelection(i) is { } selection)
             {
                 _panels[i].ShowAccessorySelection(
                     _lobby.SelectableAccessories,
@@ -261,9 +323,18 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             }
             else
             {
+                _panels[i].HideProfileSelection();
                 _panels[i].HideAccessorySelection();
             }
         }
+    }
+
+    private string? ResolveProfileDisplayName(int slotIndex)
+    {
+        var state = _lobby.GetProfileSelection(slotIndex);
+        if (state?.ConfirmedProfileId is not Guid id)
+            return null;
+        return _lobby.Profiles.Find(id)?.Name;
     }
 
     public LobbySnapshot GetLobbySnapshot() =>

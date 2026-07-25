@@ -6,8 +6,8 @@ Godot-facing presentation and local play: rendering, device input, HUD, world/lo
 
 ## What may live here
 
-- Godot nodes/scripts for world visuals, world scene root (`WorldApp`), lobby scene root (`LobbyApp`), main menu (`MainMenuApp` / `MainMenuPopup`), lobby panels, HUD (`PlayerHud*`)
-- Lobby / world boot sequencing (`LobbySceneBoot`, `WorldSceneBoot`) and pure lobby / main-menu state (`LobbyStateMachine`, `MainMenuModel`, `MainMenuOwnership`)
+- Godot nodes/scripts for world visuals, world scene root (`WorldApp`), lobby scene root (`LobbyApp`), main menu (`MainMenuApp` / `MainMenuPopup`), profiles screen (`ProfilesApp`), lobby panels, HUD (`PlayerHud*`)
+- Lobby / world boot sequencing (`LobbySceneBoot`, `WorldSceneBoot`) and pure lobby / main-menu / profiles state (`LobbyStateMachine`, `MainMenuModel`, `MainMenuOwnership`, `ProfilesScreenModel`, `PlayerProfileCatalog`)
 - Local session adapter (`ClientSession`): attach `PlayerController`s, feed input, map HUD models over Simulation `GameSession`
 - Input capture helpers (`LocalInputAggregator`, device binding UI)
 - Godot navigation host upgrade for AI (via **Minimap.Simulation.Navigation**)

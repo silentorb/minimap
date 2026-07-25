@@ -11,6 +11,7 @@ public sealed class GameSession
     private readonly List<Player> _players = new();
     private readonly SpawnConfig _spawnConfig;
     private readonly ScenarioRunner _scenarioRunner = new();
+    private readonly List<int> _humanDeathsThisTick = new();
     private bool _isGameOver;
 
     private GameSession(
@@ -40,6 +41,9 @@ public sealed class GameSession
 
     public bool IsGameOver => _isGameOver;
     public ScenarioTickResult LastScenarioTickResult { get; private set; }
+
+    /// <summary>Player indices whose character transitioned alive → dead during the last <see cref="Tick"/>.</summary>
+    public IReadOnlyList<int> HumanDeathsThisTick => _humanDeathsThisTick;
 
     public static GameSession Create(
         int radiusX,
@@ -82,6 +86,7 @@ public sealed class GameSession
 
     public void Tick(float dt)
     {
+        _humanDeathsThisTick.Clear();
         if (_isGameOver)
             return;
 
@@ -95,7 +100,26 @@ public sealed class GameSession
         if (LastScenarioTickResult.LevelRegenerated)
             RelinkPlayerCharacters(_spawnConfig.PlayerFactionId);
 
+        // Track pawns still in the world roster entering this tick (includes already-at-0
+        // health from out-of-band damage; RemoveDeadActors runs inside World.Tick).
+        var presentBefore = new bool[_players.Count];
+        for (var i = 0; i < _players.Count; i++)
+        {
+            var character = _players[i].Character;
+            presentBefore[i] = character is not null && World.Characters.Contains(character);
+        }
+
         World.Tick(dt);
+
+        for (var i = 0; i < _players.Count; i++)
+        {
+            if (!presentBefore[i])
+                continue;
+            var character = _players[i].Character;
+            if (character is { IsAlive: true } && World.Characters.Contains(character))
+                continue;
+            _humanDeathsThisTick.Add(i);
+        }
 
         if (AllHumanPawnsDead())
             _isGameOver = true;

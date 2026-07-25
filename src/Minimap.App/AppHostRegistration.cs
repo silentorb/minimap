@@ -34,5 +34,7 @@ internal static class AppHostRegistration
         WorldHostHooks.TryGetScenarioPathFromEnvironment = CliArgs.TryGetScenarioPathFromEnvironment;
         WorldHostHooks.TryGetWorldSeedFromEnvironment = CliArgs.TryGetWorldSeedFromEnvironment;
         WorldHostHooks.ShouldStartAtLobby = CliArgs.ShouldStartAtLobby;
+        WorldHostHooks.LoadPlayerProfilesFromAbsolutePath = PlayerProfileStore.LoadFromFile;
+        WorldHostHooks.SavePlayerProfilesToAbsolutePath = PlayerProfileStore.SaveToFile;
     }
 }

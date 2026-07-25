@@ -9,7 +9,7 @@ Actor hit points as resources. Related: [resources.md](resources.md), [damage.md
 - An actor with positive max health is **destructible**. When health reaches **0 or below**, the actor **dies**.
 - **Characters** always start destructible. Default **max health** (and starting health) is **100**.
 - **Cell-anchored placeables** (CompuQuest): computers start with max/start health **40**; planted vegetables (carrot / corn / melon) with **25**. Starting amounts come from actor definition `resources`.
-- Death **quietly removes** the actor from the map: no death animation, VFX, or UI for now. Characters (and their controllers) are gone on the next simulation update; cell-anchored actors are removed from occupancy the same way.
+- Death **quietly removes** the actor from the map: no death animation, VFX, or UI for now. Characters (and their controllers) are gone on the next simulation update; cell-anchored actors are removed from occupancy the same way. When a human player’s character dies and that player has a [user profile](../session/user-profiles.md), the profile’s death count increments (disconnect drop does not).
 - **Level transition** (after all waves in a level, when the parked wave runner is enabled): all human players are **healed to max health** and **resurrected** if they had died during the level. Inactive in normal sandbox play (see [scenarios.md](../session/scenarios.md)).
 - **Game over** (all human players dead): see [game-over.md](../ui/game-over.md) for the pause overlay exception.
 

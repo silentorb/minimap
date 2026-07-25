@@ -24,7 +24,7 @@ public sealed class LocalPlayRoster
 
     /// <summary>
     /// Replace this roster with <paramref name="source"/>'s player count, devices,
-    /// and selected accessories (lobby → world handoff).
+    /// profile identity, and selected accessories (lobby → world handoff).
     /// </summary>
     public void CopyFrom(LocalPlayRoster source)
     {
@@ -36,6 +36,11 @@ public sealed class LocalPlayRoster
             foreach (var device in source.Players[i].Devices)
                 _players[i].AddDevice(device);
             _players[i].SetSelectedAccessories(source.Players[i].SelectedAccessories);
+            var src = source.Players[i];
+            if (src.ProfileId is Guid profileId && !string.IsNullOrWhiteSpace(src.DisplayName))
+                _players[i].SetProfile(profileId, src.DisplayName);
+            else
+                _players[i].ClearProfile();
         }
     }
 

@@ -116,6 +116,16 @@ public class MainMenuFunctionalTest(GodotAutomationFixture fixture)
     }
 
     [Fact]
+    public async Task Main_menu_profiles_goes_to_profiles_screen()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuProfilesGoesToProfilesId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
     public async Task Main_menu_popup_pauses_and_continues()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest

@@ -3,7 +3,7 @@ using Minimap.Automation.Contracts;
 
 namespace Minimap.Functional.Godot.Playbooks;
 
-/// <summary>Injected joypad A/Start claims and starts world.</summary>
+/// <summary>Injected joypad A/Start claims, confirms profile, and starts world.</summary>
 public sealed class LobbyJoypadClaimReadyPlaybook : IPlaybook
 {
     public string Id => "LobbyJoypadClaimReady";
@@ -13,6 +13,8 @@ public sealed class LobbyJoypadClaimReadyPlaybook : IPlaybook
         string argsJson,
         CancellationToken cancellationToken)
     {
+        PlaybookProfileSeed.EnsureProfiles("Playbook");
+
         await context.LoadSceneAsync("res://scenes/lobby.tscn", cancellationToken);
         await context.WaitFramesAsync(10, cancellationToken);
 
@@ -22,8 +24,20 @@ public sealed class LobbyJoypadClaimReadyPlaybook : IPlaybook
         await context.WaitFramesAsync(2, cancellationToken);
 
         var claimed = await context.GetLobbySnapshotAsync(cancellationToken);
-        if (claimed.SlotModes.FirstOrDefault() != "Claimed")
-            return PlaybookResult.Fail($"Expected Claimed; got {claimed.SlotModes.FirstOrDefault()}.");
+        if (claimed.SlotModes.FirstOrDefault() != "SelectingProfile")
+            return PlaybookResult.Fail($"Expected SelectingProfile; got {claimed.SlotModes.FirstOrDefault()}.");
+
+        await context.SetJoypadButtonAsync(0, (int)JoyButton.Start, true, cancellationToken);
+        await context.WaitFramesAsync(2, cancellationToken);
+        await context.SetJoypadButtonAsync(0, (int)JoyButton.Start, false, cancellationToken);
+        await context.WaitFramesAsync(2, cancellationToken);
+
+        var accessories = await context.GetLobbySnapshotAsync(cancellationToken);
+        if (accessories.SlotModes.FirstOrDefault() != "SelectingAccessories")
+        {
+            return PlaybookResult.Fail(
+                $"Expected SelectingAccessories; got {accessories.SlotModes.FirstOrDefault()}.");
+        }
 
         await context.SetJoypadButtonAsync(0, (int)JoyButton.Start, true, cancellationToken);
         await context.WaitFramesAsync(2, cancellationToken);

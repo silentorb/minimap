@@ -2,6 +2,7 @@ using Godot;
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 using Minimap.Client.MainMenu;
+using Minimap.Client.Profiles;
 using Minimap.Simulation;
 using Minimap.Simulation.Navigation;
 using Minimap.Simulation.Types;
@@ -38,6 +39,8 @@ public partial class WorldApp : Node, IGameAutomationTarget
     private readonly ReconnectState _reconnect = new();
     private bool _gameplayPaused;
     private bool _gameOverShown;
+    private PlayerProfileCatalog? _profileCatalog;
+    private string _profilesAbsolutePath = string.Empty;
 
     public WorldView? WorldView => _worldView;
     public GameSession? Session => _session;
@@ -97,7 +100,19 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 content,
                 accessoryPoints,
                 selectedByPlayer);
-            _clientSession = new ClientSession(_session, extensions.Domains);
+
+            var displayNames = _playContext.Roster.Players
+                .Select(p => p.DisplayName)
+                .ToList();
+            var profileIds = _playContext.Roster.Players
+                .Select(p => p.ProfileId)
+                .ToList();
+            _clientSession = new ClientSession(_session, extensions.Domains, displayNames, profileIds);
+
+            _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
+            if (profileIds.Any(id => id is not null))
+                _profileCatalog = WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath);
+
             _boot.MarkSessionBound();
 
             _worldView = GetNode<WorldView>("WorldView");
@@ -214,6 +229,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
         EnsureGodotSteering();
         _session.Tick((float)delta);
+        RecordProfileDeaths(_session.HumanDeathsThisTick);
 
         if (_session.LastScenarioTickResult.LevelRegenerated)
         {
@@ -493,6 +509,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
         }
 
         _session.Tick(1f / 60f);
+        RecordProfileDeaths(_session.HumanDeathsThisTick);
         if (!_session.IsGameOver)
             return;
 
@@ -500,5 +517,23 @@ public partial class WorldApp : Node, IGameAutomationTarget
         _gameplayPaused = true;
         _mainMenuPopup?.HideOverlay();
         _gameOverOverlay.ShowOverlay();
+    }
+
+    private void RecordProfileDeaths(IReadOnlyList<int> playerIndices)
+    {
+        if (_clientSession is null || _profileCatalog is null || playerIndices.Count == 0)
+            return;
+
+        var changed = false;
+        foreach (var index in playerIndices)
+        {
+            if (_clientSession.GetProfileId(index) is not Guid profileId)
+                continue;
+            if (_profileCatalog.TryIncrementDeaths(profileId))
+                changed = true;
+        }
+
+        if (changed)
+            WorldHostHooks.RequireSavePlayerProfiles(_profilesAbsolutePath, _profileCatalog);
     }
 }

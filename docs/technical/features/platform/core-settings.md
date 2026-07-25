@@ -5,7 +5,7 @@ Shipped JSON configuration for developer-oriented (and user-editable) core game 
 ## Requirements
 
 - Core settings live in **`config/core.json`** (Godot path `res://config/core.json`).
-- This file is distinct from a future **user settings** file (preferences that are not core bootstrap parameters).
+- This file is distinct from durable **user data** such as [player profiles](../session/user-profiles.md) (`user://player_profiles.json`) and from a future broader **user settings** file.
 - **Minimap.App** exposes load APIs: `CoreSettings.LoadFromJson` and `CoreSettings.LoadFromFile`. Simulation has **no I/O**. Client does not open settings files (uses `WorldHostHooks` registered by App).
 - `WorldApp` / `LobbyApp` load core settings on ready via an exportable path (default `res://config/core.json`) through host hooks.
 - **Boot failure**: on any exception during world/lobby ready (including core settings load), abort via scene boot, `GD.PushError`, and quit—do not leave a half-initialized scene interactive.
@@ -32,5 +32,5 @@ Shipped JSON configuration for developer-oriented (and user-editable) core game 
 
 ## Non-goals (for now)
 
-- User settings file
+- Broader user settings file beyond [player profiles](../session/user-profiles.md)
 - Configuring hex size, world seed, or spawn/faction parameters via core JSON

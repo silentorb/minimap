@@ -12,6 +12,23 @@ public sealed class LocalPlayerEntry
 
     public IReadOnlyList<AccessoryDefinition> SelectedAccessories => _selectedAccessories;
 
+    public Guid? ProfileId { get; private set; }
+
+    public string? DisplayName { get; private set; }
+
+    public void SetProfile(Guid profileId, string displayName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+        ProfileId = profileId;
+        DisplayName = displayName;
+    }
+
+    public void ClearProfile()
+    {
+        ProfileId = null;
+        DisplayName = null;
+    }
+
     public void AddDevice(InputDeviceId device) => _devices.Add(device);
 
     public void RemoveDevice(InputDeviceId device) => _devices.Remove(device);

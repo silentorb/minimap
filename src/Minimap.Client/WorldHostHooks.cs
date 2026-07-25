@@ -1,3 +1,4 @@
+using Minimap.Client.Profiles;
 using Minimap.Simulation;
 using Minimap.Simulation.Types;
 
@@ -39,6 +40,14 @@ public static class WorldHostHooks
 
     /// <summary>Process environment → whether boot should redirect main menu to lobby.</summary>
     public static Func<bool>? ShouldStartAtLobby { get; set; }
+
+    /// <summary>Absolute filesystem path to player_profiles.json → catalog (empty if missing).</summary>
+    public static Func<string, PlayerProfileCatalog>? LoadPlayerProfilesFromAbsolutePath { get; set; }
+
+    /// <summary>Absolute filesystem path + catalog → write player_profiles.json.</summary>
+    public static Action<string, PlayerProfileCatalog>? SavePlayerProfilesToAbsolutePath { get; set; }
+
+    public const string DefaultPlayerProfilesResPath = "user://player_profiles.json";
 
     public static SimVec2I RequireCoreMapRadius(string absolutePath)
     {
@@ -99,6 +108,25 @@ public static class WorldHostHooks
 
     public static bool ResolveShouldStartAtLobby() =>
         ShouldStartAtLobby?.Invoke() ?? false;
+
+    public static PlayerProfileCatalog RequirePlayerProfiles(string absolutePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
+        var load = LoadPlayerProfilesFromAbsolutePath
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.LoadPlayerProfilesFromAbsolutePath.");
+        return load(absolutePath);
+    }
+
+    public static void RequireSavePlayerProfiles(string absolutePath, PlayerProfileCatalog catalog)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(absolutePath);
+        ArgumentNullException.ThrowIfNull(catalog);
+        var save = SavePlayerProfilesToAbsolutePath
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.SavePlayerProfilesToAbsolutePath.");
+        save(absolutePath, catalog);
+    }
 }
 
 /// <summary>Client-facing snapshot of a successful extension load.</summary>

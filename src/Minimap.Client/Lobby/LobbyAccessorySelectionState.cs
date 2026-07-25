@@ -4,7 +4,7 @@ namespace Minimap.Client.Lobby;
 
 /// <summary>
 /// Pure accessory selection state for one lobby slot.
-/// Choices persist Claimed↔Ready; cleared when returning to Available.
+/// Choices persist SelectingAccessories↔Ready (and when backing to SelectingProfile); cleared on Available.
 /// Cursor/focus is UI-only and is not stored here.
 /// </summary>
 public sealed class LobbyAccessorySelectionState

@@ -1,0 +1,129 @@
+[gd_scene load_steps=2 format=3 uid="uid://cprofilesroot01"]
+
+[ext_resource type="Script" path="res://src/Minimap.Client/Profiles/ProfilesApp.cs" id="1_profiles"]
+
+[node name="ProfilesApp" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_profiles")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Left" type="PanelContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/Left"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Margin/HBox/Left/VBox"]
+layout_mode = 2
+text = "Profiles"
+theme_override_font_sizes/font_size = 28
+
+[node name="List" type="ItemList" parent="Margin/HBox/Left/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 240)
+
+[node name="CreateButton" type="Button" parent="Margin/HBox/Left/VBox"]
+layout_mode = 2
+text = "Create"
+
+[node name="BackButton" type="Button" parent="Margin/HBox/Left/VBox"]
+layout_mode = 2
+text = "Back"
+
+[node name="Right" type="PanelContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.2
+
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/Right"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlaceholderLabel" type="Label" parent="Margin/HBox/Right/VBox"]
+layout_mode = 2
+text = "Select or create a profile"
+autowrap_mode = 3
+
+[node name="DetailContent" type="VBoxContainer" parent="Margin/HBox/Right/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="Margin/HBox/Right/VBox/DetailContent"]
+layout_mode = 2
+text = "Name"
+theme_override_font_sizes/font_size = 24
+
+[node name="DeathsLabel" type="Label" parent="Margin/HBox/Right/VBox/DetailContent"]
+layout_mode = 2
+text = "Deaths: 0"
+
+[node name="ButtonRow" type="HBoxContainer" parent="Margin/HBox/Right/VBox/DetailContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RenameButton" type="Button" parent="Margin/HBox/Right/VBox/DetailContent/ButtonRow"]
+layout_mode = 2
+text = "Rename"
+
+[node name="DeleteButton" type="Button" parent="Margin/HBox/Right/VBox/DetailContent/ButtonRow"]
+layout_mode = 2
+text = "Delete"
+
+[node name="NameEdit" type="LineEdit" parent="Margin/HBox/Right/VBox"]
+visible = false
+layout_mode = 2
+placeholder_text = "Profile name"
+max_length = 24
+
+[node name="ErrorLabel" type="Label" parent="Margin/HBox/Right/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.35, 0.35, 1)
+autowrap_mode = 3
+
+[node name="EditButtonRow" type="HBoxContainer" parent="Margin/HBox/Right/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ConfirmButton" type="Button" parent="Margin/HBox/Right/VBox/EditButtonRow"]
+visible = false
+layout_mode = 2
+text = "Confirm"
+
+[node name="CancelButton" type="Button" parent="Margin/HBox/Right/VBox/EditButtonRow"]
+visible = false
+layout_mode = 2
+text = "Cancel"
