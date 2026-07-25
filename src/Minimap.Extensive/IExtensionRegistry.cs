@@ -43,6 +43,14 @@ public interface IExtensionRegistry
 
     bool TryGetResourceDefinition(TagId tag, out ResourceDefinition? definition);
 
+    void AddDomainDefinition(DomainDefinition definition);
+
+    IReadOnlyList<DomainDefinition> DomainDefinitions { get; }
+
+    bool TryGetDomainDefinition(string id, out DomainDefinition? definition);
+
+    bool TryGetDomainDefinition(TagId tag, out DomainDefinition? definition);
+
     /// <summary>
     /// Registers a JSON effect <paramref name="type"/> factory (case-insensitive).
     /// Duplicate type ids fail fast.

@@ -22,6 +22,7 @@ public partial class AccessorySelectionPanel : VBoxContainer
     private GridContainer? _ownedGrid;
     private LobbyAccessorySelectionState? _state;
     private IReadOnlyList<AccessoryDefinition> _catalog = Array.Empty<AccessoryDefinition>();
+    private IReadOnlyList<DomainDefinition> _domains = Array.Empty<DomainDefinition>();
     private readonly List<AccessoryDefinition> _availableOrder = new();
     private readonly List<Button> _availableButtons = new();
     private readonly List<Button> _ownedButtons = new();
@@ -123,11 +124,13 @@ public partial class AccessorySelectionPanel : VBoxContainer
     public void Configure(
         IReadOnlyList<AccessoryDefinition> catalog,
         LobbyAccessorySelectionState state,
-        bool interactive)
+        bool interactive,
+        IReadOnlyList<DomainDefinition>? domains = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(state);
         _catalog = catalog;
+        _domains = domains ?? Array.Empty<DomainDefinition>();
         _state = state;
         AccessoryPointsBudget = state.AccessoryPoints;
         _interactive = interactive;
@@ -389,7 +392,11 @@ public partial class AccessorySelectionPanel : VBoxContainer
             ExpandIcon = true,
         };
 
-        var icon = TryLoadIcon(accessory);
+        var colors = DomainColorResolver.Resolve(accessory, _domains);
+        var icon = DomainIconView.TryCreateTexture(
+            accessory.IconConfig?.ResourcePath,
+            colors,
+            _iconSize);
         if (icon is not null)
             button.Icon = icon;
         else
@@ -398,16 +405,6 @@ public partial class AccessorySelectionPanel : VBoxContainer
                 : "?";
 
         return button;
-    }
-
-    private static Texture2D? TryLoadIcon(AccessoryDefinition accessory)
-    {
-        var path = accessory.IconConfig?.ResourcePath;
-        if (string.IsNullOrWhiteSpace(path))
-            return null;
-        if (!ResourceLoader.Exists(path))
-            return null;
-        return ResourceLoader.Load<Texture2D>(path);
     }
 
     private void EnsureFocus()

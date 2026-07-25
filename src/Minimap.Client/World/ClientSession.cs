@@ -10,12 +10,16 @@ namespace Minimap.Client.World;
 public sealed class ClientSession
 {
     private readonly GameSession _session;
+    private readonly IReadOnlyList<DomainDefinition> _domains;
     private readonly List<PlayerController> _players = new();
 
-    public ClientSession(GameSession session)
+    public ClientSession(
+        GameSession session,
+        IReadOnlyList<DomainDefinition>? domains = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
+        _domains = domains ?? Array.Empty<DomainDefinition>();
         AttachHumanPlayers();
     }
 
@@ -83,7 +87,7 @@ public sealed class ClientSession
             {
                 DisplayName = $"Player {i + 1}",
                 Resources = BuildResourceModels(pawn, _session.Content),
-                SelectedAbility = BuildSelectedAbilityModel(pawn),
+                SelectedAbility = BuildSelectedAbilityModel(pawn, _domains),
             });
         }
 
@@ -158,7 +162,9 @@ public sealed class ClientSession
         return rows;
     }
 
-    private static PlayerHudAbilityModel? BuildSelectedAbilityModel(Character? pawn)
+    private static PlayerHudAbilityModel? BuildSelectedAbilityModel(
+        Character? pawn,
+        IReadOnlyList<DomainDefinition> domains)
     {
         var selected = pawn?.AbilityLoadout.SelectedModal;
         if (selected is null)
@@ -170,6 +176,7 @@ public sealed class ClientSession
             Id = definition.Id,
             DisplayName = definition.DisplayName ?? definition.Id,
             IconPath = definition.IconConfig?.ResourcePath,
+            DomainColors = DomainColorResolver.Resolve(definition, domains),
         };
     }
 

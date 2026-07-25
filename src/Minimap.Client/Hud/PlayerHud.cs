@@ -49,16 +49,14 @@ public partial class PlayerHud : Control
         }
 
         _abilityRow.Visible = true;
-        var icon = TryLoadIcon(ability.IconPath);
-        if (icon is not null)
+        if (!string.IsNullOrWhiteSpace(ability.IconPath) || ability.DomainColors.Count > 0)
         {
-            _abilityRow.AddChild(new TextureRect
+            var iconView = new DomainIconView
             {
-                Texture = icon,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                 CustomMinimumSize = new Vector2(16, 16),
-            });
+            };
+            iconView.Configure(ability.IconPath, ability.DomainColors);
+            _abilityRow.AddChild(iconView);
         }
 
         _abilityRow.AddChild(new Label

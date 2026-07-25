@@ -11,11 +11,11 @@ Actor-owned amounts keyed by tags, plus registered resource types. Related: [tag
 - Types with **`visible: false`** are omitted from HUD enumerations. Limit types (e.g. max health) ship hidden; the limited resource shows **`VALUE / MAX`** using the limit amount.
 - **Health** is the `health` resource, limited by `max_health`. Default max (and starting) health is **100**.
 - **Energy** is the `energy` resource, limited by `max_energy`. Default max (and starting) energy is **100**. See [hunger.md](hunger.md).
-- Effect **use costs** (optional resource tag + amount on an activatable effect; default free) gate activation; successful use consumes the cost. Acquire grants use a `modify_resource` effect when the accessory is added. There is no way yet to refill ammo / seeds / computers after the acquire grant (food accumulates via harvest; **Eat** spends food to restore energy).
-- Shipped CompuQuest types: `health`, `max_health`, `energy`, `max_energy`, `computers`, `seeds`, `ammo`, `food`. Acquire grants: **Geek** → computers (1), **Farm** → seeds (3), **Gun** → ammo (6). Harvest yields food (carrot 1 / corn 2 / melon 3). Eating costs **1 food** and restores **+5 energy** (see [hunger.md](hunger.md)).
+- Effect **use costs** (optional resource tag + amount on an activatable effect; default free) gate activation; successful use consumes the cost. Acquire grants use a `modify_resource` effect when the accessory is added. There is no way yet to refill ammo / seeds / electronics after the acquire grant (food accumulates via harvest; **Eat** spends food to restore energy).
+- Shipped CompuQuest types: `health`, `max_health`, `energy`, `max_energy`, `electronics`, `seeds`, `ammo`, `food`. Acquire grants: **Geek** → electronics (1), **Farm** → seeds (3), **Gun** → ammo (6). Harvest yields food (carrot 1 / corn 2 / melon 3). Eating costs **1 food** and restores **+5 energy** (see [hunger.md](hunger.md)).
 
 ## Non-goals (for now)
 
 - Fixed numeric limits on resource types
-- Ways to refill ammo / seeds / computers after grant
+- Ways to refill ammo / seeds / electronics after grant
 - Resource trading or shared party pools

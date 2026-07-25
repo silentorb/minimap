@@ -3,7 +3,7 @@
   "displayName": "Farm",
   "description": "Plant vegetables and harvest mature crops for food.",
   "pointCost": 1,
-  "tags": ["player_selectable"],
+  "tags": ["player_selectable", "gardening"],
   "activation": {
     "kind": "modal"
   },

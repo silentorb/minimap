@@ -23,6 +23,7 @@
 | [farming.md](farming.md) | Working on Farm / grow / harvest effects, vegetable actors, or food yields. |
 | [cell-placement.md](cell-placement.md) | Working on cell-anchored actors, occupancy, `ICellPlacementEffect`, or placement preview. |
 | [tags.md](tags.md) | Working on **TagId**, `TagRegistry`, extension `RegisterTags`, definition tag strings, or resource type tags. |
+| [domains.md](domains.md) | Working on **DomainDefinition**, domain JSON, domain color resolver, or domain-colored accessory icons. |
 | [players.md](players.md) | Working on Simulation **`Player`**, accessory points, or controller↔player association. |
 | [definition-config.md](definition-config.md) | Changing **accessory/character/actor/resource JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
 | [depiction.md](depiction.md) | Working on **DepictionConfig**, SpriteFrames / texture depictions, or CompuQuest Kenney art under `assets/compuquest/`. |

@@ -85,11 +85,12 @@ public partial class LobbyPanel : PanelContainer
     public void ShowAccessorySelection(
         IReadOnlyList<AccessoryDefinition> catalog,
         LobbyAccessorySelectionState state,
-        bool interactive)
+        bool interactive,
+        IReadOnlyList<DomainDefinition>? domains = null)
     {
         if (_accessoryPanel is null || _customizeArea is null)
             return;
-        _accessoryPanel.Configure(catalog, state, interactive);
+        _accessoryPanel.Configure(catalog, state, interactive, domains);
         _accessoryPanel.Visible = interactive;
         CallDeferred(nameof(RelayoutAccessorySelection));
     }

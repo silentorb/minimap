@@ -88,15 +88,20 @@ public sealed class ExtensionLoadResult
 {
     public ExtensionLoadResult(
         GameContent content,
-        IReadOnlyList<AccessoryDefinition> playerSelectableAccessories)
+        IReadOnlyList<AccessoryDefinition> playerSelectableAccessories,
+        IReadOnlyList<DomainDefinition> domains)
     {
         ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(playerSelectableAccessories);
+        ArgumentNullException.ThrowIfNull(domains);
         Content = content;
         PlayerSelectableAccessories = playerSelectableAccessories;
+        Domains = domains;
     }
 
     public GameContent Content { get; }
 
     public IReadOnlyList<AccessoryDefinition> PlayerSelectableAccessories { get; }
+
+    public IReadOnlyList<DomainDefinition> Domains { get; }
 }

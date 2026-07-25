@@ -1,6 +1,7 @@
 {
   "id": "grow_carrot",
   "displayName": "Grow Carrot",
+  "tags": ["gardening"],
   "activation": {
     "kind": "none"
   },

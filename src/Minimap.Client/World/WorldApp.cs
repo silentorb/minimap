@@ -60,8 +60,9 @@ public partial class WorldApp : Node, IGameAutomationTarget
             var corePath = ProjectSettings.GlobalizePath(CoreSettingsPath);
             var mapRadius = WorldHostHooks.RequireCoreMapRadius(corePath);
             var accessoryPoints = WorldHostHooks.RequireCoreAccessoryPoints(corePath);
-            var content = WorldHostHooks.RequireGameContent(
+            var extensions = WorldHostHooks.RequireExtensions(
                 ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
+            var content = extensions.Content;
             var scenarioPath = ResolveScenarioPath();
             _playContext.ScenarioPath = scenarioPath;
             var scenario = WorldHostHooks.RequireScenario(
@@ -91,7 +92,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 content,
                 accessoryPoints,
                 selectedByPlayer);
-            _clientSession = new ClientSession(_session);
+            _clientSession = new ClientSession(_session, extensions.Domains);
             _boot.MarkSessionBound();
 
             _worldView = GetNode<WorldView>("WorldView");

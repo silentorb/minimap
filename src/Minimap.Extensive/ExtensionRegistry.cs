@@ -16,6 +16,9 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly List<ResourceDefinition> _resourceDefinitions = new();
     private readonly Dictionary<string, ResourceDefinition> _resourceById = new(StringComparer.Ordinal);
     private readonly Dictionary<TagId, ResourceDefinition> _resourceByTag = new();
+    private readonly List<DomainDefinition> _domainDefinitions = new();
+    private readonly Dictionary<string, DomainDefinition> _domainById = new(StringComparer.Ordinal);
+    private readonly Dictionary<TagId, DomainDefinition> _domainByTag = new();
     private readonly Dictionary<string, AccessoryEffectFactory> _effectFactories =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -31,6 +34,8 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     public IReadOnlyList<ActorDefinition> ActorDefinitions => _actorDefinitions;
 
     public IReadOnlyList<ResourceDefinition> ResourceDefinitions => _resourceDefinitions;
+
+    public IReadOnlyList<DomainDefinition> DomainDefinitions => _domainDefinitions;
 
     public void RegisterTags(IEnumerable<string> tagNames)
     {
@@ -175,6 +180,39 @@ public sealed class ExtensionRegistry : IExtensionRegistry
 
     public bool TryGetResourceDefinition(TagId tag, out ResourceDefinition? definition) =>
         _resourceByTag.TryGetValue(tag, out definition);
+
+    public void AddDomainDefinition(DomainDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (!_domainById.TryAdd(definition.Id, definition))
+        {
+            throw new InvalidOperationException(
+                $"Duplicate domain definition id '{definition.Id}'.");
+        }
+
+        if (!_domainByTag.TryAdd(definition.Tag, definition))
+        {
+            _domainById.Remove(definition.Id);
+            throw new InvalidOperationException(
+                $"Duplicate domain definition tag for id '{definition.Id}'.");
+        }
+
+        _domainDefinitions.Add(definition);
+    }
+
+    public bool TryGetDomainDefinition(string id, out DomainDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _domainById.TryGetValue(id, out definition);
+    }
+
+    public bool TryGetDomainDefinition(TagId tag, out DomainDefinition? definition) =>
+        _domainByTag.TryGetValue(tag, out definition);
 
     public void AddAccessoryEffectFactory(string type, AccessoryEffectFactory factory)
     {

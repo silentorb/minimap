@@ -1,22 +1,35 @@
 # Definition config
 
-JSON configuration for accessory, character, actor, and resource definitions. Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md) / [actors](actors.md) / [resources](resources.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md), [ui-icons.md](ui-icons.md), [tags.md](tags.md), [farming.md](farming.md), [hunger.md](hunger.md).
+JSON configuration for accessory, character, actor, resource, and domain definitions. Loaded at the **Minimap.App** surface into the extension registry. Implements [accessories](accessories.md) / [characters](characters.md) / [actors](actors.md) / [resources](resources.md) / [domains](domains.md); related: [extensions.md](extensions.md), [depiction.md](depiction.md), [ui-icons.md](ui-icons.md), [tags.md](tags.md), [farming.md](farming.md), [hunger.md](hunger.md).
 
 ## Requirements
 
 - Shipped definitions are **extension content**, authored next to the extension project and **mirrored** beside the loadable DLL on build (destination content tree wiped, then all `*.json` copied — so gitignored pull survivors cannot keep retired files):
-  - Source: `src/CompuQuest.Minimap/config/accessories/*.json`, `src/CompuQuest.Minimap/config/characters/*.json`, `src/CompuQuest.Minimap/config/actors/*.json`, `src/CompuQuest.Minimap/config/resources/*.json`
-  - Runtime: `extensions/CompuQuest.Minimap/accessories/`, `characters/`, `actors/`, `resources/` (directory named after the assembly, next to `CompuQuest.Minimap.dll`; see `extensions/README.md`)
+  - Source: `src/CompuQuest.Minimap/config/accessories/*.json`, `src/CompuQuest.Minimap/config/characters/*.json`, `src/CompuQuest.Minimap/config/actors/*.json`, `src/CompuQuest.Minimap/config/resources/*.json`, `src/CompuQuest.Minimap/config/domains/*.json`
+  - Runtime: `extensions/CompuQuest.Minimap/accessories/`, `characters/`, `actors/`, `resources/`, `domains/` (directory named after the assembly, next to `CompuQuest.Minimap.dll`; see `extensions/README.md`)
 - One definition per file. **Minimap.App** `DefinitionConfig` loads every `*.json` in each directory (sorted by filename for stable registration order). Missing directories are treated as empty.
 - Load order inside `ExtensionLoader` (for each configured extension DLL, after that DLL’s `Register`, before `CreateGameContent`):
   1. Register resource definitions from `{dllDir}/{assemblyName}/resources/` (id → `TagRegistry.GetOrCreate`; optional `limit` resolved in a second pass; then validate limit rules)
-  2. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/` (effect `cost` / `modify_resource` ids must resolve to registered resource types)
-  3. Register actor definitions from `{dllDir}/{assemblyName}/actors/` (accessory ids resolve against the registry)
-  4. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry)
+  2. Register domain definitions from `{dllDir}/{assemblyName}/domains/` (id → `TagRegistry.GetOrCreate`; required `#RRGGBB` color)
+  3. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/` (effect `cost` / `modify_resource` ids must resolve to registered resource types)
+  4. Register actor definitions from `{dllDir}/{assemblyName}/actors/` (accessory ids resolve against the registry)
+  5. Register character definitions from `{dllDir}/{assemblyName}/characters/` (accessory ids resolve against the registry)
 - Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_actor"`, `"modify_resource"`, `"grow"`, `"harvest"`, `"use_computer"`, `"drain_resource"`, `"modify_resource_by_ratio_bands"`, `"modify_resource_on_use"`). The host does **not** hardcode concrete effect classes.
 - Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
-- Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory / resource / actor ids, malformed `depiction` or `icon`, duplicate ids, or invalid resource limit graphs fail fast (same boot/preflight boundary as extensions).
+- Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory / resource / actor ids, malformed `depiction` / `icon` / domain `color`, duplicate ids, or invalid resource limit graphs fail fast (same boot/preflight boundary as extensions).
 - Optional **`depiction`** / **`icon`** on accessory, character, and actor JSON map to **`DepictionConfig`** / **`IconConfig`**. App does not validate that Godot resources exist at load time.
+
+### Domain schema
+
+```json
+{
+  "id": "gardening",
+  "displayName": "Gardening",
+  "color": "#3A8F4B"
+}
+```
+
+- `id` and `color` (`#RRGGBB`) are required. `displayName` is optional. `id` becomes a tag (same as resource ids). See [domains.md](domains.md).
 
 ### Resource schema
 

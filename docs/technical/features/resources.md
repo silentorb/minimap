@@ -12,7 +12,7 @@ Tag-keyed actor amounts and extension-registered resource types. Implements [../
 - **`Actor`**: `Dictionary<TagId, int>` bag with `GetResource` / `SetResource` / `AddResource` / `TryConsumeResource` (explicit failure when stock is insufficient). Set/add clamp to `[0, limit]` when the type has a `LimitTag`.
 - No dedicated float `Health` / `MaxHealth` / `Energy` fields; combat and death use health / max_health tags from content; hunger uses energy / max_energy.
 - **`IEffectUseCost`** on activatable effects; **`IOnAccessoryAcquired`** / `modify_resource` for grants. Helpers afford/consume against the effect cost (not accessory-level fields).
-- JSON under extension `config/resources/`; load order **actors → resources → accessories → characters** (see [definition-config.md](definition-config.md)).
+- JSON under extension `config/resources/`; load order **resources → domains → accessories → actors → characters** (see [definition-config.md](definition-config.md)).
 - HUD DTOs stay Simulation-free: Client maps visible resources (sorted by `UiPriority` descending) to icon path + amount or `amount / limitAmount`.
 
 ## Non-goals (for now)

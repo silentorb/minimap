@@ -8,7 +8,7 @@
 
 - `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`** / **`place_random_actor`** / **`modify_resource`** / **`grow`** / **`harvest`** / **`use_computer`**, tags such as **`player_selectable`**)
 - Sealed gameplay implementations (e.g. `ShootEffect`)
-- Content JSON under `config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy): accessories, characters, actors, resources
+- Content JSON under `config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy): accessories, characters, actors, resources, domains
 - Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners**, player-selectable accessories via tag filter, resource catalog into `GameContent`
 - Effect factories: `shoot`, `place_random_actor`, `modify_resource`, `grow`, `harvest`, `use_computer`
 

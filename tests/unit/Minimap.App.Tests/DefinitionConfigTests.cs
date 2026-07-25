@@ -188,13 +188,21 @@ public class DefinitionConfigTests
 
         var farm = registry.AccessoryDefinitions.Single(a => a.Id == "farm");
         Assert.Equal(AccessoryActivationKind.Modal, farm.Activation.Kind);
+        Assert.True(farm.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.Contains(farm.EffectTemplates, e => e is PlaceRandomActorEffect);
         Assert.Contains(farm.EffectTemplates, e => e is HarvestEffect);
 
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
+        Assert.True(geek.HasTag(registry.Tags.GetOrCreate("computing")));
         Assert.Contains(geek.EffectTemplates, e => e is PlaceRandomActorEffect);
         Assert.Contains(geek.EffectTemplates, e => e is UseComputerEffect);
+        Assert.Contains(
+            geek.EffectTemplates,
+            e => e is ModifyResourceEffect grant && grant.ResourceTag == registry.Tags.GetOrCreate("electronics"));
+        Assert.Contains(
+            geek.EffectTemplates,
+            e => e is PlaceRandomActorEffect place && place.CostResourceTag == registry.Tags.GetOrCreate("electronics"));
 
         var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
         Assert.Equal(
@@ -228,8 +236,30 @@ public class DefinitionConfigTests
         Assert.Equal(8, registry.ResourceDefinitions.Count);
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "food");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "seeds");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "electronics");
+        Assert.DoesNotContain(registry.ResourceDefinitions, r => r.Id == "computers");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "energy");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "max_energy");
+
+        Assert.Equal(2, registry.DomainDefinitions.Count);
+        var gardening = registry.DomainDefinitions.Single(d => d.Id == "gardening");
+        Assert.Equal("Gardening", gardening.DisplayName);
+        Assert.True(ColorRgb.TryParseHex("#3A8F4B", out var gardeningColor));
+        Assert.Equal(gardeningColor, gardening.Color);
+        var computing = registry.DomainDefinitions.Single(d => d.Id == "computing");
+        Assert.Equal("Computing", computing.DisplayName);
+        Assert.True(ColorRgb.TryParseHex("#B4BEC8", out var computingColor));
+        Assert.Equal(computingColor, computing.Color);
+
+        foreach (var growId in new[] { "grow_carrot", "grow_corn", "grow_melon" })
+        {
+            var grow = registry.AccessoryDefinitions.Single(a => a.Id == growId);
+            Assert.True(grow.HasTag(registry.Tags.GetOrCreate("gardening")));
+        }
+
+        var gunNeutral = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
+        Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
+        Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
         Assert.Equal(2, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
@@ -299,6 +329,33 @@ public class DefinitionConfigTests
 
         Assert.Throws<InvalidOperationException>(() =>
             DefinitionConfig.ValidateResourceLimits([health, maxHealth, other]));
+    }
+
+    [Fact]
+    public void LoadDomainFromJson_parses_color_and_tag()
+    {
+        var tags = new TagRegistry();
+        var domain = DefinitionConfig.LoadDomainFromJson(
+            """
+            { "id": "gardening", "displayName": "Gardening", "color": "#3A8F4B" }
+            """,
+            tags);
+
+        Assert.Equal("gardening", domain.Id);
+        Assert.Equal("Gardening", domain.DisplayName);
+        Assert.Equal(tags.GetOrCreate("gardening"), domain.Tag);
+        Assert.True(ColorRgb.TryParseHex("#3A8F4B", out var expected));
+        Assert.Equal(expected, domain.Color);
+    }
+
+    [Fact]
+    public void LoadDomainFromJson_rejects_invalid_color()
+    {
+        var tags = new TagRegistry();
+        Assert.Throws<InvalidOperationException>(() =>
+            DefinitionConfig.LoadDomainFromJson(
+                """{ "id": "gardening", "color": "green" }""",
+                tags));
     }
 
     [Fact]

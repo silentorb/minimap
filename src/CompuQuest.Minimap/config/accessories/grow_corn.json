@@ -1,6 +1,7 @@
 {
   "id": "grow_corn",
   "displayName": "Grow Corn",
+  "tags": ["gardening"],
   "activation": {
     "kind": "none"
   },

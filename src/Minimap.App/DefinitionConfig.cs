@@ -11,6 +11,7 @@ public static class DefinitionConfig
     public const string CharactersDirectoryName = "characters";
     public const string ActorsDirectoryName = "actors";
     public const string ResourcesDirectoryName = "resources";
+    public const string DomainsDirectoryName = "domains";
 
     /// <summary>
     /// Content root beside a loaded extension DLL:
@@ -232,6 +233,10 @@ public static class DefinitionConfig
             registry.AddResourceDefinition(resource);
         ValidateResourceLimits(registry.ResourceDefinitions);
 
+        var domainsDir = Path.Combine(contentDirectory, DomainsDirectoryName);
+        foreach (var domain in LoadDomainsFromDirectory(domainsDir, registry.Tags))
+            registry.AddDomainDefinition(domain);
+
         var accessoriesDir = Path.Combine(contentDirectory, AccessoriesDirectoryName);
         foreach (var accessory in LoadAccessoriesFromDirectory(accessoriesDir, registry))
             registry.AddAccessoryDefinition(accessory);
@@ -243,6 +248,71 @@ public static class DefinitionConfig
         var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
         foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
             registry.AddCharacterDefinition(character);
+    }
+
+    public static IReadOnlyList<DomainDefinition> LoadDomainsFromDirectory(
+        string directory,
+        TagRegistry tags)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        ArgumentNullException.ThrowIfNull(tags);
+
+        if (!Directory.Exists(directory))
+            return Array.Empty<DomainDefinition>();
+
+        var definitions = new List<DomainDefinition>();
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
+            definitions.Add(LoadDomainFromFile(path, tags));
+
+        return definitions;
+    }
+
+    public static DomainDefinition LoadDomainFromFile(string path, TagRegistry tags)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(tags);
+        return LoadDomainFromJson(File.ReadAllText(path), tags, path);
+    }
+
+    public static DomainDefinition LoadDomainFromJson(
+        string json,
+        TagRegistry tags,
+        string? sourcePath = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        ArgumentNullException.ThrowIfNull(tags);
+
+        using var document = ParseDocument(json, "domain", sourcePath);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                FormatEmptyObjectError("domain", sourcePath));
+        }
+
+        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidOperationException(
+                FormatRequiredFieldError("domain", "id", sourcePath));
+        }
+
+        if (!TryGetStringProperty(root, "color", out var colorText) || string.IsNullOrWhiteSpace(colorText))
+        {
+            throw new InvalidOperationException(
+                FormatRequiredFieldError("domain", "color", sourcePath));
+        }
+
+        if (!ColorRgb.TryParseHex(colorText, out var color))
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Domain color must be #RRGGBB (got '{colorText}').",
+                    sourcePath));
+        }
+
+        TryGetStringProperty(root, "displayName", out var displayName);
+        var tag = tags.GetOrCreate(id!);
+        return new DomainDefinition(id!, tag, color, displayName);
     }
 
     public static IReadOnlyList<ResourceDefinition> LoadResourcesFromDirectory(

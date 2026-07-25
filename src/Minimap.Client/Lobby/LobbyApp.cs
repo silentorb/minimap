@@ -39,7 +39,10 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
                 ProjectSettings.GlobalizePath(ExtensionsSettingsPath));
             var accessoryPoints = WorldHostHooks.RequireCoreAccessoryPoints(
                 ProjectSettings.GlobalizePath(CoreSettingsPath));
-            _lobby.ConfigureAccessories(accessoryPoints, extensions.PlayerSelectableAccessories);
+            _lobby.ConfigureAccessories(
+                accessoryPoints,
+                extensions.PlayerSelectableAccessories,
+                extensions.Domains);
             _boot.MarkExtensionsLoaded();
             RefreshPanels();
         }
@@ -253,7 +256,8 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
                 _panels[i].ShowAccessorySelection(
                     _lobby.SelectableAccessories,
                     selection,
-                    interactive: true);
+                    interactive: true,
+                    _lobby.Domains);
             }
             else
             {

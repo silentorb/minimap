@@ -103,6 +103,28 @@ public class ExtensionRegistryTests
     }
 
     [Fact]
+    public void AddDomainDefinition_rejects_duplicate_id_or_tag()
+    {
+        var registry = new ExtensionRegistry();
+        var tag = registry.Tags.GetOrCreate("gardening");
+        var color = new ColorRgb(0.2f, 0.5f, 0.3f);
+        registry.AddDomainDefinition(new DomainDefinition("gardening", tag, color));
+
+        Assert.Throws<InvalidOperationException>(() =>
+            registry.AddDomainDefinition(new DomainDefinition("gardening", tag, color)));
+
+        var otherTag = registry.Tags.GetOrCreate("other");
+        Assert.Throws<InvalidOperationException>(() =>
+            registry.AddDomainDefinition(new DomainDefinition("other", tag, color)));
+
+        Assert.True(registry.TryGetDomainDefinition("gardening", out var byId));
+        Assert.Equal("gardening", byId!.Id);
+        Assert.True(registry.TryGetDomainDefinition(tag, out var byTag));
+        Assert.Same(byId, byTag);
+        Assert.False(registry.TryGetDomainDefinition(otherTag, out _));
+    }
+
+    [Fact]
     public void AddCharacterDefinition_rejects_duplicate_id()
     {
         var registry = new ExtensionRegistry();

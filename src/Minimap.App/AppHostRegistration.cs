@@ -25,7 +25,8 @@ internal static class AppHostRegistration
             var loaded = ExtensionLoader.LoadFromFile(path);
             return new ExtensionLoadResult(
                 loaded.Content,
-                loaded.Integrator.GetPlayerSelectableAccessories(loaded.Registry));
+                loaded.Integrator.GetPlayerSelectableAccessories(loaded.Registry),
+                loaded.Registry.DomainDefinitions);
         };
         WorldHostHooks.TryGetScenarioPathFromArgs = CliArgs.TryGetScenarioPath;
     }

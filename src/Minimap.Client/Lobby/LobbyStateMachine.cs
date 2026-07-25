@@ -15,6 +15,7 @@ public sealed class LobbyStateMachine
     private int _accessoryPoints = 2;
     private IReadOnlyList<AccessoryDefinition> _selectableAccessories =
         Array.Empty<AccessoryDefinition>();
+    private IReadOnlyList<DomainDefinition> _domains = Array.Empty<DomainDefinition>();
 
     public LobbyStateMachine()
     {
@@ -24,16 +25,20 @@ public sealed class LobbyStateMachine
 
     public void ConfigureAccessories(
         int accessoryPoints,
-        IReadOnlyList<AccessoryDefinition> selectableAccessories)
+        IReadOnlyList<AccessoryDefinition> selectableAccessories,
+        IReadOnlyList<DomainDefinition>? domains = null)
     {
         if (accessoryPoints < 0)
             throw new ArgumentOutOfRangeException(nameof(accessoryPoints));
         ArgumentNullException.ThrowIfNull(selectableAccessories);
         _accessoryPoints = accessoryPoints;
         _selectableAccessories = selectableAccessories;
+        _domains = domains ?? Array.Empty<DomainDefinition>();
     }
 
     public IReadOnlyList<AccessoryDefinition> SelectableAccessories => _selectableAccessories;
+
+    public IReadOnlyList<DomainDefinition> Domains => _domains;
 
     public int AccessoryPoints => _accessoryPoints;
 

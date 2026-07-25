@@ -1,6 +1,6 @@
 {
-  "id": "computers",
-  "displayName": "Computers",
+  "id": "electronics",
+  "displayName": "Electronics",
   "visible": true,
   "uiPriority": 100,
   "icon": {

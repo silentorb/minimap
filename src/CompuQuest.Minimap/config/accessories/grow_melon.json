@@ -1,6 +1,7 @@
 {
   "id": "grow_melon",
   "displayName": "Grow Melon",
+  "tags": ["gardening"],
   "activation": {
     "kind": "none"
   },

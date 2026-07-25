@@ -23,6 +23,7 @@
 | [farming.md](farming.md) | Changing **Farm**, grow/harvest, seedlings, food yields, or vegetable actors. |
 | [cell-placement.md](cell-placement.md) | Changing **cell occupancy**, placing actors on cells, placement preview, or Farm/Geek place rules. |
 | [tags.md](tags.md) | Changing **tags** on definitions (e.g. `player_selectable`), resource type ids as tags, or tag naming policy. |
+| [domains.md](domains.md) | Changing **domains** (gardening / computing themes), domain tags on accessories, or domain-colored icon swatches. |
 | [players.md](players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [ai.md](ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |
 | [combat.md](combat.md) | Changing **missiles**, shoot effect, fire rate, fire button, mouse/stick aim, or AI nearest-hostile aim. |

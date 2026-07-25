@@ -1,6 +1,6 @@
 # Accessories
 
-System for attaching game logic to actors (including characters). Related: [actors.md](actors.md), [characters.md](characters.md), [combat.md](combat.md), [tags.md](tags.md), [resources.md](resources.md), [players.md](players.md), [lobby.md](lobby.md), [active-abilities.md](active-abilities.md), [farming.md](farming.md), [cell-placement.md](cell-placement.md), [hunger.md](hunger.md). Technical: [../../technical/features/accessories.md](../../technical/features/accessories.md).
+System for attaching game logic to actors (including characters). Related: [actors.md](actors.md), [characters.md](characters.md), [combat.md](combat.md), [tags.md](tags.md), [domains.md](domains.md), [resources.md](resources.md), [players.md](players.md), [lobby.md](lobby.md), [active-abilities.md](active-abilities.md), [farming.md](farming.md), [cell-placement.md](cell-placement.md), [hunger.md](hunger.md). Technical: [../../technical/features/accessories.md](../../technical/features/accessories.md).
 
 ## Terminology
 
@@ -18,7 +18,7 @@ System for attaching game logic to actors (including characters). Related: [acto
 - **Use cost** is per **effect** (resource tag + amount; default free). Activatable effects that declare a cost cannot run when the actor cannot afford it; successful activation consumes the cost. Use cost does **not** disable the accessory (e.g. Gun with **0** ammo stays selectable).
 - **Enable gate** (optional on the definition, e.g. `enabledWhen`): when unmet, the accessory is **disabled** — omitted from the ability loadout and HUD. Orthogonal to use cost. See [hunger.md](hunger.md) (**Eat** gated on food ≥ 1).
 - **Starting stock** is granted by a `modify_resource` (or equivalent) effect whose purpose is to change a resource when the accessory is acquired.
-- Shipped player-selectable **abilities** (each lobby point cost **1**): **Gun** (dedicated shoot; grant ammo **6**; shoot costs **1** ammo), **Farm** (modal plant/harvest; grant seeds **3**; plant costs **1** seed), **Geek** (modal place computer + interact with computers; grant computers **1**; place costs **1** computer; further computer behavior forthcoming).
+- Shipped player-selectable **abilities** (each lobby point cost **1**): **Gun** (dedicated shoot; grant ammo **6**; shoot costs **1** ammo), **Farm** (modal plant/harvest; grant seeds **3**; plant costs **1** seed; **gardening** domain), **Geek** (modal place computer + interact with computers; grant electronics **1**; place costs **1** electronics; **computing** domain; further computer behavior forthcoming).
 - Shipped non-selectable character accessories: **energy upkeep** (`energy_upkeep`; activation none; drain + vitality), **Eat** (`eat`; modal; enable-gated on food; instant use restores energy). See [hunger.md](hunger.md).
 - Passive effects may tick on characters (e.g. `drain_resource`, `modify_resource_by_ratio_bands`). Instant-use effects (`modify_resource_on_use`) run on modal activate without placement preview.
 - Lobby selection (see [lobby.md](lobby.md)): players spend accessory points on tagged `player_selectable` accessories. Players do not start with Gun or other selectable abilities unless chosen.
@@ -28,4 +28,4 @@ System for attaching game logic to actors (including characters). Related: [acto
 - In-world inventory / equip UI beyond lobby selection and modal ability select
 - Character stats and stat-modifier apply/revert (future; motivates the effect cache)
 - Multiple weapon types beyond Gun
-- Ways to refill ammo / seeds / computers after the acquire grant
+- Ways to refill ammo / seeds / electronics after the acquire grant
