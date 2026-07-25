@@ -73,14 +73,31 @@ internal static class TestContent
         [
             new TestGrantResourceEffect(AmmoResource.Tag, 6),
             new TestShootEffect(1.25f, 200f, 25, true, AmmoResource.Tag, 1),
-        ]);
+        ],
+        activation: new AccessoryActivation(
+            AccessoryActivationKind.Dedicated,
+            AccessoryActivationBinds.PrimaryFire));
+
+    public static AccessoryDefinition Swing { get; } = new(
+        "swing",
+        [
+            new TestSwingEffect(
+                CombatTuning.SwingIntervalSeconds,
+                CombatTuning.SwingDamage,
+                HexWorldLayout.DefaultHexSize,
+                CombatTuning.SwingArcDegrees,
+                CombatTuning.SwingVisualDurationSeconds),
+        ],
+        activation: new AccessoryActivation(
+            AccessoryActivationKind.Dedicated,
+            AccessoryActivationBinds.SecondaryFire));
 
     public static CharacterDefinition Bare { get; } =
         new("bare", Array.Empty<AccessoryDefinition>());
 
     public static CharacterDefinition Generic { get; } = new("generic", [Gun]);
 
-    public static CharacterDefinition Zombie { get; } = new("zombie", [Gun]);
+    public static CharacterDefinition Zombie { get; } = new("zombie", [Swing]);
 
     public static SpawnerDefinition ZombieSpawner { get; } = new(
         "zombie_spawner",

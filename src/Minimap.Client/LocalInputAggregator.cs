@@ -11,6 +11,7 @@ public readonly struct PlayerWorldInput
         SimVec2 move,
         SimVec2 aim,
         bool fireHeld,
+        bool secondaryFireHeld,
         bool abilityActivatePressed,
         bool abilityBackPressed,
         bool interactPressed,
@@ -19,6 +20,7 @@ public readonly struct PlayerWorldInput
         Move = move;
         Aim = aim;
         FireHeld = fireHeld;
+        SecondaryFireHeld = secondaryFireHeld;
         AbilityActivatePressed = abilityActivatePressed;
         AbilityBackPressed = abilityBackPressed;
         InteractPressed = interactPressed;
@@ -28,6 +30,7 @@ public readonly struct PlayerWorldInput
     public SimVec2 Move { get; }
     public SimVec2 Aim { get; }
     public bool FireHeld { get; }
+    public bool SecondaryFireHeld { get; }
     public bool AbilityActivatePressed { get; }
     public bool AbilityBackPressed { get; }
     public bool InteractPressed { get; }
@@ -58,6 +61,7 @@ public sealed class LocalInputAggregator
         var move = ReadMerged(playerIndex, ReadKeyboardMove, ReadJoypadMove);
         var aim = ReadMerged(playerIndex, () => ReadKeyboardAim(aimOrigin), ReadJoypadAim);
         var fireHeld = false;
+        var secondaryFireHeld = false;
         var activateHeld = false;
         var backHeld = false;
         var interactHeld = false;
@@ -68,6 +72,7 @@ public sealed class LocalInputAggregator
             if (device.IsKeyboard)
             {
                 fireHeld |= Input.IsMouseButtonPressed(MouseButton.Left);
+                secondaryFireHeld |= Input.IsMouseButtonPressed(MouseButton.Right);
                 activateHeld |= Input.IsKeyPressed(Key.Space);
                 backHeld |= Input.IsKeyPressed(Key.Escape);
                 interactHeld |= Input.IsKeyPressed(Key.E);
@@ -75,8 +80,10 @@ public sealed class LocalInputAggregator
             }
             else if (Input.GetConnectedJoypads().Contains(device.JoypadDevice))
             {
-                var trigger = Input.GetJoyAxis(device.JoypadDevice, JoyAxis.TriggerRight);
-                fireHeld |= trigger >= TriggerDeadzone;
+                var rightTrigger = Input.GetJoyAxis(device.JoypadDevice, JoyAxis.TriggerRight);
+                fireHeld |= rightTrigger >= TriggerDeadzone;
+                var leftTrigger = Input.GetJoyAxis(device.JoypadDevice, JoyAxis.TriggerLeft);
+                secondaryFireHeld |= leftTrigger >= TriggerDeadzone;
                 activateHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.X);
                 backHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.B);
                 interactHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.A);
@@ -109,6 +116,7 @@ public sealed class LocalInputAggregator
             move,
             aim,
             fireHeld,
+            secondaryFireHeld,
             activatePressed,
             backPressed,
             interactPressed,

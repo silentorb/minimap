@@ -1,6 +1,8 @@
+using Minimap.Simulation.Types;
+
 namespace Minimap.Simulation;
 
-/// <summary>AI floor-goal wander + nearest-hostile shoot aim (docs/game/features/gameplay/ai.md).</summary>
+/// <summary>AI floor-goal wander + nearest-hostile shoot/swing aim (docs/game/features/gameplay/ai.md).</summary>
 public sealed class AiController : IController
 {
     private readonly Random _random;
@@ -21,9 +23,12 @@ public sealed class AiController : IController
     public void Possess(Character character)
     {
         Pawn = character;
-        var effect = Shoot.FindShootEffect(character);
-        if (effect is not null)
-            effect.CooldownRemaining = (float)(_random.NextDouble() * effect.FireIntervalSeconds);
+        var shoot = Shoot.FindShootEffect(character);
+        if (shoot is not null)
+            shoot.CooldownRemaining = (float)(_random.NextDouble() * shoot.FireIntervalSeconds);
+        var swing = Swing.FindSwingEffect(character);
+        if (swing is not null)
+            swing.CooldownRemaining = (float)(_random.NextDouble() * swing.FireIntervalSeconds);
         _steering.ClearGoal();
         _retargetTimer = 0f;
     }
@@ -57,16 +62,32 @@ public sealed class AiController : IController
 
         Pawn.MoveIntent = _steering.SampleMoveIntent(Pawn, dt);
 
-        var fireDir = SimVec2.Zero;
+        var aimDir = SimVec2.Zero;
         var target = Shoot.FindNearestHostile(Pawn, world.Characters);
         if (target is not null)
         {
             var d = target.Position - Pawn.Position;
             if (d.LengthSquared >= 1e-10f)
-                fireDir = d;
+                aimDir = d;
         }
 
-        Shoot.Tick(world, Pawn, dt, fireDir, wantsFire: fireDir.LengthSquared >= 1e-10f);
+        var hasAim = aimDir.LengthSquared >= 1e-10f;
+        Shoot.Tick(world, Pawn, dt, aimDir, wantsFire: hasAim);
+
+        var wantsSwing = false;
+        if (hasAim && target is not null)
+        {
+            var swing = Swing.FindSwingEffect(Pawn);
+            if (swing is not null)
+            {
+                var radius = swing.Radius > 0f ? swing.Radius : world.HexSize;
+                var reach = radius + world.PlayerRadius;
+                var distSq = (target.Position - Pawn.Position).LengthSquared;
+                wantsSwing = distSq <= reach * reach;
+            }
+        }
+
+        Swing.Tick(world, Pawn, dt, aimDir, wantsSwing);
     }
 
     private void PickNewWander(GameWorld world)

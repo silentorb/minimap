@@ -8,6 +8,7 @@ public sealed class GameWorld
     private readonly List<Character> _characters = new();
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
+    private readonly List<SwingArc> _swingArcs = new();
     private readonly List<Spawner> _spawners = new();
     private readonly Dictionary<HexAxial, Actor> _actorsByCell = new();
     private readonly Dictionary<string, ActorDefinition> _actorDefinitions =
@@ -20,6 +21,7 @@ public sealed class GameWorld
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _nextCharacterId;
     private int _nextMissileId;
+    private int _nextSwingArcId;
     private int _nextSpawnerId;
     private int _nextActorId;
 
@@ -66,6 +68,7 @@ public sealed class GameWorld
     public float MissileRadius { get; set; }
     public IReadOnlyList<Character> Characters => _characters;
     public IReadOnlyList<Missile> Missiles => _missiles;
+    public IReadOnlyList<SwingArc> SwingArcs => _swingArcs;
     public IReadOnlyList<IController> Controllers => _controllers;
     public IReadOnlyList<Spawner> Spawners => _spawners;
     public IReadOnlyDictionary<HexAxial, Actor> CellActors => _actorsByCell;
@@ -214,6 +217,33 @@ public sealed class GameWorld
     {
         controller.Possess(character);
         _controllers.Add(controller);
+    }
+
+    public SwingArc SpawnSwingArc(
+        SimVec2 origin,
+        SimVec2 facing,
+        float radius,
+        float arcDegrees,
+        int damage,
+        int ownerFactionId,
+        int? ownerCharacterId,
+        bool friendlyFire,
+        float lifetimeSeconds)
+    {
+        var arc = new SwingArc(
+            _nextSwingArcId++,
+            origin,
+            facing,
+            radius,
+            arcDegrees,
+            damage,
+            ownerFactionId,
+            ownerCharacterId,
+            friendlyFire,
+            lifetimeSeconds);
+        _swingArcs.Add(arc);
+        ResolveSwingHits(arc);
+        return arc;
     }
 
     public Missile SpawnMissile(
@@ -372,7 +402,8 @@ public sealed class GameWorld
 
         ApplyMovement(dt);
         TickMissiles(dt);
-        RemoveDeadCharacters();
+        TickSwingArcs(dt);
+        RemoveDeadActors();
     }
 
     /// <summary>Movement only (tests that drive intents without controllers).</summary>
@@ -383,9 +414,10 @@ public sealed class GameWorld
         ApplyMovement(dt);
     }
 
-    public void ApplyDamage(Character target, int amount)
+    public void ApplyDamage(Actor target, int amount)
     {
-        if (!target.IsAlive || amount <= 0)
+        ArgumentNullException.ThrowIfNull(target);
+        if (!target.IsDestructible || !target.IsAlive || amount <= 0)
             return;
         target.Health = Math.Max(0, target.Health - amount);
     }
@@ -400,6 +432,7 @@ public sealed class GameWorld
     private void ClearRivalsAndMissiles(int rivalFactionId)
     {
         _missiles.Clear();
+        _swingArcs.Clear();
 
         for (var i = _characters.Count - 1; i >= 0; i--)
         {
@@ -518,28 +551,103 @@ public sealed class GameWorld
                 continue;
             }
 
-            var hit = false;
-            foreach (var character in _characters)
-            {
-                if (!character.IsAlive)
-                    continue;
-                if (m.OwnerCharacterId is int oid && oid == character.Id)
-                    continue;
-                if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, character.FactionId))
-                    continue;
-
-                var delta = character.Position - m.Position;
-                var hitR = PlayerRadius + m.Radius;
-                if (delta.LengthSquared <= hitR * hitR)
-                {
-                    ApplyDamage(character, m.Damage);
-                    hit = true;
-                    break;
-                }
-            }
-
-            if (hit)
+            if (TryMissileHitCharacter(m) || TryMissileHitCellActor(m))
                 _missiles.RemoveAt(i);
+        }
+    }
+
+    private bool TryMissileHitCharacter(Missile m)
+    {
+        foreach (var character in _characters)
+        {
+            if (!character.IsAlive)
+                continue;
+            if (m.OwnerCharacterId is int oid && oid == character.Id)
+                continue;
+            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, character.FactionId))
+                continue;
+
+            var delta = character.Position - m.Position;
+            var hitR = PlayerRadius + m.Radius;
+            if (delta.LengthSquared <= hitR * hitR)
+            {
+                ApplyDamage(character, m.Damage);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryMissileHitCellActor(Missile m)
+    {
+        foreach (var (cell, actor) in _actorsByCell)
+        {
+            if (!actor.IsDestructible || !actor.IsAlive)
+                continue;
+
+            var center = HexWorldLayout.ToWorld(cell, HexSize);
+            var delta = center - m.Position;
+            var hitR = PlayerRadius + m.Radius;
+            if (delta.LengthSquared <= hitR * hitR)
+            {
+                ApplyDamage(actor, m.Damage);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void TickSwingArcs(float dt)
+    {
+        for (var i = _swingArcs.Count - 1; i >= 0; i--)
+        {
+            _swingArcs[i].TimeRemaining -= dt;
+            if (_swingArcs[i].TimeRemaining <= 0f)
+                _swingArcs.RemoveAt(i);
+        }
+    }
+
+    private void ResolveSwingHits(SwingArc arc)
+    {
+        foreach (var character in _characters)
+        {
+            if (!character.IsAlive)
+                continue;
+            if (arc.OwnerCharacterId is int oid && oid == character.Id)
+                continue;
+            if (!arc.FriendlyFire && !FactionRules.AreHostile(arc.OwnerFactionId, character.FactionId))
+                continue;
+
+            if (Swing.IsPointInArc(
+                    arc.Origin,
+                    arc.Facing,
+                    arc.Radius,
+                    arc.ArcDegrees,
+                    character.Position,
+                    PlayerRadius))
+            {
+                ApplyDamage(character, arc.Damage);
+            }
+        }
+
+        foreach (var (cell, actor) in _actorsByCell)
+        {
+            if (!actor.IsDestructible || !actor.IsAlive)
+                continue;
+
+            var center = HexWorldLayout.ToWorld(cell, HexSize);
+            if (Swing.IsPointInArc(
+                    arc.Origin,
+                    arc.Facing,
+                    arc.Radius,
+                    arc.ArcDegrees,
+                    center,
+                    PlayerRadius))
+            {
+                ApplyDamage(actor, arc.Damage);
+            }
         }
     }
 
@@ -554,7 +662,7 @@ public sealed class GameWorld
         return false;
     }
 
-    private void RemoveDeadCharacters()
+    private void RemoveDeadActors()
     {
         for (var i = _characters.Count - 1; i >= 0; i--)
         {
@@ -564,6 +672,21 @@ public sealed class GameWorld
             DetachControllersFor(dead);
             _characters.RemoveAt(i);
         }
+
+        List<HexAxial>? deadCells = null;
+        foreach (var (cell, actor) in _actorsByCell)
+        {
+            if (actor.IsAlive)
+                continue;
+            deadCells ??= new List<HexAxial>();
+            deadCells.Add(cell);
+        }
+
+        if (deadCells is null)
+            return;
+
+        foreach (var cell in deadCells)
+            TryRemoveActorAt(cell, out _);
     }
 
     /// <summary>Rebuild solid hex colliders from current terrain.</summary>

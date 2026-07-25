@@ -1,0 +1,25 @@
+{
+  "id": "swing",
+  "displayName": "Swing",
+  "description": "A short frontal slash. Close and reliable.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "dedicated",
+    "bind": "secondary_fire"
+  },
+  "effects": [
+    {
+      "type": "swing",
+      "fireIntervalSeconds": 0.8,
+      "damage": 30,
+      "radius": 26,
+      "arcDegrees": 180,
+      "visualDurationSeconds": 0.15,
+      "friendlyFire": true
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/lorc/axe-swing.svg"
+  }
+}

@@ -42,14 +42,6 @@ public sealed class Character : Actor
 
     public AbilityLoadout AbilityLoadout { get; }
 
-    public int Health
-    {
-        get => GetResource(ResourceContext.HealthTag);
-        set => SetResource(ResourceContext.HealthTag, value);
-    }
-
-    public int MaxHealth => GetResource(ResourceContext.MaxHealthTag);
-
     public int Energy
     {
         get => GetResource(ResourceContext.EnergyTag);
@@ -57,8 +49,6 @@ public sealed class Character : Actor
     }
 
     public int MaxEnergy => GetResource(ResourceContext.MaxEnergyTag);
-
-    public bool IsAlive => Health > 0;
 
     protected override void OnAccessoriesChanged()
     {

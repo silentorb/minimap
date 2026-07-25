@@ -8,8 +8,9 @@ public sealed class CharacterDefinition : ActorDefinition
         IEnumerable<AccessoryDefinition> accessories,
         DepictionConfig? depictionConfig = null,
         IconConfig? iconConfig = null,
-        string? displayName = null)
-        : base(id, accessories, depictionConfig, iconConfig, displayName)
+        string? displayName = null,
+        IEnumerable<ActorResourceAmount>? resources = null)
+        : base(id, accessories, depictionConfig, iconConfig, displayName, resources)
     {
         ArgumentNullException.ThrowIfNull(accessories);
     }

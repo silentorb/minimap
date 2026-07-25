@@ -205,6 +205,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _clientSession.SetMoveInput(i, input.Move);
             _clientSession.SetAimInput(i, input.Aim);
             _clientSession.SetFireHeld(i, input.FireHeld);
+            _clientSession.SetSecondaryFireHeld(i, input.SecondaryFireHeld);
             _clientSession.SetAbilityActivatePressed(i, input.AbilityActivatePressed);
             _clientSession.SetAbilityBackPressed(i, input.AbilityBackPressed);
             _clientSession.SetInteractPressed(i, input.InteractPressed);

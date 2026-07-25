@@ -19,6 +19,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private Node2D? _placedLayer;
     private Node2D? _playerLayer;
     private Node2D? _missileLayer;
+    private Node2D? _swingLayer;
     private Node2D? _overlayLayer;
     private PackedScene? _hexScene;
     private PackedScene? _spawnerScene;
@@ -28,6 +29,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private readonly Dictionary<int, Node2D> _placedNodes = new();
     private readonly Dictionary<int, Node2D> _characterNodes = new();
     private readonly Dictionary<int, Node2D> _missileNodes = new();
+    private readonly Dictionary<int, Node2D> _swingNodes = new();
     private readonly Dictionary<int, Line2D> _aimLines = new();
     private readonly HashSet<Key> _heldKeys = new();
     private readonly List<Character> _humanPawns = new();
@@ -66,6 +68,13 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             AddChild(_missileLayer);
         }
 
+        _swingLayer = GetNodeOrNull<Node2D>("SwingLayer");
+        if (_swingLayer is null)
+        {
+            _swingLayer = new Node2D { Name = "SwingLayer" };
+            AddChild(_swingLayer);
+        }
+
         _overlayLayer = GetNodeOrNull<Node2D>("OverlayLayer");
         if (_overlayLayer is null)
         {
@@ -101,6 +110,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     {
         SyncCharacters();
         SyncMissiles();
+        SyncSwingArcs();
         SyncSpawners();
         SyncCellActors(localPlayers);
         SyncPlacementPreview(localPlayers);
@@ -134,6 +144,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         SyncCellActors(null);
         SyncCharacters();
         SyncMissiles();
+        SyncSwingArcs();
     }
 
     private void SyncHexes()
@@ -455,6 +466,57 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             _missileNodes[id].QueueFree();
             _missileNodes.Remove(id);
         }
+    }
+
+    private void SyncSwingArcs()
+    {
+        if (_world is null || _swingLayer is null)
+            return;
+
+        var live = new HashSet<int>();
+        foreach (var arc in _world.SwingArcs)
+        {
+            live.Add(arc.Id);
+            if (!_swingNodes.TryGetValue(arc.Id, out var node))
+            {
+                node = new Node2D();
+                var poly = new Polygon2D
+                {
+                    Color = new Color(1f, 0.85f, 0.35f, 0.45f),
+                    Polygon = BuildHalfDiskPolygon(arc.Radius, arc.ArcDegrees),
+                };
+                node.AddChild(poly);
+                _swingLayer.AddChild(node);
+                _swingNodes[arc.Id] = node;
+            }
+
+            node.Position = new Vector2(arc.Origin.X, arc.Origin.Y);
+            node.Rotation = MathF.Atan2(arc.Facing.Y, arc.Facing.X);
+            node.ZIndex = 3;
+        }
+
+        foreach (var id in _swingNodes.Keys.ToList())
+        {
+            if (live.Contains(id))
+                continue;
+            _swingNodes[id].QueueFree();
+            _swingNodes.Remove(id);
+        }
+    }
+
+    private static Vector2[] BuildHalfDiskPolygon(float radius, float arcDegrees, int segments = 16)
+    {
+        var half = Math.Clamp(arcDegrees, 1f, 360f) * 0.5f * (MathF.PI / 180f);
+        var points = new Vector2[segments + 2];
+        points[0] = Vector2.Zero;
+        for (var i = 0; i <= segments; i++)
+        {
+            var t = i / (float)segments;
+            var angle = -half + t * (2f * half);
+            points[i + 1] = new Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius);
+        }
+
+        return points;
     }
 
     private static void ApplyCharacterDepiction(Node2D node, Character character)

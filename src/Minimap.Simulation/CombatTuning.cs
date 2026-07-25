@@ -8,6 +8,10 @@ public static class CombatTuning
     public const int MissileDamage = 25;
     public const float MissileSpeed = 200f;
     public const float FireIntervalSeconds = 1.25f;
+    public const int SwingDamage = 30;
+    public const float SwingIntervalSeconds = 0.8f;
+    public const float SwingArcDegrees = 180f;
+    public const float SwingVisualDurationSeconds = 0.15f;
     public const float MoveSpeed = 120f;
 }
 

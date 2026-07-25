@@ -10,6 +10,7 @@ public sealed class PlayerController : IController
     private SimVec2 _moveInput;
     private SimVec2 _aimInput;
     private bool _fireHeld;
+    private bool _secondaryFireHeld;
     private bool _abilityActivatePressed;
     private bool _abilityBackPressed;
     private bool _interactPressed;
@@ -51,6 +52,8 @@ public sealed class PlayerController : IController
 
     public void SetFireHeld(bool held) => _fireHeld = held;
 
+    public void SetSecondaryFireHeld(bool held) => _secondaryFireHeld = held;
+
     public void SetAbilityActivatePressed(bool pressed) => _abilityActivatePressed = pressed;
 
     public void SetAbilityBackPressed(bool pressed) => _abilityBackPressed = pressed;
@@ -88,6 +91,10 @@ public sealed class PlayerController : IController
         var wantsFire = _fireHeld
             && Pawn.AbilityLoadout.TryGetDedicated(AccessoryActivationBinds.PrimaryFire, out _);
         Shoot.Tick(world, Pawn, dt, _aimInput, wantsFire);
+
+        var wantsSwing = _secondaryFireHeld
+            && Pawn.AbilityLoadout.TryGetDedicated(AccessoryActivationBinds.SecondaryFire, out _);
+        Swing.Tick(world, Pawn, dt, _aimInput, wantsSwing);
     }
 
     private void HandleAbilityActivate(GameWorld world)

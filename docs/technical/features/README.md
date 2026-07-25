@@ -32,7 +32,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [ui/ui-icons.md](ui/ui-icons.md) | Working on **IconConfig**, definition `icon` JSON, or CompuQuest game-icons under `assets/compuquest/game-icons/`. |
 | [gameplay/characters-and-factions.md](gameplay/characters-and-factions.md) | Changing the **Character** model, faction APIs, or spawn configuration parameters. |
 | [ui/player-hud.md](ui/player-hud.md) | Working on **player HUD** panel, HUD models, resource rows, or App→Client HUD wiring. |
-| [gameplay/missiles-and-damage.md](gameplay/missiles-and-damage.md) | Implementing **missile** lifecycle, hit tests, or damage application APIs. |
+| [gameplay/missiles-and-damage.md](gameplay/missiles-and-damage.md) | Implementing **missile** / **SwingArc** lifecycle, hit tests, or damage application APIs. |
 | [session/hex-grid-shape.md](session/hex-grid-shape.md) | Changing **HexGrid** rectangle inclusion, RadiusX/RadiusY, camera fit, or map geometry contracts. |
 | [platform/core-settings.md](platform/core-settings.md) | Changing **core.json**, App settings load APIs, or the JSON vector-as-array convention. |
 | [platform/extensions.md](platform/extensions.md) | Working on **extension loading**, `Minimap.Extensive`, `extensions.json`, integrators, or `CompuQuest.Minimap`. |

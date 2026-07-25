@@ -11,10 +11,10 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 |------|------------|
 | [../game-design.md](../game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [gameplay/resources.md](gameplay/resources.md) | Changing **actor/character resources**, resource types, limits, HUD resource lists, or effect resource cost/grant. |
-| [gameplay/health.md](gameplay/health.md) | Changing **hit points**, max health, or **death / removal** on zero health. |
+| [gameplay/health.md](gameplay/health.md) | Changing **hit points**, max health, **indestructible** actors, or **death / removal** on zero health. |
 | [gameplay/hunger.md](gameplay/hunger.md) | Changing **energy** / max energy, energy drain, vitality bands, **Eat**, or food-gated ability enable. |
 | [gameplay/movement.md](gameplay/movement.md) | Changing **realtime cartesian movement**, screen-axis move input, or wall/character **slide** collision. |
-| [gameplay/damage.md](gameplay/damage.md) | Changing how **damage** applies, missile damage amounts, or friendly-fire rules. |
+| [gameplay/damage.md](gameplay/damage.md) | Changing how **damage** applies, missile / Swing damage amounts, placeable hits, or friendly-fire rules. |
 | [gameplay/depiction.md](gameplay/depiction.md) | Changing **depiction** on character/accessory/actor definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [ui/ui-icons.md](ui/ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
 | [gameplay/actors.md](gameplay/actors.md) | Changing **actors**, actor definitions, cell-anchored actors, or the actor vs character split. |
@@ -28,7 +28,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/domains.md](gameplay/domains.md) | Changing **domains** (gardening / computing themes), domain tags on accessories, or domain-colored icon swatches. |
 | [session/players.md](session/players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [gameplay/ai.md](gameplay/ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |
-| [gameplay/combat.md](gameplay/combat.md) | Changing **missiles**, shoot effect, fire rate, fire button, mouse/stick aim, or AI nearest-hostile aim. |
+| [gameplay/combat.md](gameplay/combat.md) | Changing **missiles**, **Swing**, shoot/swing effects, fire rate, primary/secondary fire, mouse/stick aim, or AI nearest-hostile aim. |
 | [gameplay/factions.md](gameplay/factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
 | [session/map-layout.md](session/map-layout.md) | Changing **map shape or size** (rectangle extents, single-screen arena). |
 | [ui/player-hud.md](ui/player-hud.md) | Changing **player HUD** slots, names, or on-screen resource / health display. |

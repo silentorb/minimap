@@ -18,14 +18,14 @@ System for attaching game logic to actors (including characters). Related: [acto
 - **Use cost** is per **effect** (resource tag + amount; default free). Activatable effects that declare a cost cannot run when the actor cannot afford it; successful activation consumes the cost. Use cost does **not** disable the accessory (e.g. Gun with **0** ammo stays selectable).
 - **Enable gate** (optional on the definition, e.g. `enabledWhen`): when unmet, the accessory is **disabled** — omitted from the ability loadout and HUD. Orthogonal to use cost. See [hunger.md](hunger.md) (**Eat** gated on food ≥ 1).
 - **Starting stock** is granted by a `modify_resource` (or equivalent) effect whose purpose is to change a resource when the accessory is acquired.
-- Shipped player-selectable **abilities** (each lobby point cost **1**): **Gun** (dedicated shoot; grant ammo **6**; shoot costs **1** ammo), **Farm** (modal plant/harvest; grant seeds **3**; plant costs **1** seed; **gardening** domain), **Geek** (modal place computer + interact with computers; grant electronics **1**; place costs **1** electronics; **computing** domain; further computer behavior forthcoming).
-- Shipped non-selectable character accessories: **energy upkeep** (`energy_upkeep`; activation none; drain + vitality), **Eat** (`eat`; modal; enable-gated on food; instant use restores energy). See [hunger.md](hunger.md).
+- Shipped player-selectable **abilities** (each lobby point cost **1**): **Gun** (dedicated `primary_fire` shoot; grant ammo **6**; shoot costs **1** ammo), **Swing** (dedicated `secondary_fire` frontal half-circle attack; no resource cost), **Farm** (modal plant/harvest; grant seeds **3**; plant costs **1** seed; **gardening** domain), **Geek** (modal place computer + interact with computers; grant electronics **1**; place costs **1** electronics; **computing** domain; further computer behavior forthcoming).
+- Shipped non-selectable character accessories: **energy upkeep** (`energy_upkeep`; activation none; drain + vitality), **Eat** (`eat`; modal; enable-gated on food; instant use restores energy). See [hunger.md](hunger.md). Wave enemies (zombie) ship with **Swing** on the character definition instead of Gun.
 - Passive effects may tick on characters (e.g. `drain_resource`, `modify_resource_by_ratio_bands`). Instant-use effects (`modify_resource_on_use`) run on modal activate without placement preview.
-- Lobby selection (see [lobby.md](../ui/lobby.md)): players spend accessory points on tagged `player_selectable` accessories. Players do not start with Gun or other selectable abilities unless chosen.
+- Lobby selection (see [lobby.md](../ui/lobby.md)): players spend accessory points on tagged `player_selectable` accessories. Players do not start with Gun, Swing, or other selectable abilities unless chosen (except definition-granted accessories on wave enemies).
 
 ## Non-goals (for now)
 
 - In-world inventory / equip UI beyond lobby selection and modal ability select
 - Character stats and stat-modifier apply/revert (future; motivates the effect cache)
-- Multiple weapon types beyond Gun
+- Additional melee attacks beyond Swing (future; Swing is the first)
 - Ways to refill ammo / seeds / electronics after the acquire grant

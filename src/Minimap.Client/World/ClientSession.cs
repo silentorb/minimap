@@ -47,6 +47,13 @@ public sealed class ClientSession
         _players[playerIndex].SetFireHeld(held);
     }
 
+    public void SetSecondaryFireHeld(int playerIndex, bool held)
+    {
+        if (playerIndex < 0 || playerIndex >= _players.Count)
+            return;
+        _players[playerIndex].SetSecondaryFireHeld(held);
+    }
+
     public void SetAbilityActivatePressed(int playerIndex, bool pressed)
     {
         if (playerIndex < 0 || playerIndex >= _players.Count)

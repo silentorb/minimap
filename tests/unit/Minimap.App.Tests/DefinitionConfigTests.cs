@@ -11,6 +11,7 @@ public class DefinitionConfigTests
     {
         var registry = new ExtensionRegistry();
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(SwingEffectFactory.TypeId, SwingEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PlaceRandomActorEffectFactory.TypeId,
             PlaceRandomActorEffectFactory.Create);
@@ -174,6 +175,7 @@ public class DefinitionConfigTests
             registry);
 
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "gun");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "swing");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "farm");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_carrot");
@@ -185,6 +187,17 @@ public class DefinitionConfigTests
         Assert.True(gun.HasTag(registry.Tags.GetOrCreate("player_selectable")));
         Assert.Contains(gun.EffectTemplates, e => e is ModifyResourceEffect);
         Assert.Contains(gun.EffectTemplates, e => e is ShootEffect shoot && shoot.CostAmount == 1);
+
+        var swing = registry.AccessoryDefinitions.Single(a => a.Id == "swing");
+        Assert.Equal(1, swing.PointCost);
+        Assert.Equal(AccessoryActivationKind.Dedicated, swing.Activation.Kind);
+        Assert.Equal(AccessoryActivationBinds.SecondaryFire, swing.Activation.Bind);
+        Assert.True(swing.HasTag(registry.Tags.GetOrCreate("player_selectable")));
+        Assert.Contains(
+            swing.EffectTemplates,
+            e => e is SwingEffect s &&
+                 s.Damage == 30 &&
+                 Math.Abs(s.FireIntervalSeconds - 0.8f) < 1e-5f);
 
         var farm = registry.AccessoryDefinitions.Single(a => a.Id == "farm");
         Assert.Equal(AccessoryActivationKind.Modal, farm.Activation.Kind);
@@ -206,7 +219,7 @@ public class DefinitionConfigTests
 
         var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
         Assert.Equal(
-            new HashSet<string>(StringComparer.Ordinal) { "gun", "farm", "geek" },
+            new HashSet<string>(StringComparer.Ordinal) { "gun", "swing", "farm", "geek" },
             selectable.Select(a => a.Id).ToHashSet(StringComparer.Ordinal));
         Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
         Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "use_computer");
@@ -232,6 +245,17 @@ public class DefinitionConfigTests
         Assert.Equal(
             "res://assets/compuquest/game-icons/delapouite/seedling.svg",
             carrot.DepictionConfig!.ResourcePath);
+        Assert.Contains(
+            carrot.Resources,
+            r => r.Tag == registry.Tags.GetOrCreate("max_health") && r.Amount == 25);
+        Assert.Contains(
+            carrot.Resources,
+            r => r.Tag == registry.Tags.GetOrCreate("health") && r.Amount == 25);
+
+        var computer = registry.ActorDefinitions.Single(a => a.Id == "computer");
+        Assert.Contains(
+            computer.Resources,
+            r => r.Tag == registry.Tags.GetOrCreate("max_health") && r.Amount == 40);
 
         Assert.Equal(8, registry.ResourceDefinitions.Count);
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "food");
@@ -267,7 +291,7 @@ public class DefinitionConfigTests
 
         var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
         Assert.Equal(
-            ["energy_upkeep", "eat", "gun"],
+            ["energy_upkeep", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
     }
 

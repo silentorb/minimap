@@ -26,6 +26,7 @@ public class Actor
         _resourceContext = resourceContext;
         Facing = new SimVec2(1f, 0f);
 
+        ApplyDefinitionStartingResources();
         if (applyDefinitionAccessories)
             ApplyDefinitionAccessories();
     }
@@ -51,6 +52,20 @@ public class Actor
     public IReadOnlyList<Accessory> Accessories => _accessories;
 
     public IReadOnlyList<AccessoryEffect> Effects => _effects;
+
+    public int Health
+    {
+        get => GetResource(ResourceContext.HealthTag);
+        set => SetResource(ResourceContext.HealthTag, value);
+    }
+
+    public int MaxHealth => GetResource(ResourceContext.MaxHealthTag);
+
+    /// <summary>True when the actor has positive max health and can take combat damage.</summary>
+    public bool IsDestructible => MaxHealth > 0;
+
+    /// <summary>Indestructible actors are always alive; destructible actors die at health ≤ 0.</summary>
+    public bool IsAlive => !IsDestructible || Health > 0;
 
     public int GetResource(TagId tag) =>
         _resources.TryGetValue(tag, out var amount) ? amount : 0;
@@ -134,6 +149,12 @@ public class Actor
             _effects.Remove(effect);
         OnAccessoriesChanged();
         return true;
+    }
+
+    protected void ApplyDefinitionStartingResources()
+    {
+        foreach (var entry in Definition.Resources)
+            SetResource(entry.Tag, entry.Amount);
     }
 
     protected void ApplyDefinitionAccessories()

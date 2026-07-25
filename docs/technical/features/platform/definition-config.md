@@ -92,12 +92,15 @@ No accessory-level `resource` block. Grants and costs live on effects:
 
 - `id` and `effects` are required. `activation`, `depiction`, `icon`, `tags`, `pointCost` (default **0**), `displayName`, `description`, and optional **`enabledWhen`** (`{ "id", "atLeast" }` resource gate) are optional.
 - Optional `"cost": { "id", "amount" }` on activatable effects (default free; when present, `amount` must be ≥ **1**).
-- `activation.kind`: `none` | `dedicated` | `modal`. Dedicated requires `bind` (e.g. `primary_fire`).
+- `activation.kind`: `none` | `dedicated` | `modal`. Dedicated requires `bind` (e.g. `primary_fire`, `secondary_fire`).
+
 - `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`modify_resource`** — on acquire: add `amount` of resource `id` (amount may be negative).
   - **`shoot`** → `ShootEffect` (`IShootEffect`) — fire params + optional `cost`.
+  - **`swing`** → `SwingEffect` (`ISwingEffect`) — melee Swing params (damage, interval, radius, arc, visual duration, friendly fire) + optional `cost`.
   - **`place_random_actor`** → `PlaceRandomActorEffect` (`ICellPlacementEffect`) — weighted `pool` of `{ "id", "weight" }` actor definition ids + optional `cost`.
+
   - **`grow`** — duration, mature depiction, harvest yield (passive; on vegetable actors).
   - **`harvest`** → `IInteractionEffect` — harvest mature food actors.
   - **`drain_resource`** → `IPassiveEffect` — drain resource `id` at `amountPerSecond` (default **1**).
@@ -112,6 +115,10 @@ No accessory-level `resource` block. Grants and costs live on effects:
   "id": "carrot",
   "displayName": "Carrot",
   "accessories": ["grow_carrot"],
+  "resources": [
+    { "id": "max_health", "amount": 25 },
+    { "id": "health", "amount": 25 }
+  ],
   "depiction": {
     "kind": "texture",
     "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
@@ -119,7 +126,8 @@ No accessory-level `resource` block. Grants and costs live on effects:
 }
 ```
 
-- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional.
+- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional. Optional **`resources`**: array of `{ "id", "amount" }` starting amounts (`amount` ≥ **0**); applied in order at actor construction (set `max_health` before `health`).
+
 
 ### Character schema
 
@@ -138,8 +146,9 @@ No accessory-level `resource` block. Grants and costs live on effects:
 }
 ```
 
-- `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` and `icon` are optional.
-- CompuQuest ships **`generic`** with **`energy_upkeep`** and **`eat`** (hunger); lobby-selectable abilities are still chosen in the lobby. **`zombie`** includes those plus **`gun`** for wave spawns.
+- `id` and `accessories` are required. Each accessories entry is an already-registered accessory definition id (order preserved). `depiction` and `icon` are optional. Characters may also use actor-level optional `resources` (usually unused; characters initialize health/energy in code).
+- CompuQuest ships **`generic`** with **`energy_upkeep`** and **`eat`** (hunger); lobby-selectable abilities are still chosen in the lobby. **`zombie`** includes those plus **`swing`** for wave spawns.
+
 
 ### Later similar catalogs
 

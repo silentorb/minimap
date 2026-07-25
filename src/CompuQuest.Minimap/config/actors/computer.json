@@ -1,6 +1,10 @@
 {
   "id": "computer",
   "displayName": "Computer",
+  "resources": [
+    { "id": "max_health", "amount": 40 },
+    { "id": "health", "amount": 40 }
+  ],
   "depiction": {
     "kind": "texture",
     "path": "res://assets/compuquest/game-icons/delapouite/laptop.svg"

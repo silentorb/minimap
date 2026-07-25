@@ -32,6 +32,23 @@ public class AbilityLoadoutTests
     }
 
     [Fact]
+    public void Rebuild_maps_secondary_fire_dedicated_bind()
+    {
+        var swing = new AccessoryDefinition(
+            "swing",
+            [new TestSwingEffect(0.8f, 30, 26f)],
+            activation: new AccessoryActivation(
+                AccessoryActivationKind.Dedicated,
+                AccessoryActivationBinds.SecondaryFire));
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        character.AddAccessory(swing.CreateInstance());
+
+        Assert.True(character.AbilityLoadout.TryGetDedicated(
+            AccessoryActivationBinds.SecondaryFire, out var dedicated));
+        Assert.Equal("swing", dedicated!.Definition.Id);
+    }
+
+    [Fact]
     public void SelectModal_clamps_to_available_slots()
     {
         var plant = new AccessoryDefinition(

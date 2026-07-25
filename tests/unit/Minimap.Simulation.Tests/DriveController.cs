@@ -8,6 +8,7 @@ internal sealed class DriveController : IController
     private SimVec2 _moveInput;
     private SimVec2 _aimInput;
     private bool _fireHeld;
+    private bool _secondaryFireHeld;
 
     public Character? Pawn { get; private set; }
 
@@ -21,12 +22,15 @@ internal sealed class DriveController : IController
 
     public void SetFireHeld(bool held) => _fireHeld = held;
 
+    public void SetSecondaryFireHeld(bool held) => _secondaryFireHeld = held;
+
     public void Tick(GameWorld world, float dt)
     {
         if (Pawn is null || !Pawn.IsAlive)
             return;
         Pawn.MoveIntent = _moveInput;
         Shoot.Tick(world, Pawn, dt, _aimInput, _fireHeld);
+        Swing.Tick(world, Pawn, dt, _aimInput, _secondaryFireHeld);
     }
 }
 

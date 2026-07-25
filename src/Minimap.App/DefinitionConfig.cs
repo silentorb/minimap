@@ -442,32 +442,39 @@ public static class DefinitionConfig
             return Array.Empty<ActorDefinition>();
 
         var byId = registry.AccessoryDefinitions.ToDictionary(d => d.Id, StringComparer.Ordinal);
+        var resourcesById = registry.ResourceDefinitions.ToDictionary(d => d.Id, StringComparer.Ordinal);
         var definitions = new List<ActorDefinition>();
         foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
-            definitions.Add(LoadActorFromFile(path, byId));
+            definitions.Add(LoadActorFromFile(path, byId, registry.Tags, resourcesById));
 
         return definitions;
     }
 
     public static ActorDefinition LoadActorFromFile(
         string path,
-        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById)
+        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById,
+        TagRegistry tags,
+        IReadOnlyDictionary<string, ResourceDefinition>? resourcesById = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(accessoriesById);
+        ArgumentNullException.ThrowIfNull(tags);
         if (!File.Exists(path))
             throw new FileNotFoundException($"Actor definition file not found: {path}", path);
 
-        return LoadActorFromJson(File.ReadAllText(path), accessoriesById, path);
+        return LoadActorFromJson(File.ReadAllText(path), accessoriesById, tags, resourcesById, path);
     }
 
     public static ActorDefinition LoadActorFromJson(
         string json,
         IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById,
+        TagRegistry tags,
+        IReadOnlyDictionary<string, ResourceDefinition>? resourcesById = null,
         string? sourcePath = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         ArgumentNullException.ThrowIfNull(accessoriesById);
+        ArgumentNullException.ThrowIfNull(tags);
 
         using var document = ParseDocument(json, "actor", sourcePath);
         var root = document.RootElement;
@@ -523,10 +530,73 @@ public static class DefinitionConfig
             }
         }
 
+        var startingResources = ParseActorResourcesProperty(root, id!, tags, resourcesById, sourcePath);
         var depiction = ParseDepictionProperty(root, sourcePath);
         var icon = ParseIconProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
-        return new ActorDefinition(id, accessories, depiction, icon, displayName);
+        return new ActorDefinition(id, accessories, depiction, icon, displayName, startingResources);
+    }
+
+    private static List<ActorResourceAmount> ParseActorResourcesProperty(
+        JsonElement root,
+        string actorId,
+        TagRegistry tags,
+        IReadOnlyDictionary<string, ResourceDefinition>? resourcesById,
+        string? sourcePath)
+    {
+        var result = new List<ActorResourceAmount>();
+        if (!root.TryGetProperty("resources", out var resourcesElement))
+            return result;
+
+        if (resourcesElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException(
+                AppendSource("Actor definition resources must be an array.", sourcePath));
+        }
+
+        foreach (var entry in resourcesElement.EnumerateArray())
+        {
+            if (entry.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Actor definition '{actorId}' resources entries must be objects.",
+                        sourcePath));
+            }
+
+            if (!TryGetStringProperty(entry, "id", out var resourceId) ||
+                string.IsNullOrWhiteSpace(resourceId))
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Actor definition '{actorId}' resources entry must include id.",
+                        sourcePath));
+            }
+
+            if (resourcesById is not null &&
+                !resourcesById.ContainsKey(resourceId))
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Actor definition '{actorId}' references unknown resource '{resourceId}'.",
+                        sourcePath));
+            }
+
+            if (!entry.TryGetProperty("amount", out var amountElement) ||
+                amountElement.ValueKind != JsonValueKind.Number ||
+                !amountElement.TryGetInt32(out var amount) ||
+                amount < 0)
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Actor definition '{actorId}' resources amount must be an integer >= 0.",
+                        sourcePath));
+            }
+
+            result.Add(new ActorResourceAmount(tags.GetOrCreate(resourceId), amount));
+        }
+
+        return result;
     }
 
     private static JsonDocument ParseDocument(string json, string kind, string? sourcePath)

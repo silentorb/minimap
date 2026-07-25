@@ -14,6 +14,7 @@ public enum AccessoryActivationKind : byte
 public static class AccessoryActivationBinds
 {
     public const string PrimaryFire = "primary_fire";
+    public const string SecondaryFire = "secondary_fire";
 }
 
 /// <summary>How a player activates an accessory in-world.</summary>

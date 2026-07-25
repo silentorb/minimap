@@ -13,6 +13,8 @@ Input devices for local human players. Related: [lobby.md](../ui/lobby.md), [mai
 - **In-world movement**: **WASD**; joypad **left stick only** (D-pad does **not** move).
 - **In-world aim**: joypad **right stick**; keyboard **mouse** (direction from pawn to cursor). Arrow keys do not aim.
 - **In-world primary fire** (dedicated Gun): joypad **Right Trigger**; keyboard **Left mouse button**. Aim alone does not fire.
+- **In-world secondary fire** (dedicated Swing): joypad **Left Trigger**; keyboard **Right mouse button**. Aim alone does not swing.
+
 - **Modal ability select**: joypad **D-pad** (up/right/down/left → slots 1–4); keyboard **1–4**.
 - **Modal ability activate**: joypad **`JoyButton.X`**; keyboard **Space**. (Immediate or preview/confirm depending on the ability; see [active-abilities.md](../gameplay/active-abilities.md).)
 - **Environment interact**: joypad **`JoyButton.A`**; keyboard **E** (see [interaction.md](../gameplay/interaction.md)).
