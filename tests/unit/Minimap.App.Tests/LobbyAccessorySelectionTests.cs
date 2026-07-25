@@ -61,6 +61,25 @@ public class LobbyAccessorySelectionTests
     }
 
     [Fact]
+    public void Lobby_to_world_roster_keeps_selected_accessories()
+    {
+        var farm = MakeAccessory("farm", 1);
+        var geek = MakeAccessory("geek", 1);
+        var lobby = new LobbyStateMachine();
+        lobby.ConfigureAccessories(2, [farm, geek]);
+        Assert.True(lobby.TryClaim(InputDeviceId.Joypad(0), out _));
+        Assert.True(lobby.GetAccessorySelection(0)!.TryTake(farm));
+        Assert.True(lobby.GetAccessorySelection(0)!.TryTake(geek));
+        Assert.True(lobby.TryReady(InputDeviceId.Joypad(0)));
+
+        var worldRoster = new LocalPlayRoster();
+        worldRoster.CopyFrom(lobby.BuildRoster());
+
+        Assert.Equal(["farm", "geek"], worldRoster.Players[0].SelectedAccessories.Select(a => a.Id));
+        Assert.True(worldRoster.Players[0].HasJoypad(0));
+    }
+
+    [Fact]
     public void Take_moves_to_owned_and_Return_moves_back_to_available()
     {
         var gun = MakeAccessory("gun", 1);

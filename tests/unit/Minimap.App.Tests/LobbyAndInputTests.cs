@@ -1,5 +1,6 @@
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
+using Minimap.Simulation.Types;
 using Xunit;
 
 namespace Minimap.App.Tests;
@@ -100,6 +101,27 @@ public class LocalPlayRosterTests
         roster.Players[0].AddDevice(InputDeviceId.Keyboard);
         roster.Players[0].AddDevice(InputDeviceId.Joypad(0));
         Assert.Equal(2, roster.Players[0].Devices.Count);
+    }
+
+    [Fact]
+    public void CopyFrom_preserves_devices_and_selected_accessories()
+    {
+        var farm = new AccessoryDefinition(
+            "farm",
+            Array.Empty<AccessoryEffect>(),
+            pointCost: 1,
+            displayName: "Farm");
+        var source = new LocalPlayRoster();
+        source.SetPlayerCount(1);
+        source.Players[0].AddDevice(InputDeviceId.Joypad(0));
+        source.Players[0].SetSelectedAccessories([farm]);
+
+        var target = new LocalPlayRoster();
+        target.CopyFrom(source);
+
+        Assert.Equal(1, target.PlayerCount);
+        Assert.True(target.Players[0].HasJoypad(0));
+        Assert.Equal(["farm"], target.Players[0].SelectedAccessories.Select(a => a.Id));
     }
 }
 

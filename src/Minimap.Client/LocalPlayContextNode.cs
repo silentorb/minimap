@@ -27,13 +27,8 @@ public partial class LocalPlayContextNode : Node
 
     public void ApplyFromLobby(LocalPlayRoster roster)
     {
+        ArgumentNullException.ThrowIfNull(roster);
         EnteredFromLobby = true;
-        Roster.Clear();
-        Roster.SetPlayerCount(roster.PlayerCount);
-        for (var i = 0; i < roster.PlayerCount; i++)
-        {
-            foreach (var d in roster.Players[i].Devices)
-                Roster.Players[i].AddDevice(d);
-        }
+        Roster.CopyFrom(roster);
     }
 }

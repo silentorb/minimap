@@ -22,6 +22,23 @@ public sealed class LocalPlayRoster
             _players.RemoveAt(_players.Count - 1);
     }
 
+    /// <summary>
+    /// Replace this roster with <paramref name="source"/>'s player count, devices,
+    /// and selected accessories (lobby → world handoff).
+    /// </summary>
+    public void CopyFrom(LocalPlayRoster source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Clear();
+        SetPlayerCount(source.PlayerCount);
+        for (var i = 0; i < source.PlayerCount; i++)
+        {
+            foreach (var device in source.Players[i].Devices)
+                _players[i].AddDevice(device);
+            _players[i].SetSelectedAccessories(source.Players[i].SelectedAccessories);
+        }
+    }
+
     public void ApplyDefaultSoloKeyboard()
     {
         Clear();
