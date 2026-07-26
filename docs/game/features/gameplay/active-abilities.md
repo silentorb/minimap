@@ -6,9 +6,9 @@ In-world activation of ability accessories. Related: [accessories.md](accessorie
 
 - Accessories declare an **activation** kind:
   - **Dedicated** — fixed to a named bind (Gun → `primary_fire`, Swing → `secondary_fire`).
-  - **Modal** — joins a switchable pool (up to **4**); player selects which is active, then activates it.
-  - **None** — not player-activatable (e.g. grow on vegetables).
-- Modal selection: gamepad **D-pad** (up/right/down/left → slots 1–4) or keyboard **1–4**.
+  - **Modal** — joins an unbounded switchable pool; player cycles which is active, then activates it.
+    - **None** — not player-activatable (e.g. grow on vegetables).
+- Modal selection: gamepad **D-pad Left / Right** or keyboard **`[` / `]`** cycle previous / next (wraps).
 - Modal activate: gamepad **`JoyButton.X`** / keyboard **Space**. Some abilities activate immediately (**instant use**, e.g. Eat); others use a two-step **preview → confirm** flow (e.g. cell placement). This is general, not plant- or placement-only.
 - Cancel placement preview: gamepad **`JoyButton.B`** / keyboard **Escape**.
 - Environment interact (separate from modal activate): gamepad **`JoyButton.A`** / keyboard **E** — see [interaction.md](interaction.md).
@@ -20,5 +20,5 @@ In-world activation of ability accessories. Related: [accessories.md](accessorie
 ## Non-goals (for now)
 
 - Ability cooldown UI beyond selected-ability chrome
-- Multiple modal pools or more than four modal slots
+- Multiple modal pools
 - AI using modal abilities (players first)

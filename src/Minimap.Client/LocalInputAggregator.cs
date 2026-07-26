@@ -15,7 +15,7 @@ public readonly struct PlayerWorldInput
         bool abilityActivatePressed,
         bool abilityBackPressed,
         bool interactPressed,
-        int? modalSelect)
+        int? modalCycle)
     {
         Move = move;
         Aim = aim;
@@ -24,7 +24,7 @@ public readonly struct PlayerWorldInput
         AbilityActivatePressed = abilityActivatePressed;
         AbilityBackPressed = abilityBackPressed;
         InteractPressed = interactPressed;
-        ModalSelect = modalSelect;
+        ModalCycle = modalCycle;
     }
 
     public SimVec2 Move { get; }
@@ -34,7 +34,7 @@ public readonly struct PlayerWorldInput
     public bool AbilityActivatePressed { get; }
     public bool AbilityBackPressed { get; }
     public bool InteractPressed { get; }
-    public int? ModalSelect { get; }
+    public int? ModalCycle { get; }
 }
 
 /// <summary>Merges move/aim/fire/ability input from all devices bound to each local player.</summary>
@@ -65,7 +65,8 @@ public sealed class LocalInputAggregator
         var activateHeld = false;
         var backHeld = false;
         var interactHeld = false;
-        int? modalSelect = null;
+        var modalPrevHeld = false;
+        var modalNextHeld = false;
 
         foreach (var device in _roster.Players[playerIndex].Devices)
         {
@@ -76,7 +77,8 @@ public sealed class LocalInputAggregator
                 activateHeld |= Input.IsKeyPressed(Key.Space);
                 backHeld |= Input.IsKeyPressed(Key.Escape);
                 interactHeld |= Input.IsKeyPressed(Key.E);
-                modalSelect ??= ReadKeyboardModalSelect();
+                modalPrevHeld |= Input.IsKeyPressed(Key.Bracketleft);
+                modalNextHeld |= Input.IsKeyPressed(Key.Bracketright);
             }
             else if (Input.GetConnectedJoypads().Contains(device.JoypadDevice))
             {
@@ -87,7 +89,8 @@ public sealed class LocalInputAggregator
                 activateHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.X);
                 backHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.B);
                 interactHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.A);
-                modalSelect ??= ReadJoypadModalSelect(device.JoypadDevice);
+                modalPrevHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.DpadLeft);
+                modalNextHeld |= Input.IsJoyButtonPressed(device.JoypadDevice, JoyButton.DpadRight);
             }
         }
 
@@ -100,17 +103,19 @@ public sealed class LocalInputAggregator
         var activatePressed = activateHeld && !edge.ActivateWasHeld;
         var backPressed = backHeld && !edge.BackWasHeld;
         var interactPressed = interactHeld && !edge.InteractWasHeld;
-        var modalPressed = modalSelect is int slot && edge.LastModalSelect != slot
-            ? modalSelect
-            : null;
-        if (modalSelect is null)
-            edge.LastModalSelect = null;
-        else
-            edge.LastModalSelect = modalSelect;
+        var modalPrevPressed = modalPrevHeld && !edge.ModalPrevWasHeld;
+        var modalNextPressed = modalNextHeld && !edge.ModalNextWasHeld;
+        int? modalCycle = null;
+        if (modalPrevPressed && !modalNextPressed)
+            modalCycle = -1;
+        else if (modalNextPressed && !modalPrevPressed)
+            modalCycle = 1;
 
         edge.ActivateWasHeld = activateHeld;
         edge.BackWasHeld = backHeld;
         edge.InteractWasHeld = interactHeld;
+        edge.ModalPrevWasHeld = modalPrevHeld;
+        edge.ModalNextWasHeld = modalNextHeld;
 
         return new PlayerWorldInput(
             move,
@@ -120,7 +125,7 @@ public sealed class LocalInputAggregator
             activatePressed,
             backPressed,
             interactPressed,
-            modalPressed);
+            modalCycle);
     }
 
     private SimVec2 ReadMerged(
@@ -163,32 +168,6 @@ public sealed class LocalInputAggregator
         return _worldView.ReadMouseAimFrom(origin);
     }
 
-    private static int? ReadKeyboardModalSelect()
-    {
-        if (Input.IsKeyPressed(Key.Key1))
-            return 0;
-        if (Input.IsKeyPressed(Key.Key2))
-            return 1;
-        if (Input.IsKeyPressed(Key.Key3))
-            return 2;
-        if (Input.IsKeyPressed(Key.Key4))
-            return 3;
-        return null;
-    }
-
-    private static int? ReadJoypadModalSelect(int deviceIndex)
-    {
-        if (Input.IsJoyButtonPressed(deviceIndex, JoyButton.DpadUp))
-            return 0;
-        if (Input.IsJoyButtonPressed(deviceIndex, JoyButton.DpadRight))
-            return 1;
-        if (Input.IsJoyButtonPressed(deviceIndex, JoyButton.DpadDown))
-            return 2;
-        if (Input.IsJoyButtonPressed(deviceIndex, JoyButton.DpadLeft))
-            return 3;
-        return null;
-    }
-
     private static SimVec2 ReadJoypadMove(int deviceIndex)
     {
         if (!Input.GetConnectedJoypads().Contains(deviceIndex))
@@ -226,6 +205,7 @@ public sealed class LocalInputAggregator
         public bool ActivateWasHeld;
         public bool BackWasHeld;
         public bool InteractWasHeld;
-        public int? LastModalSelect;
+        public bool ModalPrevWasHeld;
+        public bool ModalNextWasHeld;
     }
 }

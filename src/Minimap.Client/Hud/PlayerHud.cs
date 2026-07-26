@@ -53,7 +53,7 @@ public partial class PlayerHud : Control
         {
             var iconView = new DomainIconView
             {
-                CustomMinimumSize = new Vector2(16, 16),
+                CustomMinimumSize = new Vector2(32, 32),
             };
             iconView.Configure(ability.IconPath, ability.DomainColors);
             _abilityRow.AddChild(iconView);

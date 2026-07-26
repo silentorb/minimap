@@ -5,8 +5,6 @@ namespace Minimap.Simulation;
 /// <summary>Dedicated binds and modal ability pool derived from a character's accessories.</summary>
 public sealed class AbilityLoadout
 {
-    public const int MaxModalSlots = 4;
-
     private readonly Dictionary<string, Accessory> _dedicated = new(StringComparer.Ordinal);
     private readonly List<Accessory> _modal = new();
 
@@ -46,8 +44,7 @@ public sealed class AbilityLoadout
                     _dedicated[activation.Bind!] = accessory;
                     break;
                 case AccessoryActivationKind.Modal:
-                    if (_modal.Count < MaxModalSlots)
-                        _modal.Add(accessory);
+                    _modal.Add(accessory);
                     break;
             }
         }
@@ -84,6 +81,15 @@ public sealed class AbilityLoadout
         if (index < 0 || index >= _modal.Count)
             return;
         SelectedModalIndex = index;
+    }
+
+    public void CycleModal(int delta)
+    {
+        if (_modal.Count == 0 || delta == 0)
+            return;
+
+        var count = _modal.Count;
+        SelectedModalIndex = ((SelectedModalIndex + delta) % count + count) % count;
     }
 
     public bool TryGetDedicated(string bind, out Accessory? accessory)

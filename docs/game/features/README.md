@@ -20,7 +20,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/actors.md](gameplay/actors.md) | Changing **actors**, actor definitions, cell-anchored actors, or the actor vs character split. |
 | [gameplay/characters.md](gameplay/characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
 | [gameplay/accessories.md](gameplay/accessories.md) | Changing **accessories**, **abilities**, accessory effects, Gun, Farm, Geek, CompuQuest `config/accessories/` JSON, or effect-cache rules. |
-| [gameplay/active-abilities.md](gameplay/active-abilities.md) | Changing **dedicated vs modal** ability activation, preview/confirm vs immediate activate, D-pad / 1–4 select, or ability activate binds. |
+| [gameplay/active-abilities.md](gameplay/active-abilities.md) | Changing **dedicated vs modal** ability activation, preview/confirm vs immediate activate, D-pad / bracket cycle select, or ability activate binds. |
 | [gameplay/interaction.md](gameplay/interaction.md) | Changing **environment interact**, target highlight, A/E binds, or ability interaction effects. |
 | [gameplay/farming.md](gameplay/farming.md) | Changing **Farm**, grow/harvest, seedlings, food yields, or vegetable actors. |
 | [gameplay/cell-placement.md](gameplay/cell-placement.md) | Changing **cell occupancy**, placing actors on cells, placement preview, or Farm/Geek place rules. |

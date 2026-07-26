@@ -14,7 +14,7 @@ public sealed class PlayerController : IController
     private bool _abilityActivatePressed;
     private bool _abilityBackPressed;
     private bool _interactPressed;
-    private int? _modalSelect;
+    private int? _modalCycle;
     private bool _placementPreview;
 
     public PlayerController(Player player, Random? random = null)
@@ -60,7 +60,7 @@ public sealed class PlayerController : IController
 
     public void SetInteractPressed(bool pressed) => _interactPressed = pressed;
 
-    public void SetModalSelect(int? slotIndex) => _modalSelect = slotIndex;
+    public void SetModalCycle(int? delta) => _modalCycle = delta;
 
     public void Tick(GameWorld world, float dt)
     {
@@ -69,11 +69,11 @@ public sealed class PlayerController : IController
 
         Pawn.MoveIntent = _moveInput;
 
-        if (_modalSelect is int slot)
+        if (_modalCycle is int delta)
         {
             if (_placementPreview)
                 ExitPlacementPreview();
-            Pawn.AbilityLoadout.SelectModal(slot);
+            Pawn.AbilityLoadout.CycleModal(delta);
         }
 
         if (_abilityBackPressed && _placementPreview)

@@ -6,7 +6,7 @@ public enum AccessoryActivationKind : byte
     None = 0,
     /// <summary>Fixed to a named input bind (e.g. primary fire).</summary>
     Dedicated = 1,
-    /// <summary>Selectable in the modal ability pool (D-pad / number keys).</summary>
+    /// <summary>Selectable in the modal ability pool (D-pad Left/Right / bracket keys cycle).</summary>
     Modal = 2,
 }
 

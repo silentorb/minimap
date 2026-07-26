@@ -15,7 +15,7 @@ Input devices for local human players. Related: [lobby.md](../ui/lobby.md), [mai
 - **In-world primary fire** (dedicated Gun): joypad **Right Trigger**; keyboard **Left mouse button**. Aim alone does not fire.
 - **In-world secondary fire** (dedicated Swing): joypad **Left Trigger**; keyboard **Right mouse button**. Aim alone does not swing.
 
-- **Modal ability select**: joypad **D-pad** (up/right/down/left → slots 1–4); keyboard **1–4**.
+- **Modal ability select**: joypad **D-pad Left / Right**; keyboard **`[` / `]`** — cycle previous / next modal (wraps).
 - **Modal ability activate**: joypad **`JoyButton.X`**; keyboard **Space**. (Immediate or preview/confirm depending on the ability; see [active-abilities.md](../gameplay/active-abilities.md).)
 - **Environment interact**: joypad **`JoyButton.A`**; keyboard **E** (see [interaction.md](../gameplay/interaction.md)).
 - **Cancel placement preview**: joypad **`JoyButton.B`**; keyboard **Escape**.

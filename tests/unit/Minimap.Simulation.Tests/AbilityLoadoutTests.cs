@@ -62,4 +62,57 @@ public class AbilityLoadoutTests
         Assert.Equal(0, character.AbilityLoadout.SelectedModalIndex);
         Assert.Equal("plant", character.AbilityLoadout.SelectedModal!.Definition.Id);
     }
+
+    [Fact]
+    public void Rebuild_includes_more_than_four_modal_accessories()
+    {
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        for (var i = 0; i < 5; i++)
+        {
+            var def = new AccessoryDefinition(
+                $"modal_{i}",
+                Array.Empty<AccessoryEffect>(),
+                activation: new AccessoryActivation(AccessoryActivationKind.Modal));
+            character.AddAccessory(def.CreateInstance());
+        }
+
+        Assert.Equal(5, character.AbilityLoadout.Modal.Count);
+        Assert.Equal("modal_0", character.AbilityLoadout.SelectedModal!.Definition.Id);
+    }
+
+    [Fact]
+    public void CycleModal_wraps_forward_and_backward()
+    {
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        foreach (var id in new[] { "a", "b", "c" })
+        {
+            var def = new AccessoryDefinition(
+                id,
+                Array.Empty<AccessoryEffect>(),
+                activation: new AccessoryActivation(AccessoryActivationKind.Modal));
+            character.AddAccessory(def.CreateInstance());
+        }
+
+        Assert.Equal(0, character.AbilityLoadout.SelectedModalIndex);
+
+        character.AbilityLoadout.CycleModal(1);
+        Assert.Equal(1, character.AbilityLoadout.SelectedModalIndex);
+        character.AbilityLoadout.CycleModal(1);
+        Assert.Equal(2, character.AbilityLoadout.SelectedModalIndex);
+        character.AbilityLoadout.CycleModal(1);
+        Assert.Equal(0, character.AbilityLoadout.SelectedModalIndex);
+
+        character.AbilityLoadout.CycleModal(-1);
+        Assert.Equal(2, character.AbilityLoadout.SelectedModalIndex);
+    }
+
+    [Fact]
+    public void CycleModal_no_ops_when_pool_empty()
+    {
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        character.AbilityLoadout.CycleModal(1);
+        character.AbilityLoadout.CycleModal(-1);
+        Assert.Empty(character.AbilityLoadout.Modal);
+        Assert.Null(character.AbilityLoadout.SelectedModal);
+    }
 }

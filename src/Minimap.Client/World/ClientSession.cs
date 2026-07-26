@@ -101,11 +101,11 @@ public sealed class ClientSession
         _players[playerIndex].SetInteractPressed(pressed);
     }
 
-    public void SetModalSelect(int playerIndex, int? slotIndex)
+    public void SetModalCycle(int playerIndex, int? delta)
     {
         if (playerIndex < 0 || playerIndex >= _players.Count)
             return;
-        _players[playerIndex].SetModalSelect(slotIndex);
+        _players[playerIndex].SetModalCycle(delta);
     }
 
     public void OnLevelRegenerated() => ReattachHumanPlayers();

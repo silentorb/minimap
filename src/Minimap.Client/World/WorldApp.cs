@@ -224,7 +224,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _clientSession.SetAbilityActivatePressed(i, input.AbilityActivatePressed);
             _clientSession.SetAbilityBackPressed(i, input.AbilityBackPressed);
             _clientSession.SetInteractPressed(i, input.InteractPressed);
-            _clientSession.SetModalSelect(i, input.ModalSelect);
+            _clientSession.SetModalCycle(i, input.ModalCycle);
         }
 
         EnsureGodotSteering();
