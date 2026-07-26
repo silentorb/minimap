@@ -6,11 +6,11 @@
 
 ## What may live here
 
-- `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`** / **`swing`** / **`place_random_actor`** / **`modify_resource`** / **`grow`** / **`harvest`** / **`use_computer`**, tags such as **`player_selectable`**)
-- Sealed gameplay implementations (e.g. `ShootEffect`, `SwingEffect`)
+- `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`** / **`swing`** / **`place_random_actor`** / **`modify_resource`** / **`grow`** / **`spawn`** / **`harvest`** / **`use_computer`**, tags such as **`player_selectable`**)
+- Sealed gameplay implementations (e.g. `ShootEffect`, `SwingEffect`, `SpawnEffect`)
 - Content JSON under `config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy): accessories, characters, actors, resources, domains
-- Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners**, player-selectable accessories via tag filter, resource catalog into `GameContent`
-- Effect factories: `shoot`, `swing`, `place_random_actor`, `modify_resource`, `grow`, `harvest`, `pickup_resource`, `death_drop`, `use_computer`
+- Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners** (marker path for parked waves), intrinsic **`zombie_spawner`** actor for sandbox, player-selectable accessories via tag filter, resource catalog into `GameContent`
+- Effect factories: `shoot`, `swing`, `place_random_actor`, `modify_resource`, `grow`, `spawn`, `harvest`, `pickup_resource`, `death_drop`, `use_computer`
 
 ## What must not live here
 

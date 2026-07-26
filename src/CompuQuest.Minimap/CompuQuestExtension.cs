@@ -22,6 +22,7 @@ public sealed class CompuQuestExtension : IExtension
             ModifyResourceEffectFactory.TypeId,
             ModifyResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(SpawnEffectFactory.TypeId, SpawnEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PickupResourceEffectFactory.TypeId,

@@ -22,4 +22,4 @@ In-world activation of ability accessories. Related: [accessories.md](accessorie
 
 - Ability cooldown UI beyond selected-ability chrome
 - Multiple modal pools
-- AI using modal abilities (players first)
+- Broad AI use of every modal ability (zombie farmers may use Farm / Eat only)

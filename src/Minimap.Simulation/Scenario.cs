@@ -8,7 +8,7 @@ public sealed class Scenario
         PreparationDuration = 10f,
         WaveCount = 3,
         WaveDuration = 15f,
-        SpawnerCount = 4,
+        SpawnerCount = 2,
         SpawnerVolume = 2,
     };
 

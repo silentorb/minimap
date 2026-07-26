@@ -8,18 +8,17 @@ Gameplay pacing and map-init configuration. Related: [waves.md](../gameplay/wave
 - Scenarios are loaded from **JSON files** at game start.
 - Default scenario: **`config/scenarios/default.json`** (`res://config/scenarios/default.json`).
 - A custom scenario file may be passed on the command line: `--scenario=<path>` or `--scenario <path>`.
-- Scenario fields (retained for the parked wave runner; unused in normal sandbox play):
-  - **preparationDuration** — seconds (float) of quiet time before the first wave
-  - **waveCount** — number of waves per level (int, ≥ 1)
-  - **waveDuration** — seconds (float) between wave starts
-  - **spawnerCount** — wave spawners placed on the map at level init (int, ≥ 1)
-  - **spawnerVolume** — enemies spawned per spawner per wave (int, ≥ 1)
-- **Sandbox (current normal play):** one **persistent map** per session. Level regeneration is **disabled** (`ScenarioRunner.Enabled` defaults to false). At session start the map is populated with **human players only**—**no spawners** are placed.
+- Scenario fields:
+  - **preparationDuration** — seconds (float) of quiet time before the first wave (parked wave runner)
+  - **waveCount** — number of waves per level (int, ≥ 1) (parked wave runner)
+  - **waveDuration** — seconds (float) between wave starts (parked wave runner)
+  - **spawnerCount** — intrinsic placeable spawners placed on the map at session start (int, ≥ 1); default **2**
+  - **spawnerVolume** — retained for parked wave emission (int, ≥ 1); live emission uses each spawner’s `spawn` effect `volume`
+- **Sandbox (current normal play):** one **persistent map** per session. Level regeneration is **disabled** (`ScenarioRunner.Enabled` defaults to false). At session start the map is populated with **human players** and **`spawnerCount`** destructible intrinsic spawners (see [waves.md](../gameplay/waves.md)).
 - Scaling difficulty per level is a future enhancement; `LevelIndex` is tracked for later use when pacing returns.
 
 ## Parked (when wave runner is re-enabled)
 
-- At level start, wave spawners are placed per `spawnerCount`.
 - After all waves in a level complete, a **new level** begins: terrain regenerates (seed + level index), rivals are cleared, spawners reposition, and all human players are healed and resurrected if dead.
 
 ## Non-goals (for now)

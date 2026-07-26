@@ -159,3 +159,48 @@ internal sealed class TestDeathDropEffect : AccessoryEffect, IDeathDropEffect
 
     public override AccessoryEffect Clone() => new TestDeathDropEffect(ActorDefinitionId);
 }
+
+internal sealed class TestSpawnEffect : AccessoryEffect, ISpawnEffect
+{
+    private readonly WeightedPool<string> _pool;
+    private float _elapsed;
+
+    public TestSpawnEffect(float intervalSeconds, int volume, WeightedPool<string> pool)
+    {
+        IntervalSeconds = intervalSeconds;
+        Volume = volume;
+        _pool = pool;
+    }
+
+    public float IntervalSeconds { get; }
+    public int Volume { get; }
+
+    public void Tick(GameWorld world, Actor actor, float dt)
+    {
+        if (dt <= 0f || !actor.IsAlive || actor.Cell is not HexAxial cell)
+            return;
+
+        _elapsed += dt;
+        while (_elapsed >= IntervalSeconds)
+        {
+            _elapsed -= IntervalSeconds;
+            for (var i = 0; i < Volume; i++)
+            {
+                if (!_pool.TryPick(world.Random, out var characterId) || string.IsNullOrWhiteSpace(characterId))
+                    break;
+                if (!world.TryGetCharacterDefinition(characterId, out var definition) || definition is null)
+                    continue;
+
+                world.TrySpawnNearbyHostile(
+                    cell,
+                    definition,
+                    world.RivalFactionId,
+                    AiTuning.DefaultAggression,
+                    AiController.CharacterSeeksCrops(definition));
+            }
+        }
+    }
+
+    public override AccessoryEffect Clone() =>
+        new TestSpawnEffect(IntervalSeconds, Volume, _pool);
+}

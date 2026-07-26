@@ -14,7 +14,7 @@ JSON configuration for [scenarios](../../../game/features/session/scenarios.md).
   "preparationDuration": 10.0,
   "waveCount": 3,
   "waveDuration": 15.0,
-  "spawnerCount": 4,
+  "spawnerCount": 2,
   "spawnerVolume": 2
 }
 ```

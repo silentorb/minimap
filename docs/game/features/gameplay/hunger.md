@@ -24,4 +24,5 @@ Character energy drain, vitality, and eating food. Related: [resources.md](resou
 
 - Death directly from energy depletion
 - Distinct hunger meter UI beyond the energy resource row
-- AI using Eat
+
+Zombie farmers use Eat when they hold food and are missing at least **5** energy (see [ai.md](ai.md)).

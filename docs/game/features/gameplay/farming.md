@@ -11,7 +11,8 @@ Growing and harvesting food via the **Farm** ability. Related: [actors.md](actor
 - Grow behavior lives on a **grow** accessory/effect on each vegetable actor definition (duration, mature depiction, food yield and/or ambush emerge).
 - Harvesting normal crops: with Farm selected, environment interact on a mature food actor destroys it and grants the farmer a **food** resource equal to that vegetable’s yield (**carrot 1**, **corn 2**, **melon 3**).
 - **Crazed carrot** crops: Farm harvest grants **no** resources; the crop is removed and a **crazed carrot** character spawns at that cell on the **rival** faction (same as zombies). If a mature crazed crop is not harvested, it **emerges on its own 5 seconds** after becoming mature.
-- Emerged crazed carrots use chase AI and Swing; on death they drop a **loose carrot** (fully grown carrot art) that any character can pick up via default environment interact for **+1 food** (Farm not required). See [interaction.md](interaction.md).
+- Emerged crazed carrots use high-aggression AI (**0.9**) and Swing; on death they drop a **loose carrot** (fully grown carrot art) that any character can pick up via default environment interact for **+1 food** (Farm not required). See [interaction.md](interaction.md).
+- **Zombie farmers** (rival AI) can harvest mature crops with Farm and consume food with Eat; they do not plant.
 - Acquiring Farm grants **3** seeds via a `modify_resource` effect (not an accessory-level resource block).
 - Food is a generic resource; **Eat** spends **1 food** to restore energy (see [hunger.md](hunger.md)). Only vegetables are grown.
 

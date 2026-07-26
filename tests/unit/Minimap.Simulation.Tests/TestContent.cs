@@ -99,6 +99,35 @@ internal static class TestContent
 
     public static CharacterDefinition Zombie { get; } = new("zombie", [Swing]);
 
+    public static AccessoryDefinition Farm { get; } = new(
+        AiTuning.FarmAccessoryId,
+        [new TestHarvestEffect()],
+        activation: new AccessoryActivation(AccessoryActivationKind.Modal));
+
+    public static AccessoryDefinition Eat { get; } = new(
+        AiTuning.EatAccessoryId,
+        [new TestInstantModifyResourceEffect(
+            EnergyResource.Tag,
+            amount: 5,
+            FoodResource.Tag,
+            costAmount: 1)],
+        activation: new AccessoryActivation(AccessoryActivationKind.Modal),
+        enabledWhen: new AccessoryResourceGate(FoodResource.Tag, 1));
+
+    public static CharacterDefinition ZombieFarmer { get; } = new(
+        "zombie_farmer",
+        [Swing, Farm, Eat]);
+
+    public static ActorDefinition ZombieSpawnerActor { get; } = new(
+        AiTuning.ZombieSpawnerActorId,
+        accessories: null,
+        displayName: "Zombie Spawner",
+        resources:
+        [
+            new ActorResourceAmount(MaxHealthResource.Tag, 400),
+            new ActorResourceAmount(HealthResource.Tag, 400),
+        ]);
+
     public static SpawnerDefinition ZombieSpawner { get; } = new(
         "zombie_spawner",
         new WeightedPool<CharacterDefinition>(
@@ -111,5 +140,10 @@ internal static class TestContent
         new WeightedEntry<SpawnerDefinition>(ZombieSpawner, 1),
     ]);
 
-    public static GameContent Content { get; } = new(Generic, SpawnerPool, resources: Resources);
+    public static GameContent Content { get; } = new(
+        Generic,
+        SpawnerPool,
+        actors: [ZombieSpawnerActor],
+        resources: Resources,
+        characters: [Generic, Zombie, ZombieFarmer, Bare]);
 }

@@ -10,6 +10,7 @@ public sealed class CompuQuestIntegrator : IIntegrator
     public const string PlayerSelectableTag = "player_selectable";
     public const string GenericCharacterId = "generic";
     public const string ZombieCharacterId = "zombie";
+    public const string ZombieFarmerCharacterId = "zombie_farmer";
     public const string ZombieSpawnerId = "zombie_spawner";
 
     public string Id => IntegratorId;
@@ -30,6 +31,8 @@ public sealed class CompuQuestIntegrator : IIntegrator
                 $"Character definition '{ZombieCharacterId}' is not registered; cannot create game content.");
         }
 
+        // Marker pool kept for parked ScenarioRunner wave tests; sandbox places the
+        // zombie_spawner actor (intrinsic spawn accessory) via PlaceSpawnerActors.
         var zombieSpawner = new SpawnerDefinition(
             ZombieSpawnerId,
             new WeightedPool<CharacterDefinition>(

@@ -68,7 +68,7 @@ public class GameSessionGameOverTests
     }
 
     [Fact]
-    public void Create_places_no_spawners()
+    public void Create_places_destructible_spawner_actors()
     {
         var scenario = Scenario.Defaults;
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
@@ -77,5 +77,16 @@ public class GameSessionGameOverTests
 
         Assert.Empty(session.World.Spawners);
         Assert.False(session.ScenarioRunner.Enabled);
+        Assert.Equal(2, scenario.SpawnerCount);
+        var spawners = session.World.CellActors.Values
+            .Where(a => a.Definition.Id == AiTuning.ZombieSpawnerActorId)
+            .ToList();
+        Assert.Equal(2, spawners.Count);
+        Assert.All(spawners, a =>
+        {
+            Assert.True(a.IsDestructible);
+            Assert.Equal(400, a.MaxHealth);
+            Assert.Equal(400, a.Health);
+        });
     }
 }

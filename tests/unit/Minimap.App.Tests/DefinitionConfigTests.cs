@@ -19,6 +19,7 @@ public class DefinitionConfigTests
             ModifyResourceEffectFactory.TypeId,
             ModifyResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(SpawnEffectFactory.TypeId, SpawnEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PickupResourceEffectFactory.TypeId,
@@ -240,15 +241,26 @@ public class DefinitionConfigTests
         Assert.Contains(upkeep.EffectTemplates, e => e is DrainResourceEffect);
         Assert.Contains(upkeep.EffectTemplates, e => e is ModifyResourceByRatioBandsEffect);
 
-        Assert.Equal(6, registry.ActorDefinitions.Count);
+        Assert.Equal(7, registry.ActorDefinitions.Count);
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "melon");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "crazed_carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "loose_carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "computer");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "zombie_spawner");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_crazed_carrot");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "spawn_zombies");
         Assert.Contains(registry.CharacterDefinitions, c => c.Id == "crazed_carrot");
+        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "zombie_farmer");
+
+        var spawner = registry.ActorDefinitions.Single(a => a.Id == "zombie_spawner");
+        Assert.Equal("spawn_zombies", Assert.Single(spawner.Accessories).Id);
+        Assert.Contains(spawner.Resources, r => r.Amount == 400);
+        var spawnZombies = registry.AccessoryDefinitions.Single(a => a.Id == "spawn_zombies");
+        Assert.Contains(
+            spawnZombies.EffectTemplates,
+            e => e is SpawnEffect s && s.Volume == 2 && Math.Abs(s.IntervalSeconds - 15f) < 1e-5f);
 
         var carrot = registry.ActorDefinitions.Single(a => a.Id == "carrot");
         Assert.Equal("grow_carrot", Assert.Single(carrot.Accessories).Id);
@@ -295,7 +307,7 @@ public class DefinitionConfigTests
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
-        Assert.Equal(3, registry.CharacterDefinitions.Count);
+        Assert.Equal(4, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
         Assert.Equal(["energy_upkeep", "eat"], generic.Accessories.Select(a => a.Id).ToArray());
 
@@ -303,6 +315,11 @@ public class DefinitionConfigTests
         Assert.Equal(
             ["energy_upkeep", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
+
+        var farmer = registry.CharacterDefinitions.Single(c => c.Id == "zombie_farmer");
+        Assert.Equal(
+            ["energy_upkeep", "eat", "swing", "farm"],
+            farmer.Accessories.Select(a => a.Id).ToArray());
 
         var crazed = registry.CharacterDefinitions.Single(c => c.Id == "crazed_carrot");
         Assert.Equal(

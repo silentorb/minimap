@@ -1,17 +1,24 @@
 # AI
 
-AI-controlled characters. Related: [combat.md](combat.md), [factions.md](factions.md), [health.md](health.md). Technical control: [controllers.md](../../../technical/features/gameplay/controllers.md), [navigation.md](../../../technical/features/gameplay/navigation.md).
+AI-controlled characters. Related: [combat.md](combat.md), [factions.md](factions.md), [health.md](health.md), [farming.md](farming.md), [hunger.md](hunger.md). Technical control: [controllers.md](../../../technical/features/gameplay/controllers.md), [navigation.md](../../../technical/features/gameplay/navigation.md).
 
 ## Requirements
 
-- AI characters **wander**: they periodically pick a new random **grass hex world goal** (or briefly pause). Movement uses the same rules as any other character ([movement.md](movement.md): cartesian motion, wall-slide and character-circle collision). Toward a goal, move intent comes from **navigation steering** (direct or pathfinding/crowd—see technical navigation docs).
-- AI characters **engage hostiles** using the same combat rules as a player-controlled character from the character’s point of view ([combat.md](combat.md)): if they have an `IShootEffect`, they fire with aim toward the nearest hostile; if they have an `ISwingEffect`, they aim the same way and swing when that hostile is within Swing radius. Wave zombies use Swing (not Gun). Wander AI recomputes the nearest hostile every tick for aim/fire (no sticky combat lock).
-- **Chase AI** (e.g. crazed carrots): move straight toward a **locked** hostile instead of wandering; aim and Swing when in reach. Once locked, the AI keeps that target until a reconsider timer (~**1.2–2.4** s) fires, then re-picks the nearest hostile (may switch). It does **not** immediately switch when a closer hostile appears.
-
+- AI characters use a single **`AiController`** with an **aggression** property in **[0, 1]**:
+  - **0** — pure roam (random grass goals / pause). They still aim and Swing/shoot when a hostile is already in range, and farmers still harvest/eat when a viable target is in interact range.
+  - **1** — always beeline toward the nearest **significant goal**.
+  - Mid values — blend a random roam goal with a gentle pull toward that goal (`lerp`).
+- **Significant goals** depend on the AI:
+  - Regular zombies / crazed carrots: nearest living hostile ([factions.md](factions.md)).
+  - **Zombie farmers**: nearest living hostile **or** mature crop (equal pull — nearest by distance across both sets).
+- Default rival AI aggression is **0.45**. Emerged **crazed carrots** use **0.9**.
+- AI engage hostiles with the same combat rules as a player from the character’s point of view ([combat.md](combat.md)): aim at the nearest hostile each tick; fire `IShootEffect` / swing `ISwingEffect` when in reach. Wave / spawner zombies use Swing (not Gun).
+- **Zombie farmers** also select Farm to harvest mature crops via environment interact, and select Eat to restore energy when they hold food and are missing at least **5** energy.
 - AI does **not** hard-code “attack the player.” Hostiles are defined by [factions.md](factions.md).
-- Each game places AI on **both** factions used in the current mode (see spawn surface in [factions.md](factions.md)): **3** AI per faction by default, plus one human-controlled character on the player faction. Emerged crazed carrots use the rival faction and chase AI (see [farming.md](farming.md)).
+- Emerged crazed carrots use the rival faction and high-aggression AI (see [farming.md](farming.md)). Legacy default roster still places a small amount of ally/rival AI in tests.
 
 ## Non-goals (for now)
 
 - Cover, retreat, or coordinated group tactics
-- Difficulty tiers or per-AI personality
+- Sticky combat target locks (aggression blend replaces the old chase-controller lock)
+- Farmer planting AI

@@ -76,6 +76,9 @@ public sealed class GameWorld
     public IReadOnlyList<Spawner> Spawners => _spawners;
     public IReadOnlyDictionary<HexAxial, Actor> CellActors => _actorsByCell;
 
+    /// <summary>Shared RNG for content effects (spawn pools, nearby hex picks).</summary>
+    public Random Random => _random;
+
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
     public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
 
@@ -202,10 +205,10 @@ public sealed class GameWorld
         return false;
     }
 
-    /// <summary>Ticks passive effects on cell-anchored actors (e.g. grow).</summary>
+    /// <summary>Ticks passive effects on cell-anchored actors (e.g. grow / spawn).</summary>
     public void TickCellActors(float dt)
     {
-        // Snapshot: grow emerge may remove actors during the tick.
+        // Snapshot: grow emerge / spawn may mutate actors during the tick.
         var actors = _actorsByCell.Values.ToList();
         foreach (var actor in actors)
         {
@@ -213,13 +216,15 @@ public sealed class GameWorld
             {
                 if (effect is IGrowEffect grow)
                     grow.Tick(this, actor, dt);
+                else if (effect is ISpawnEffect spawn)
+                    spawn.Tick(this, actor, dt);
                 else if (effect is IPassiveEffect passive)
                     passive.Tick(actor, dt);
             }
         }
     }
 
-    /// <summary>Spawn a chase-AI character (e.g. crazed carrot emerge).</summary>
+    /// <summary>Spawn a high-aggression AI character (e.g. crazed carrot emerge).</summary>
     public Character SpawnChaseCharacter(
         CharacterDefinition definition,
         SimVec2 position,
@@ -227,7 +232,12 @@ public sealed class GameWorld
     {
         ArgumentNullException.ThrowIfNull(definition);
         var character = AddCharacter(factionId, position, definition);
-        AttachController(new ChaseAiController(_random), character);
+        AttachController(
+            new AiController(
+                _random,
+                aggression: AiTuning.CrazedCarrotAggression,
+                seekCrops: AiController.CharacterSeeksCrops(definition)),
+            character);
         return character;
     }
 
@@ -362,8 +372,8 @@ public sealed class GameWorld
     }
 
     /// <summary>
-    /// Place <paramref name="count"/> spawners by weighted-picking from <paramref name="pool"/>.
-    /// Empty pool places nothing.
+    /// Place <paramref name="count"/> marker spawners by weighted-picking from <paramref name="pool"/>.
+    /// Empty pool places nothing. Kept for parked <see cref="ScenarioRunner"/> wave tests.
     /// </summary>
     public void PlaceSpawners(int count, WeightedPool<SpawnerDefinition> pool)
     {
@@ -383,13 +393,55 @@ public sealed class GameWorld
         }
     }
 
+    /// <summary>
+    /// Place <paramref name="count"/> destructible intrinsic spawner actors (placeables) on grass.
+    /// Missing definition places nothing.
+    /// </summary>
+    public void PlaceSpawnerActors(int count, string actorDefinitionId)
+    {
+        if (count <= 0 || string.IsNullOrWhiteSpace(actorDefinitionId))
+            return;
+        if (!TryGetActorDefinition(actorDefinitionId, out var definition) || definition is null)
+            return;
+
+        var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, count, _random);
+        for (var i = 0; i < count; i++)
+            TryPlaceActor(hexes[i], definition);
+    }
+
     public void SpawnWaveEnemies(Spawner spawner, int count, int rivalFactionId)
     {
         ArgumentNullException.ThrowIfNull(spawner);
         if (count <= 0 || spawner.CharacterPool.IsEmpty)
             return;
 
-        var candidates = CollectNearbyGrassHexes(spawner.Position, maxDistance: 2);
+        for (var i = 0; i < count; i++)
+        {
+            if (!spawner.CharacterPool.TryPick(_random, out var definition) || definition is null)
+                break;
+
+            TrySpawnNearbyHostile(
+                spawner.Position,
+                definition,
+                rivalFactionId,
+                AiTuning.DefaultAggression,
+                AiController.CharacterSeeksCrops(definition));
+        }
+    }
+
+    /// <summary>
+    /// Spawn one rival AI on a nearby grass hex. Returns null when no grass candidates exist.
+    /// </summary>
+    public Character? TrySpawnNearbyHostile(
+        HexAxial origin,
+        CharacterDefinition definition,
+        int rivalFactionId,
+        float aggression = AiTuning.DefaultAggression,
+        bool seekCrops = false)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        var candidates = CollectNearbyGrassHexes(origin, maxDistance: 2);
         if (candidates.Count == 0)
         {
             candidates = Grid.AllHexes()
@@ -397,18 +449,16 @@ public sealed class GameWorld
                 .ToList();
         }
 
-        for (var i = 0; i < count; i++)
-        {
-            if (!spawner.CharacterPool.TryPick(_random, out var definition) || definition is null)
-                break;
+        if (candidates.Count == 0)
+            return null;
 
-            var hex = candidates[_random.Next(candidates.Count)];
-            var enemy = AddCharacter(
-                rivalFactionId,
-                HexWorldLayout.ToWorld(hex, HexSize),
-                definition);
-            AttachController(new AiController(_random), enemy);
-        }
+        var hex = candidates[_random.Next(candidates.Count)];
+        var enemy = AddCharacter(
+            rivalFactionId,
+            HexWorldLayout.ToWorld(hex, HexSize),
+            definition);
+        AttachController(new AiController(_random, aggression: aggression, seekCrops: seekCrops), enemy);
+        return enemy;
     }
 
     /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>

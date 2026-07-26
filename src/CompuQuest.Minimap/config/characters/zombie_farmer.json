@@ -1,0 +1,12 @@
+{
+  "id": "zombie_farmer",
+  "accessories": ["energy_upkeep", "eat", "swing", "farm"],
+  "depiction": {
+    "kind": "sprite_frames",
+    "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
+    "animation": "default"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/farmer.svg"
+  }
+}

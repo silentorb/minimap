@@ -1,0 +1,13 @@
+{
+  "id": "zombie_spawner",
+  "displayName": "Zombie Spawner",
+  "accessories": ["spawn_zombies"],
+  "resources": [
+    { "id": "max_health", "amount": 400 },
+    { "id": "health", "amount": 400 }
+  ],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/sbed/spawn-node.svg"
+  }
+}

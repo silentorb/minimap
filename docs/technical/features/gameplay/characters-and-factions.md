@@ -16,7 +16,7 @@ Simulation character model and faction APIs. Implements [factions.md](../../../g
 - `GameWorld` holds a **mutable roster** of characters (not a fixed 1–4 array) plus cell-anchored actors.
 - Spawns take a **`CharacterDefinition`** (normally `GameContent.DefaultCharacter`) and attach definition accessories via `AddAccessory`. World holds resource catalog + health tags from `GameContent` so characters can initialize and clamp health.
 - **`FactionRules.AreHostile(int a, int b)`** → `a != b`. No other faction constants in this helper.
-- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play: `GameSession` creates **`Player`** records and spawns their characters from `GameContent.DefaultCharacter` (plus lobby-selected accessories). **No spawners** are placed while waves are parked (see [waves.md](../../../game/features/gameplay/waves.md)). Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.Client** (`ClientSession`) attaches `PlayerController`s associated with each `Player`.
+- **Spawn configuration** (bootstrap parameters only): `playerFactionId`, `rivalFactionId`, `aiPerFaction`, `humanPlayerCount`. Normal play: `GameSession` creates **`Player`** records and spawns their characters from `GameContent.DefaultCharacter` (plus lobby-selected accessories), then places **`spawnerCount`** intrinsic `zombie_spawner` actors (see [waves.md](../../../game/features/gameplay/waves.md)). Legacy `GameWorld.SpawnDefaultRoster` (humans + ally AI + rival AI) remains for tests. **Minimap.Client** (`ClientSession`) attaches `PlayerController`s associated with each `Player`.
 
 ## Death
 

@@ -68,7 +68,9 @@ public class CrazedCarrotTests
         var spawned = w.Characters.Single(c => c.Id != farmer.Id);
         Assert.Equal(2, spawned.FactionId);
         Assert.Equal("crazed_carrot", spawned.Definition.Id);
-        Assert.Contains(w.Controllers, c => c is ChaseAiController);
+        var ai = Assert.IsType<AiController>(
+            Assert.Single(w.Controllers, c => c.Pawn?.Id == spawned.Id));
+        Assert.Equal(AiTuning.CrazedCarrotAggression, ai.Aggression);
     }
 
     [Fact]
@@ -100,7 +102,7 @@ public class CrazedCarrotTests
     }
 
     [Fact]
-    public void Chase_ai_keeps_locked_target_until_reconsider()
+    public void High_aggression_tracks_nearest_hostile_on_retarget()
     {
         var w = GameWorld.Create(5, 5, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
@@ -109,22 +111,19 @@ public class CrazedCarrotTests
         var first = w.AddCharacter(1, new SimVec2(40f, 0f), TestContent.Bare);
         var other = w.AddCharacter(1, new SimVec2(80f, 0f), TestContent.Bare);
 
-        var ai = new ChaseAiController(new Random(1), new DirectMoveSteering());
+        var ai = new AiController(
+            new Random(1),
+            new DirectMoveSteering(),
+            aggression: 1f);
         w.AttachController(ai, chaser);
 
-        // Locks nearest (first, to the right).
         ai.Tick(w, 0.016f);
         Assert.True(chaser.MoveIntent.X > 0f);
 
-        // Make first farther on the left; other becomes nearer on the right.
-        // Sticky lock should keep chasing first (left) until reconsider.
+        // Nearest becomes other on the right after first moves far left.
         first.Position = new SimVec2(-200f, 0f);
         other.Position = new SimVec2(30f, 0f);
-        ai.Tick(w, 0.016f);
-        Assert.True(chaser.MoveIntent.X < 0f);
-
-        // After reconsider window, switch to nearer other (right).
-        ai.Tick(w, AiWanderGoals.ChaseReconsiderMaxSeconds + 0.1f);
+        ai.Tick(w, AiWanderGoals.RetargetMaxSeconds + 0.1f);
         Assert.True(chaser.MoveIntent.X > 0f);
     }
 

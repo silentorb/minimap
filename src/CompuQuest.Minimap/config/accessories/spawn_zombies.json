@@ -1,0 +1,19 @@
+{
+  "id": "spawn_zombies",
+  "displayName": "Spawn Zombies",
+  "description": "Periodically emit rival zombies near this marker.",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "spawn",
+      "intervalSeconds": 15,
+      "volume": 2,
+      "pool": [
+        { "id": "zombie", "weight": 2 },
+        { "id": "zombie_farmer", "weight": 1 }
+      ]
+    }
+  ]
+}

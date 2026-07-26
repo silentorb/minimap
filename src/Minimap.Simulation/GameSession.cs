@@ -100,7 +100,7 @@ public sealed class GameSession
 
         session.CreatePlayers(count, accessoryPoints, selectedAccessoriesByPlayer);
         session.SpawnPlayers(config);
-        // Spawner placement parked for sandbox play (see waves / scenarios feature docs).
+        session.World.PlaceSpawnerActors(scenario.SpawnerCount, AiTuning.ZombieSpawnerActorId);
         return session;
     }
 
