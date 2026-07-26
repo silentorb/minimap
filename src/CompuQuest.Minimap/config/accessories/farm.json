@@ -16,9 +16,10 @@
     {
       "type": "place_random_actor",
       "pool": [
-        { "id": "carrot", "weight": 1 },
-        { "id": "corn", "weight": 1 },
-        { "id": "melon", "weight": 1 }
+        { "id": "carrot", "weight": 3 },
+        { "id": "corn", "weight": 3 },
+        { "id": "melon", "weight": 3 },
+        { "id": "crazed_carrot", "weight": 1 }
       ],
       "cost": { "id": "seeds", "amount": 1 }
     },

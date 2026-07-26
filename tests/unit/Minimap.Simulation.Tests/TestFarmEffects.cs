@@ -6,36 +6,78 @@ namespace Minimap.Simulation.Tests;
 internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
 {
     private float _elapsed;
+    private float _postMatureElapsed;
+    private bool _emerged;
 
     public TestGrowEffect(
         float durationSeconds,
         DepictionConfig matureDepiction,
-        TagId yieldResourceTag,
-        int yieldAmount)
+        TagId? yieldResourceTag,
+        int yieldAmount,
+        string? emergeCharacterId = null,
+        float emergeAfterMatureSeconds = 0f)
     {
         DurationSeconds = durationSeconds;
         MatureDepiction = matureDepiction;
         YieldResourceTag = yieldResourceTag;
         YieldAmount = yieldAmount;
+        EmergeCharacterId = emergeCharacterId;
+        EmergeAfterMatureSeconds = emergeAfterMatureSeconds;
     }
 
     public float DurationSeconds { get; }
     public DepictionConfig MatureDepiction { get; }
     public TagId? YieldResourceTag { get; }
     public int YieldAmount { get; }
+    public string? EmergeCharacterId { get; }
+    public float EmergeAfterMatureSeconds { get; }
     public bool IsMature => _elapsed >= DurationSeconds;
 
-    public void Tick(Actor actor, float dt)
+    public void Tick(GameWorld world, Actor actor, float dt)
     {
-        if (dt <= 0f || IsMature)
+        if (dt <= 0f || _emerged)
             return;
-        _elapsed += dt;
-        if (IsMature)
+        if (!IsMature)
+        {
+            _elapsed += dt;
+            if (!IsMature)
+                return;
             actor.DepictionOverride = MatureDepiction;
+        }
+
+        if (EmergeCharacterId is null)
+            return;
+        _postMatureElapsed += dt;
+        if (_postMatureElapsed >= EmergeAfterMatureSeconds)
+            TryEmerge(world, actor);
+    }
+
+    public bool TryEmerge(GameWorld world, Actor actor)
+    {
+        if (_emerged || string.IsNullOrWhiteSpace(EmergeCharacterId) || !IsMature)
+            return false;
+        if (actor.Cell is not { } cell)
+            return false;
+        if (!world.TryGetCharacterDefinition(EmergeCharacterId, out var characterDef) || characterDef is null)
+            return false;
+        if (!world.TryRemoveActorAt(cell, out _))
+            return false;
+        _emerged = true;
+        world.SpawnChaseCharacter(
+            characterDef,
+            HexWorldLayout.ToWorld(cell, world.HexSize),
+            world.RivalFactionId);
+        return true;
     }
 
     public override AccessoryEffect Clone() =>
-        new TestGrowEffect(DurationSeconds, MatureDepiction, YieldResourceTag!.Value, YieldAmount);
+        new TestGrowEffect(
+            DurationSeconds,
+            MatureDepiction,
+            YieldResourceTag,
+            YieldAmount,
+            EmergeCharacterId,
+            EmergeAfterMatureSeconds);
 }
 
 internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect
@@ -68,6 +110,10 @@ internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect
 
         if (grow is null || target.Cell is not { } cell)
             return false;
+
+        if (!string.IsNullOrWhiteSpace(grow.EmergeCharacterId))
+            return grow.TryEmerge(world, target);
+
         if (!world.TryRemoveActorAt(cell, out _))
             return false;
         if (grow.YieldResourceTag is { } tag && grow.YieldAmount > 0)
@@ -76,4 +122,40 @@ internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect
     }
 
     public override AccessoryEffect Clone() => new TestHarvestEffect();
+}
+
+internal sealed class TestPickupEffect : AccessoryEffect, IDefaultInteractionEffect
+{
+    private readonly TagId _resourceTag;
+    private readonly int _amount;
+
+    public TestPickupEffect(TagId resourceTag, int amount)
+    {
+        _resourceTag = resourceTag;
+        _amount = amount;
+    }
+
+    public bool CanInteract(GameWorld world, Actor actor, Actor target) =>
+        target.Cell is not null;
+
+    public bool TryInteract(GameWorld world, Actor actor, Actor target)
+    {
+        if (!CanInteract(world, actor, target) || target.Cell is not { } cell)
+            return false;
+        if (!world.TryRemoveActorAt(cell, out _))
+            return false;
+        actor.AddResource(_resourceTag, _amount);
+        return true;
+    }
+
+    public override AccessoryEffect Clone() => new TestPickupEffect(_resourceTag, _amount);
+}
+
+internal sealed class TestDeathDropEffect : AccessoryEffect, IDeathDropEffect
+{
+    public TestDeathDropEffect(string actorDefinitionId) => ActorDefinitionId = actorDefinitionId;
+
+    public string ActorDefinitionId { get; }
+
+    public override AccessoryEffect Clone() => new TestDeathDropEffect(ActorDefinitionId);
 }

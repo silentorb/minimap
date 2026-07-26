@@ -5,10 +5,11 @@ AI-controlled characters. Related: [combat.md](combat.md), [factions.md](faction
 ## Requirements
 
 - AI characters **wander**: they periodically pick a new random **grass hex world goal** (or briefly pause). Movement uses the same rules as any other character ([movement.md](movement.md): cartesian motion, wall-slide and character-circle collision). Toward a goal, move intent comes from **navigation steering** (direct or pathfinding/crowd—see technical navigation docs).
-- AI characters **engage hostiles** using the same combat rules as a player-controlled character from the character’s point of view ([combat.md](combat.md)): if they have an `IShootEffect`, they fire with aim toward the nearest hostile; if they have an `ISwingEffect`, they aim the same way and swing when that hostile is within Swing radius. Wave zombies use Swing (not Gun).
+- AI characters **engage hostiles** using the same combat rules as a player-controlled character from the character’s point of view ([combat.md](combat.md)): if they have an `IShootEffect`, they fire with aim toward the nearest hostile; if they have an `ISwingEffect`, they aim the same way and swing when that hostile is within Swing radius. Wave zombies use Swing (not Gun). Wander AI recomputes the nearest hostile every tick for aim/fire (no sticky combat lock).
+- **Chase AI** (e.g. crazed carrots): move straight toward a **locked** hostile instead of wandering; aim and Swing when in reach. Once locked, the AI keeps that target until a reconsider timer (~**1.2–2.4** s) fires, then re-picks the nearest hostile (may switch). It does **not** immediately switch when a closer hostile appears.
 
 - AI does **not** hard-code “attack the player.” Hostiles are defined by [factions.md](factions.md).
-- Each game places AI on **both** factions used in the current mode (see spawn surface in [factions.md](factions.md)): **3** AI per faction by default, plus one human-controlled character on the player faction.
+- Each game places AI on **both** factions used in the current mode (see spawn surface in [factions.md](factions.md)): **3** AI per faction by default, plus one human-controlled character on the player faction. Emerged crazed carrots use the rival faction and chase AI (see [farming.md](farming.md)).
 
 ## Non-goals (for now)
 

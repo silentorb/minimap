@@ -23,6 +23,7 @@ public sealed class AbilityLoadout
     {
         ArgumentNullException.ThrowIfNull(accessories);
 
+        var previousWasUnequipped = SelectedModalIndex < 0 && _modal.Count > 0;
         var previousSelectedId = SelectedModal?.Definition.Id;
         var previousModalIds = new List<string>(_modal.Count);
         foreach (var accessory in _modal)
@@ -49,6 +50,12 @@ public sealed class AbilityLoadout
             }
         }
 
+        if (previousWasUnequipped)
+        {
+            SelectedModalIndex = -1;
+            return;
+        }
+
         if (previousSelectedId is not null)
         {
             var stillIndex = IndexOfModal(previousSelectedId);
@@ -68,28 +75,40 @@ public sealed class AbilityLoadout
                 }
             }
 
-            SelectedModalIndex = _modal.Count > 0 ? 0 : 0;
+            SelectedModalIndex = _modal.Count > 0 ? 0 : -1;
             return;
         }
 
-        if (SelectedModalIndex >= _modal.Count)
-            SelectedModalIndex = Math.Max(0, _modal.Count - 1);
+        if (_modal.Count == 0)
+        {
+            SelectedModalIndex = -1;
+            return;
+        }
+
+        if (SelectedModalIndex < 0)
+            SelectedModalIndex = 0;
+        else if (SelectedModalIndex >= _modal.Count)
+            SelectedModalIndex = _modal.Count - 1;
     }
 
     public void SelectModal(int index)
     {
-        if (index < 0 || index >= _modal.Count)
+        if (index < -1 || index >= _modal.Count)
             return;
         SelectedModalIndex = index;
     }
 
+    /// <summary>Cycles through modal accessories plus an unequipped (-1) slot.</summary>
     public void CycleModal(int delta)
     {
         if (_modal.Count == 0 || delta == 0)
             return;
 
-        var count = _modal.Count;
-        SelectedModalIndex = ((SelectedModalIndex + delta) % count + count) % count;
+        // Slots: 0 .. count-1, then -1 (none). Map none to count for modular arithmetic.
+        var slotCount = _modal.Count + 1;
+        var current = SelectedModalIndex < 0 ? _modal.Count : SelectedModalIndex;
+        var next = ((current + delta) % slotCount + slotCount) % slotCount;
+        SelectedModalIndex = next == _modal.Count ? -1 : next;
     }
 
     public bool TryGetDedicated(string bind, out Accessory? accessory)

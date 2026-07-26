@@ -11,5 +11,16 @@ public interface IGrowEffect
 
     int YieldAmount { get; }
 
-    void Tick(Actor actor, float dt);
+    /// <summary>When set, harvest/emerge spawns this character id instead of granting yield.</summary>
+    string? EmergeCharacterId { get; }
+
+    float EmergeAfterMatureSeconds { get; }
+
+    void Tick(GameWorld world, Actor actor, float dt);
+
+    /// <summary>
+    /// If post-mature emerge is due (or forced by harvest), removes the cell actor and spawns
+    /// the emerge character. Harvest may call this even before <see cref="EmergeAfterMatureSeconds"/>.
+    /// </summary>
+    bool TryEmerge(GameWorld world, Actor actor);
 }

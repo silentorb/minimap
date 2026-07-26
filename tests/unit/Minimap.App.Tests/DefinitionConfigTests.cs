@@ -21,6 +21,12 @@ public class DefinitionConfigTests
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
+            PickupResourceEffectFactory.TypeId,
+            PickupResourceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            DeathDropEffectFactory.TypeId,
+            DeathDropEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
             UseComputerEffectFactory.TypeId,
             UseComputerEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
@@ -234,11 +240,15 @@ public class DefinitionConfigTests
         Assert.Contains(upkeep.EffectTemplates, e => e is DrainResourceEffect);
         Assert.Contains(upkeep.EffectTemplates, e => e is ModifyResourceByRatioBandsEffect);
 
-        Assert.Equal(4, registry.ActorDefinitions.Count);
+        Assert.Equal(6, registry.ActorDefinitions.Count);
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "melon");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "crazed_carrot");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "loose_carrot");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "computer");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_crazed_carrot");
+        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "crazed_carrot");
 
         var carrot = registry.ActorDefinitions.Single(a => a.Id == "carrot");
         Assert.Equal("grow_carrot", Assert.Single(carrot.Accessories).Id);
@@ -275,7 +285,7 @@ public class DefinitionConfigTests
         Assert.True(ColorRgb.TryParseHex("#B4BEC8", out var computingColor));
         Assert.Equal(computingColor, computing.Color);
 
-        foreach (var growId in new[] { "grow_carrot", "grow_corn", "grow_melon" })
+        foreach (var growId in new[] { "grow_carrot", "grow_corn", "grow_melon", "grow_crazed_carrot" })
         {
             var grow = registry.AccessoryDefinitions.Single(a => a.Id == growId);
             Assert.True(grow.HasTag(registry.Tags.GetOrCreate("gardening")));
@@ -285,7 +295,7 @@ public class DefinitionConfigTests
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
-        Assert.Equal(2, registry.CharacterDefinitions.Count);
+        Assert.Equal(3, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
         Assert.Equal(["energy_upkeep", "eat"], generic.Accessories.Select(a => a.Id).ToArray());
 
@@ -293,6 +303,11 @@ public class DefinitionConfigTests
         Assert.Equal(
             ["energy_upkeep", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
+
+        var crazed = registry.CharacterDefinitions.Single(c => c.Id == "crazed_carrot");
+        Assert.Equal(
+            ["energy_upkeep", "eat", "swing", "death_drop_loose_carrot"],
+            crazed.Accessories.Select(a => a.Id).ToArray());
     }
 
     [Fact]

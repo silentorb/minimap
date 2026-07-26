@@ -5,10 +5,14 @@ Player characters interacting with actors in the map. Related: [actors.md](actor
 ## Requirements
 
 - Players interact with certain actors by **facing** them and being in **close proximity** (the map cell in front of the player).
-- Whether a target is valid depends on **interaction effects** on the player’s **currently selected** ability (modal accessory). Effects expose whether an actor is a valid target.
+- Interaction is **object-relative**, not gated solely by the equipped ability:
+  1. Is the player in position to interact with an actor (front cell occupied)?
+  2. If yes, determine whether there is a **default** interaction for that subject actor and object actor.
+  3. If the player has an **equipped** modal ability with an interaction option that matches the current situation, that option **overrides** the default.
+- Modal activate (`X` / Space) remains ability-tied and is separate from environment interact. Interact (E / A) can succeed with **no** modal equipped when a default exists (e.g. free-loot carrot pickup).
 - When a valid interact target exists, that actor is **highlighted** so the player knows interact is available.
-- Interact invoke: gamepad **`JoyButton.A`** / keyboard **E**. The selected ability’s interaction effects perform the action (e.g. Farm harvest, Geek use computer).
-- Modal activate (`X` / Space) remains separate and is not used for environment interact.
+- Interact invoke: gamepad **`JoyButton.A`** / keyboard **E**.
+- Examples: Farm **harvest** overrides on mature crops; Geek **use computer** when Geek is selected; free-loot carrots use a **default** pickup (+1 food) with no ability required.
 
 ## Non-goals (for now)
 

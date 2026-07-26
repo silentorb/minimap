@@ -13,12 +13,15 @@ public sealed class GameWorld
     private readonly Dictionary<HexAxial, Actor> _actorsByCell = new();
     private readonly Dictionary<string, ActorDefinition> _actorDefinitions =
         new(StringComparer.Ordinal);
+    private readonly Dictionary<string, CharacterDefinition> _characterDefinitions =
+        new(StringComparer.Ordinal);
     private readonly List<SimVec2[]> _wallPolygons = new();
     private readonly List<SimVec2> _characterObstacleCenters = new();
     private readonly Random _random;
     private CharacterDefinition? _spawnCharacterDefinition;
     private ResourceContext? _resourceContext;
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
+    private int _rivalFactionId = 2;
     private int _nextCharacterId;
     private int _nextMissileId;
     private int _nextSwingArcId;
@@ -79,6 +82,13 @@ public sealed class GameWorld
     /// <summary>Resource types / health tags required before adding characters.</summary>
     public ResourceContext? ResourceContext => _resourceContext;
 
+    /// <summary>Rival / zombie faction id used when emerging ambush characters.</summary>
+    public int RivalFactionId
+    {
+        get => _rivalFactionId;
+        set => _rivalFactionId = value;
+    }
+
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
 
@@ -99,7 +109,34 @@ public sealed class GameWorld
         ArgumentNullException.ThrowIfNull(content);
         SetSpawnCharacterDefinition(content.DefaultCharacter);
         SetActorDefinitions(content.Actors);
+        SetCharacterDefinitions(content.Characters);
         SetResourceContext(ResourceContext.FromGameContent(content));
+    }
+
+    public void SetCharacterDefinitions(IEnumerable<CharacterDefinition> definitions)
+    {
+        ArgumentNullException.ThrowIfNull(definitions);
+        _characterDefinitions.Clear();
+        foreach (var def in definitions)
+        {
+            ArgumentNullException.ThrowIfNull(def);
+            if (!_characterDefinitions.TryAdd(def.Id, def))
+            {
+                throw new InvalidOperationException(
+                    $"Duplicate character definition id '{def.Id}'.");
+            }
+        }
+    }
+
+    public bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            definition = null;
+            return false;
+        }
+
+        return _characterDefinitions.TryGetValue(id, out definition);
     }
 
     public void SetActorDefinitions(IEnumerable<ActorDefinition> definitions)
@@ -168,16 +205,30 @@ public sealed class GameWorld
     /// <summary>Ticks passive effects on cell-anchored actors (e.g. grow).</summary>
     public void TickCellActors(float dt)
     {
-        foreach (var actor in _actorsByCell.Values)
+        // Snapshot: grow emerge may remove actors during the tick.
+        var actors = _actorsByCell.Values.ToList();
+        foreach (var actor in actors)
         {
-            foreach (var effect in actor.Effects)
+            foreach (var effect in actor.Effects.ToList())
             {
                 if (effect is IGrowEffect grow)
-                    grow.Tick(actor, dt);
+                    grow.Tick(this, actor, dt);
                 else if (effect is IPassiveEffect passive)
                     passive.Tick(actor, dt);
             }
         }
+    }
+
+    /// <summary>Spawn a chase-AI character (e.g. crazed carrot emerge).</summary>
+    public Character SpawnChaseCharacter(
+        CharacterDefinition definition,
+        SimVec2 position,
+        int factionId)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        var character = AddCharacter(factionId, position, definition);
+        AttachController(new ChaseAiController(_random), character);
+        return character;
     }
 
     /// <summary>Ticks passive effects on characters (e.g. energy drain / vitality).</summary>
@@ -273,7 +324,9 @@ public sealed class GameWorld
         GameContent content)
     {
         ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(spawn);
         ApplyGameContent(content);
+        RivalFactionId = spawn.RivalFactionId;
         SpawnHumanPlayers(spawn);
         PlaceSpawners(scenario.SpawnerCount, content.WorldSpawnerPool);
     }
@@ -669,6 +722,7 @@ public sealed class GameWorld
             if (_characters[i].IsAlive)
                 continue;
             var dead = _characters[i];
+            TryPlaceDeathDrops(dead);
             DetachControllersFor(dead);
             _characters.RemoveAt(i);
         }
@@ -687,6 +741,22 @@ public sealed class GameWorld
 
         foreach (var cell in deadCells)
             TryRemoveActorAt(cell, out _);
+    }
+
+    private void TryPlaceDeathDrops(Character dead)
+    {
+        foreach (var effect in dead.Effects)
+        {
+            if (effect is not IDeathDropEffect drop)
+                continue;
+            if (!TryGetActorDefinition(drop.ActorDefinitionId, out var actorDef) || actorDef is null)
+                continue;
+
+            var cell = HexWorldLayout.WorldToAxial(dead.Position, HexSize);
+            if (!Grid.Contains(cell) || IsCellOccupied(cell))
+                continue;
+            TryPlaceActor(cell, actorDef);
+        }
     }
 
     /// <summary>Rebuild solid hex colliders from current terrain.</summary>

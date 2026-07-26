@@ -1,0 +1,13 @@
+{
+  "id": "crazed_carrot",
+  "displayName": "Crazed Carrot Seedling",
+  "accessories": ["grow_crazed_carrot"],
+  "resources": [
+    { "id": "max_health", "amount": 25 },
+    { "id": "health", "amount": 25 }
+  ],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+  }
+}

@@ -81,7 +81,7 @@ public class AbilityLoadoutTests
     }
 
     [Fact]
-    public void CycleModal_wraps_forward_and_backward()
+    public void CycleModal_wraps_through_none_slot()
     {
         var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
         foreach (var id in new[] { "a", "b", "c" })
@@ -100,10 +100,41 @@ public class AbilityLoadoutTests
         character.AbilityLoadout.CycleModal(1);
         Assert.Equal(2, character.AbilityLoadout.SelectedModalIndex);
         character.AbilityLoadout.CycleModal(1);
+        Assert.Equal(-1, character.AbilityLoadout.SelectedModalIndex);
+        Assert.Null(character.AbilityLoadout.SelectedModal);
+
+        character.AbilityLoadout.CycleModal(1);
         Assert.Equal(0, character.AbilityLoadout.SelectedModalIndex);
 
+        character.AbilityLoadout.SelectModal(-1);
         character.AbilityLoadout.CycleModal(-1);
         Assert.Equal(2, character.AbilityLoadout.SelectedModalIndex);
+    }
+
+    [Fact]
+    public void Rebuild_preserves_unequipped_selection()
+    {
+        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        character.AddAccessory(new AccessoryDefinition(
+            "a",
+            Array.Empty<AccessoryEffect>(),
+            activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
+        character.AddAccessory(new AccessoryDefinition(
+            "b",
+            Array.Empty<AccessoryEffect>(),
+            activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
+
+        character.AbilityLoadout.SelectModal(-1);
+        Assert.Null(character.AbilityLoadout.SelectedModal);
+
+        character.AddAccessory(new AccessoryDefinition(
+            "c",
+            Array.Empty<AccessoryEffect>(),
+            activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
+
+        Assert.Equal(-1, character.AbilityLoadout.SelectedModalIndex);
+        Assert.Null(character.AbilityLoadout.SelectedModal);
+        Assert.Equal(3, character.AbilityLoadout.Modal.Count);
     }
 
     [Fact]

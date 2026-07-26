@@ -1,0 +1,13 @@
+{
+  "id": "death_drop_loose_carrot",
+  "displayName": "Death Drop Loose Carrot",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "death_drop",
+      "id": "loose_carrot"
+    }
+  ]
+}

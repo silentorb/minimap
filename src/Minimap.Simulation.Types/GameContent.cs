@@ -4,6 +4,7 @@ namespace Minimap.Simulation.Types;
 public sealed class GameContent
 {
     private readonly List<ActorDefinition> _actors;
+    private readonly List<CharacterDefinition> _characters;
     private readonly List<ResourceDefinition> _resources;
     private readonly Dictionary<TagId, ResourceDefinition> _resourcesByTag = new();
 
@@ -11,12 +12,14 @@ public sealed class GameContent
         CharacterDefinition defaultCharacter,
         WeightedPool<SpawnerDefinition>? worldSpawnerPool = null,
         IEnumerable<ActorDefinition>? actors = null,
-        IEnumerable<ResourceDefinition>? resources = null)
+        IEnumerable<ResourceDefinition>? resources = null,
+        IEnumerable<CharacterDefinition>? characters = null)
     {
         ArgumentNullException.ThrowIfNull(defaultCharacter);
         DefaultCharacter = defaultCharacter;
         WorldSpawnerPool = worldSpawnerPool ?? WeightedPool<SpawnerDefinition>.Empty;
         _actors = actors?.ToList() ?? new List<ActorDefinition>();
+        _characters = characters?.ToList() ?? new List<CharacterDefinition>();
         _resources = resources?.ToList() ?? new List<ResourceDefinition>();
 
         foreach (var resource in _resources)
@@ -41,6 +44,8 @@ public sealed class GameContent
     public WeightedPool<SpawnerDefinition> WorldSpawnerPool { get; }
 
     public IReadOnlyList<ActorDefinition> Actors => _actors;
+
+    public IReadOnlyList<CharacterDefinition> Characters => _characters;
 
     public IReadOnlyList<ResourceDefinition> Resources => _resources;
 

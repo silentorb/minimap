@@ -37,42 +37,75 @@ public static class GrowEffectFactory
 
         var matureDepiction = ParseDepiction(depictionElement, index, sourcePath);
 
-        if (!effectObject.TryGetProperty("harvestYield", out var yieldElement) ||
-            yieldElement.ValueKind != JsonValueKind.Object)
+        TagId? yieldTag = null;
+        var yieldAmount = 0;
+        if (effectObject.TryGetProperty("harvestYield", out var yieldElement) &&
+            yieldElement.ValueKind == JsonValueKind.Object)
+        {
+            if (!EffectJson.TryGetString(yieldElement, "id", out var yieldId) ||
+                string.IsNullOrWhiteSpace(yieldId))
+            {
+                throw new InvalidOperationException(
+                    EffectJson.AppendSource(
+                        $"Accessory effect '{TypeId}' at index {index} harvestYield must include id.",
+                        sourcePath));
+            }
+
+            if (!registry.TryGetResourceDefinition(yieldId, out var resource) || resource is null)
+            {
+                throw new InvalidOperationException(
+                    EffectJson.AppendSource(
+                        $"Accessory effect '{TypeId}' at index {index} harvestYield resource '{yieldId}' is not registered.",
+                        sourcePath));
+            }
+
+            yieldAmount = EffectJson.RequireInt(yieldElement, "amount", TypeId, index, sourcePath);
+            if (yieldAmount < 0)
+            {
+                throw new InvalidOperationException(
+                    EffectJson.AppendSource(
+                        $"Accessory effect '{TypeId}' at index {index} harvestYield amount must be >= 0.",
+                        sourcePath));
+            }
+
+            yieldTag = resource.Tag;
+        }
+
+        string? emergeCharacterId = null;
+        var emergeAfter = 0f;
+        if (EffectJson.TryGetString(effectObject, "emergeCharacterId", out var emergeId) &&
+            !string.IsNullOrWhiteSpace(emergeId))
+        {
+            emergeCharacterId = emergeId;
+            if (effectObject.TryGetProperty("emergeAfterMatureSeconds", out _))
+            {
+                emergeAfter = EffectJson.RequireFloat(
+                    effectObject, "emergeAfterMatureSeconds", TypeId, index, sourcePath);
+                if (emergeAfter < 0f)
+                {
+                    throw new InvalidOperationException(
+                        EffectJson.AppendSource(
+                            $"Accessory effect '{TypeId}' at index {index} emergeAfterMatureSeconds must be >= 0.",
+                            sourcePath));
+                }
+            }
+        }
+
+        if (emergeCharacterId is null && yieldTag is null)
         {
             throw new InvalidOperationException(
                 EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} must include harvestYield object.",
+                    $"Accessory effect '{TypeId}' at index {index} must include harvestYield and/or emergeCharacterId.",
                     sourcePath));
         }
 
-        if (!EffectJson.TryGetString(yieldElement, "id", out var yieldId) ||
-            string.IsNullOrWhiteSpace(yieldId))
-        {
-            throw new InvalidOperationException(
-                EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} harvestYield must include id.",
-                    sourcePath));
-        }
-
-        if (!registry.TryGetResourceDefinition(yieldId, out var resource) || resource is null)
-        {
-            throw new InvalidOperationException(
-                EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} harvestYield resource '{yieldId}' is not registered.",
-                    sourcePath));
-        }
-
-        var yieldAmount = EffectJson.RequireInt(yieldElement, "amount", TypeId, index, sourcePath);
-        if (yieldAmount < 0)
-        {
-            throw new InvalidOperationException(
-                EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} harvestYield amount must be >= 0.",
-                    sourcePath));
-        }
-
-        return new GrowEffect(duration, matureDepiction, resource.Tag, yieldAmount);
+        return new GrowEffect(
+            duration,
+            matureDepiction,
+            yieldTag,
+            yieldAmount,
+            emergeCharacterId,
+            emergeAfter);
     }
 
     private static DepictionConfig ParseDepiction(JsonElement obj, int index, string? sourcePath)

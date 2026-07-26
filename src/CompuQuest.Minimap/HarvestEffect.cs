@@ -3,7 +3,7 @@ using Minimap.Simulation.Types;
 
 namespace CompuQuest.Minimap;
 
-/// <summary>Harvests a mature food actor, granting its grow yield to the acting character.</summary>
+/// <summary>Harvests a mature food actor, granting yield or emerging an ambush character.</summary>
 public sealed class HarvestEffect : AccessoryEffect, IInteractionEffect, IEffectUseCost
 {
     public HarvestEffect(TagId? costResourceTag = null, int costAmount = 0)
@@ -47,6 +47,14 @@ public sealed class HarvestEffect : AccessoryEffect, IInteractionEffect, IEffect
 
         if (target.Cell is not { } cell)
             return false;
+
+        if (!string.IsNullOrWhiteSpace(grow.EmergeCharacterId))
+        {
+            if (!grow.TryEmerge(world, target))
+                return false;
+            EffectUseCosts.TryConsume(actor, this);
+            return true;
+        }
 
         if (!world.TryRemoveActorAt(cell, out _))
             return false;

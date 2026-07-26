@@ -9,10 +9,10 @@ Character definitions vs runtime instances. Related: [actors.md](actors.md), [fa
 - Short-term: one **generic** character definition (`src/CompuQuest.Minimap/config/characters/generic.json`) is used for player-faction humans. That definition has **no** starting combat accessories — players obtain abilities (e.g. **Gun**, **Swing**, **Farm**, **Geek**) only via lobby selection (see [accessories.md](accessories.md), [lobby.md](../ui/lobby.md)).
 - Playthrough content supplies a **default character** definition used when populating the world.
 - Wave enemies (e.g. zombie) list accessories on their character definition (zombie ships with **Swing** instead of Gun).
+- **Crazed carrot** (`crazed_carrot`) is a rival-faction vegetable monster (same faction as zombies) with **Swing**, chase AI, and a death drop of a free-loot carrot. It emerges from planted crazed carrot crops (see [farming.md](farming.md)).
 
 
 ## Non-goals (for now)
 
 - Player-facing character selection or customization
-- Multiple distinct character archetypes in content
 - Character stats beyond resources (future; accessories/effects are shaped to support them later)

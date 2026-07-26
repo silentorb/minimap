@@ -101,8 +101,11 @@ No accessory-level `resource` block. Grants and costs live on effects:
   - **`swing`** → `SwingEffect` (`ISwingEffect`) — melee Swing params (damage, interval, radius, arc, visual duration, friendly fire) + optional `cost`.
   - **`place_random_actor`** → `PlaceRandomActorEffect` (`ICellPlacementEffect`) — weighted `pool` of `{ "id", "weight" }` actor definition ids + optional `cost`.
 
-  - **`grow`** — duration, mature depiction, harvest yield (passive; on vegetable actors).
-  - **`harvest`** → `IInteractionEffect` — harvest mature food actors.
+  - **`grow`** — duration, mature depiction, optional `harvestYield`, optional `emergeCharacterId` + `emergeAfterMatureSeconds` (passive; on vegetable actors).
+  - **`harvest`** → `IInteractionEffect` — harvest mature food actors (or emerge ambush crops).
+  - **`pickup_resource`** → `IDefaultInteractionEffect` — object-side free pickup (resource `id` + `amount`).
+  - **`death_drop`** → `IDeathDropEffect` — on character death, place actor definition `id` if the corpse hex is free.
+
   - **`drain_resource`** → `IPassiveEffect` — drain resource `id` at `amountPerSecond` (default **1**).
   - **`modify_resource_by_ratio_bands`** → `IPassiveEffect` — every `periodSeconds`, read source/max ratio and apply a banded delta to a target resource (vitality).
   - **`modify_resource_on_use`** → `IInstantUseEffect` — on activate: add `amount` of resource `id` + optional `cost`.

@@ -90,6 +90,31 @@ public class FarmingInteractionTests
         Assert.True(w.IsCellOccupied(front));
     }
 
+    [Fact]
+    public void Mature_crop_requires_farm_even_with_object_default_model()
+    {
+        var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+
+        var mature = new DepictionConfig(DepictionKinds.Texture, "res://mature.svg");
+        var growAccessory = new AccessoryDefinition(
+            "grow",
+            [new TestGrowEffect(0f, mature, TestContent.FoodResource.Tag, 1)]);
+        var actorDef = new ActorDefinition("carrot", [growAccessory]);
+
+        var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        farmer.AddAccessory(new AccessoryDefinition(
+            "farm",
+            [new TestHarvestEffect()],
+            activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
+        farmer.AbilityLoadout.SelectModal(-1);
+
+        var front = CellFacing.CellInFront(farmer, w.HexSize);
+        Assert.True(w.TryPlaceActor(front, actorDef));
+        w.TickCellActors(0.01f);
+        Assert.Null(EnvironmentInteraction.ResolveTarget(w, farmer));
+    }
+
     private sealed class AllGrassGenerator : IWorldGenerator
     {
         public void GenerateTerrain(HexGrid grid, Random random)

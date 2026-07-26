@@ -46,7 +46,8 @@ public sealed class CompuQuestIntegrator : IIntegrator
             generic,
             spawnerPool,
             registry.ActorDefinitions,
-            registry.ResourceDefinitions);
+            registry.ResourceDefinitions,
+            registry.CharacterDefinitions);
     }
 
     public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(IExtensionRegistry registry)

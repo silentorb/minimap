@@ -20,4 +20,4 @@ Simulation character model and faction APIs. Implements [factions.md](../../../g
 
 ## Death
 
-When a destructible actor’s health resource ≤ 0, remove it quietly (game health doc): characters leave the roster and unpossess/remove controllers; cell actors leave occupancy.
+When a destructible actor’s health resource ≤ 0, remove it quietly (game health doc): characters leave the roster and unpossess/remove controllers; cell actors leave occupancy. Before removing a character, apply any **`IDeathDropEffect`** on its effects (place the named actor definition on the corpse hex when empty).

@@ -89,6 +89,7 @@ public sealed class GameSession
 
         var world = GameWorld.Create(radiusX, radiusY, seed, hexSize: hexSize);
         world.ApplyGameContent(content);
+        world.RivalFactionId = config.RivalFactionId;
 
         var session = new GameSession(
             world,
