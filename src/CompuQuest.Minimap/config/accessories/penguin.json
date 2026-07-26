@@ -1,0 +1,19 @@
+{
+  "id": "penguin",
+  "displayName": "Penguin",
+  "description": "A penguin companion joins you in the world.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "spawn_nearby_ally",
+      "characterId": "penguin"
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/penguin.svg"
+  }
+}

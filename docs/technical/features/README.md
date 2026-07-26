@@ -20,6 +20,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/resources.md](gameplay/resources.md) | Working on **ResourceDefinition**, actor resource bags, limits, or effect use cost / acquire grant. |
 | [gameplay/hunger.md](gameplay/hunger.md) | Working on **energy** / max_energy, `energy_upkeep`, Eat enable gate, drain/vitality passives, or instant-use Eat. |
 | [gameplay/accessories.md](gameplay/accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Farm, Geek, or actor effect cache add/remove. |
+| [gameplay/animal-companions.md](gameplay/animal-companions.md) | Working on **`spawn_nearby_ally`**, **`IWorldCharacterPassiveEffect`**, or companion character spawn helpers. |
 | [gameplay/active-abilities.md](gameplay/active-abilities.md) | Working on **AbilityLoadout**, dedicated/modal activation, or PlayerController ability intents. |
 | [gameplay/interaction.md](gameplay/interaction.md) | Working on **IInteractionEffect**, interact target resolve, or Client highlight. |
 | [gameplay/farming.md](gameplay/farming.md) | Working on Farm / grow / harvest effects, vegetable actors, or food yields. |

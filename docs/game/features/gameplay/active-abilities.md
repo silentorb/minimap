@@ -7,7 +7,8 @@ In-world activation of ability accessories. Related: [accessories.md](accessorie
 - Accessories declare an **activation** kind:
   - **Dedicated** — fixed to a named bind (Gun → `primary_fire`, Swing → `secondary_fire`).
   - **Modal** — joins an unbounded switchable pool; player cycles which is active, then activates it.
-    - **None** — not player-activatable (e.g. grow on vegetables).
+  - **None** — not player-activatable (e.g. grow on vegetables, animal companions). Not **equipped** in the loadout; may still be lobby-owned.
+- Only **dedicated** / **modal** accessories are **equipped** in-world. Lobby **select/own** is separate (see [accessories.md](accessories.md)). Abilities that expose an interaction effect should also declare an activatable kind (dedicated or modal).
 - Modal selection: gamepad **D-pad Left / Right** or keyboard **`[` / `]`** cycle previous / next (wraps). The cycle includes an explicit **none** (unequipped) entry so the player can have no modal ability selected.
 - Modal activate: gamepad **`JoyButton.X`** / keyboard **Space**. Some abilities activate immediately (**instant use**, e.g. Eat); others use a two-step **preview → confirm** flow (e.g. cell placement). This is general, not plant- or placement-only. Activate is a no-op when **none** is selected.
 - Cancel placement preview: gamepad **`JoyButton.B`** / keyboard **Escape**.

@@ -102,6 +102,8 @@ internal static class TestContent
 
     public static CharacterDefinition Zombie { get; } = new("zombie", [Swing]);
 
+    public static CharacterDefinition Fox { get; } = new("fox", [Swing]);
+
     public static AccessoryDefinition Farm { get; } = new(
         AiTuning.FarmAccessoryId,
         [new TestHarvestEffect(EnergyResource.Tag, 1)],

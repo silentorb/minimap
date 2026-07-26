@@ -110,7 +110,8 @@ No accessory-level `resource` block. Grants and costs live on effects:
   - **`drain_resource_by_distance`** → `IPassiveEffect` — drain resource `id` by traveled distance (`unitsPerAmount` world units per **1** resource).
   - **`modify_resource_by_ratio_bands`** → `IPassiveEffect` — every `periodSeconds`, read source/max ratio and apply a banded delta to a target resource (vitality).
   - **`modify_resource_on_use`** → `IInstantUseEffect` — on activate: add `amount` of resource `id` + optional `cost`.
-- CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`**, **`movement_energy`**, **`eat`**, and **`computer_gun`** (see [hunger.md](../gameplay/hunger.md) / combat docs); they use the same schema.
+  - **`spawn_nearby_ally`** → `IWorldCharacterPassiveEffect` — one-shot spawn of character `characterId` on the owner’s faction near the owner (optional `aggression`; see [animal-companions.md](../gameplay/animal-companions.md)).
+- CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`**, **`movement_energy`**, **`eat`**, and **`computer_gun`** (see [hunger.md](../gameplay/hunger.md) / combat docs); they use the same schema. Lobby-selectable animal companions (`fox`, `squid`, `monkey`, `penguin`, `poison_dart_frog`) use `spawn_nearby_ally`.
 
 ### Actor schema
 

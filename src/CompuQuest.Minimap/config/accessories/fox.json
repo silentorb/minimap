@@ -1,0 +1,19 @@
+{
+  "id": "fox",
+  "displayName": "Fox",
+  "description": "A cunning fox companion joins you in the world.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "spawn_nearby_ally",
+      "characterId": "fox"
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/caro-asercion/fox.svg"
+  }
+}

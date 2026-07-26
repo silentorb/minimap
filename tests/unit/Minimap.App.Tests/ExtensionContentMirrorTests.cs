@@ -64,7 +64,18 @@ public class ExtensionContentMirrorTests
 
         var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
         Assert.Equal(
-            new HashSet<string>(StringComparer.Ordinal) { "gun", "swing", "farm", "geek" },
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                "gun",
+                "swing",
+                "farm",
+                "geek",
+                "fox",
+                "squid",
+                "monkey",
+                "penguin",
+                "poison_dart_frog",
+            },
             selectable.Select(a => a.Id).ToHashSet(StringComparer.Ordinal));
 
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");

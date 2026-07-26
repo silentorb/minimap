@@ -8,6 +8,7 @@ How content definitions describe presentation without coupling simulation to God
 - A depiction is not tied only to sprites: it has a **kind** and a resource reference. Sprite cases use Godot **SpriteFrames** resources (single frame or animation sequences authored there).
 - Short-term: CompuQuest ships depictions for the **generic** character and **Gun** accessory using Kenney 1-Bit Pack art under `assets/compuquest/kenney-1bit/`.
 - Characters with a sprite-frames depiction render as that sprite in the world; otherwise the placeholder colored square remains.
+- **Prototype exception:** animal companion characters may use game-icons SVGs as world **texture** depictions until dedicated Kenney SpriteFrames exist (see [animal-companions.md](animal-companions.md)).
 
 ## Non-goals (for now)
 

@@ -1,0 +1,12 @@
+{
+  "id": "poison_dart_frog",
+  "displayName": "Poison dart frog",
+  "accessories": ["energy_upkeep", "movement_energy", "eat", "swing"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/lorc/frog.svg"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/lorc/frog.svg"
+  }
+}

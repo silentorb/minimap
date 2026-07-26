@@ -1,0 +1,12 @@
+{
+  "id": "fox",
+  "displayName": "Fox",
+  "accessories": ["energy_upkeep", "movement_energy", "eat", "swing"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/caro-asercion/fox.svg"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/caro-asercion/fox.svg"
+  }
+}

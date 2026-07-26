@@ -11,6 +11,7 @@ Character definitions vs runtime instances. Related: [actors.md](actors.md), [fa
 - Spawner enemies list accessories on their character definition:
   - **zombie** — **Swing**, energy upkeep, movement energy, Eat (AI does not use Eat).
   - **zombie_farmer** — same as zombie plus **Farm**; AI harvests mature crops and eats food when energy is low (see [ai.md](ai.md)).
+- **Animal companions** (`fox`, `squid`, `monkey`, `penguin`, `poison_dart_frog`) use the same accessory set as **zombie** for now and spawn as same-faction AI when the matching lobby ability is owned (see [animal-companions.md](animal-companions.md)).
 - **Crazed carrot** (`crazed_carrot`) is a rival-faction vegetable monster (same faction as zombies) with **Swing**, energy upkeep, movement energy, Eat, high-aggression AI (**0.9**), and a death drop of a free-loot carrot. It emerges from planted crazed carrot crops (see [farming.md](farming.md)).
 
 

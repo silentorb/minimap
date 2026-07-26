@@ -1,0 +1,12 @@
+{
+  "id": "penguin",
+  "displayName": "Penguin",
+  "accessories": ["energy_upkeep", "movement_energy", "eat", "swing"],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/penguin.svg"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/penguin.svg"
+  }
+}

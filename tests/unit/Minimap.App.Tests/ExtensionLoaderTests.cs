@@ -64,8 +64,9 @@ public class ExtensionLoaderTests
         Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "zombie");
         Assert.True(result.Registry.Tags.TryGet("player_selectable", out _));
         var selectable = result.Integrator.GetPlayerSelectableAccessories(result.Registry);
-        Assert.Equal(4, selectable.Count);
+        Assert.Equal(9, selectable.Count);
         Assert.Contains(selectable, a => a.Id == "swing");
+        Assert.Contains(selectable, a => a.Id == "fox");
     }
 
     [Fact]

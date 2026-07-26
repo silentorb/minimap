@@ -243,16 +243,20 @@ public sealed class GameWorld
         return character;
     }
 
-    /// <summary>Ticks passive effects on characters (e.g. energy drain / vitality).</summary>
+    /// <summary>Ticks passive effects on characters (e.g. energy drain / vitality / companion spawn).</summary>
     public void TickCharacterPassives(float dt)
     {
-        foreach (var character in _characters)
+        // Snapshot: world-character passives may spawn allies during the tick.
+        var characters = _characters.ToList();
+        foreach (var character in characters)
         {
             if (!character.IsAlive)
                 continue;
-            foreach (var effect in character.Effects)
+            foreach (var effect in character.Effects.ToList())
             {
-                if (effect is IPassiveEffect passive)
+                if (effect is IWorldCharacterPassiveEffect worldPassive)
+                    worldPassive.Tick(this, character, dt);
+                else if (effect is IPassiveEffect passive)
                     passive.Tick(character, dt);
             }
         }
@@ -439,6 +443,17 @@ public sealed class GameWorld
         CharacterDefinition definition,
         int rivalFactionId,
         float aggression = AiTuning.DefaultAggression,
+        bool seekCrops = false) =>
+        TrySpawnNearbyCharacter(origin, definition, rivalFactionId, aggression, seekCrops);
+
+    /// <summary>
+    /// Spawn one AI character on a nearby grass hex. Returns null when no grass candidates exist.
+    /// </summary>
+    public Character? TrySpawnNearbyCharacter(
+        HexAxial origin,
+        CharacterDefinition definition,
+        int factionId,
+        float aggression = AiTuning.DefaultAggression,
         bool seekCrops = false)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -455,12 +470,12 @@ public sealed class GameWorld
             return null;
 
         var hex = candidates[_random.Next(candidates.Count)];
-        var enemy = AddCharacter(
-            rivalFactionId,
+        var spawned = AddCharacter(
+            factionId,
             HexWorldLayout.ToWorld(hex, HexSize),
             definition);
-        AttachController(new AiController(_random, aggression: aggression, seekCrops: seekCrops), enemy);
-        return enemy;
+        AttachController(new AiController(_random, aggression: aggression, seekCrops: seekCrops), spawned);
+        return spawned;
     }
 
     /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>

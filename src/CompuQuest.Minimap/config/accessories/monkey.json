@@ -1,0 +1,19 @@
+{
+  "id": "monkey",
+  "displayName": "Monkey",
+  "description": "A monkey companion joins you in the world.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "spawn_nearby_ally",
+      "characterId": "monkey"
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/lorc/monkey.svg"
+  }
+}

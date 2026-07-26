@@ -20,6 +20,9 @@ public class DefinitionConfigTests
             ModifyResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(GrowEffectFactory.TypeId, GrowEffectFactory.Create);
         registry.AddAccessoryEffectFactory(SpawnEffectFactory.TypeId, SpawnEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
+            SpawnNearbyAllyEffectFactory.TypeId,
+            SpawnNearbyAllyEffectFactory.Create);
         registry.AddAccessoryEffectFactory(HarvestEffectFactory.TypeId, HarvestEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PickupResourceEffectFactory.TypeId,
@@ -193,6 +196,21 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "movement_energy");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "eat");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "computer_gun");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "fox");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "squid");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "monkey");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "penguin");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "poison_dart_frog");
+        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "fox");
+        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "poison_dart_frog");
+
+        var fox = registry.AccessoryDefinitions.Single(a => a.Id == "fox");
+        Assert.Equal(1, fox.PointCost);
+        Assert.Equal(AccessoryActivationKind.None, fox.Activation.Kind);
+        Assert.True(fox.HasTag(registry.Tags.GetOrCreate("player_selectable")));
+        Assert.Contains(
+            fox.EffectTemplates,
+            e => e is SpawnNearbyAllyEffect ally && ally.CharacterId == "fox");
 
         var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
         Assert.Equal(1, gun.PointCost);
@@ -241,7 +259,18 @@ public class DefinitionConfigTests
 
         var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
         Assert.Equal(
-            new HashSet<string>(StringComparer.Ordinal) { "gun", "swing", "farm", "geek" },
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                "gun",
+                "swing",
+                "farm",
+                "geek",
+                "fox",
+                "squid",
+                "monkey",
+                "penguin",
+                "poison_dart_frog",
+            },
             selectable.Select(a => a.Id).ToHashSet(StringComparer.Ordinal));
         Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "plant_vegetable");
         Assert.DoesNotContain(registry.AccessoryDefinitions, a => a.Id == "use_computer");
@@ -339,7 +368,7 @@ public class DefinitionConfigTests
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
-        Assert.Equal(4, registry.CharacterDefinitions.Count);
+        Assert.Equal(9, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
         Assert.Equal(
             ["energy_upkeep", "movement_energy", "eat"],
@@ -349,6 +378,11 @@ public class DefinitionConfigTests
         Assert.Equal(
             ["energy_upkeep", "movement_energy", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
+
+        var foxCharacter = registry.CharacterDefinitions.Single(c => c.Id == "fox");
+        Assert.Equal(
+            ["energy_upkeep", "movement_energy", "eat", "swing"],
+            foxCharacter.Accessories.Select(a => a.Id).ToArray());
 
         var farmer = registry.CharacterDefinitions.Single(c => c.Id == "zombie_farmer");
         Assert.Equal(

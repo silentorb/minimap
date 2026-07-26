@@ -233,3 +233,44 @@ internal sealed class TestSpawnEffect : AccessoryEffect, ISpawnEffect
     public override AccessoryEffect Clone() =>
         new TestSpawnEffect(IntervalSeconds, Volume, _pool);
 }
+
+/// <summary>Test double for CompuQuest <c>spawn_nearby_ally</c>.</summary>
+internal sealed class TestSpawnNearbyAllyEffect : AccessoryEffect, IWorldCharacterPassiveEffect
+{
+    private bool _spawned;
+
+    public TestSpawnNearbyAllyEffect(string characterId, float aggression = AiTuning.DefaultAggression)
+    {
+        CharacterId = characterId;
+        Aggression = aggression;
+    }
+
+    public string CharacterId { get; }
+
+    public float Aggression { get; }
+
+    public void Tick(GameWorld world, Character character, float dt)
+    {
+        if (_spawned || !character.IsAlive)
+            return;
+
+        if (!world.TryGetCharacterDefinition(CharacterId, out var definition) || definition is null)
+        {
+            throw new InvalidOperationException(
+                $"spawn_nearby_ally character definition '{CharacterId}' is not registered.");
+        }
+
+        var origin = HexWorldLayout.WorldToAxial(character.Position, world.HexSize);
+        var ally = world.TrySpawnNearbyCharacter(
+            origin,
+            definition,
+            character.FactionId,
+            Aggression,
+            AiController.CharacterSeeksCrops(definition));
+        if (ally is not null)
+            _spawned = true;
+    }
+
+    public override AccessoryEffect Clone() =>
+        new TestSpawnNearbyAllyEffect(CharacterId, Aggression);
+}

@@ -1,0 +1,19 @@
+{
+  "id": "poison_dart_frog",
+  "displayName": "Poison dart frog",
+  "description": "A poison dart frog companion joins you in the world.",
+  "pointCost": 1,
+  "tags": ["player_selectable"],
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "spawn_nearby_ally",
+      "characterId": "poison_dart_frog"
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/lorc/frog.svg"
+  }
+}
