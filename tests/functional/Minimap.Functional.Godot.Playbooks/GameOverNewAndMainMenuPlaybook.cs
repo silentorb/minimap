@@ -2,7 +2,7 @@ using Minimap.Automation.Contracts;
 
 namespace Minimap.Functional.Godot.Playbooks;
 
-/// <summary>Game over shows New game / Main menu; each navigates correctly.</summary>
+/// <summary>Game over opens post-session; all-ready returns to lobby (not main menu).</summary>
 public sealed class GameOverNewAndMainMenuPlaybook : IPlaybook
 {
     public string Id => "GameOverNewAndMainMenu";
@@ -13,45 +13,27 @@ public sealed class GameOverNewAndMainMenuPlaybook : IPlaybook
         CancellationToken cancellationToken)
     {
         await context.LoadSceneAsync("res://scenes/world.tscn", cancellationToken);
-        await context.WaitFramesAsync(20, cancellationToken);
+        await context.WaitFramesAsync(8, cancellationToken);
 
         await context.ForceGameOverAsync(cancellationToken);
-        await context.WaitFramesAsync(5, cancellationToken);
+        await context.WaitFramesAsync(4, cancellationToken);
 
-        var newGame = await context.GetControlRectAsync(
-            "GameOverOverlay/Center/Panel/Margin/VBox/NewGameButton",
+        var title = await context.GetLabelTextAsync(
+            "PostSessionOverlay/Root/Margin/VBox/Title",
             cancellationToken);
-        var mainMenu = await context.GetControlRectAsync(
-            "GameOverOverlay/Center/Panel/Margin/VBox/MainMenuButton",
-            cancellationToken);
-        if (!newGame.Found || !newGame.Visible)
-            return PlaybookResult.Fail("Expected New game button on game over overlay.");
-        if (!mainMenu.Found || !mainMenu.Visible)
-            return PlaybookResult.Fail("Expected Main menu button on game over overlay.");
+        if (!string.Equals(title, "Game Over", StringComparison.Ordinal))
+        {
+            return PlaybookResult.Fail(
+                $"Expected post-session title 'Game Over', got '{title ?? "<null>"}'.");
+        }
 
-        await context.PressButtonAsync(
-            "GameOverOverlay/Center/Panel/Margin/VBox/MainMenuButton",
-            cancellationToken);
-        await context.WaitFramesAsync(20, cancellationToken);
-
-        var title = await context.GetLabelTextAsync("Center/VBox/Title", cancellationToken);
-        if (title != "CompuQuest Mini")
-            return PlaybookResult.Fail($"Expected main menu after Main menu action; title='{title}'.");
-
-        await context.LoadSceneAsync("res://scenes/world.tscn", cancellationToken);
-        await context.WaitFramesAsync(15, cancellationToken);
-        await context.ForceGameOverAsync(cancellationToken);
-        await context.WaitFramesAsync(5, cancellationToken);
-
-        await context.PressButtonAsync(
-            "GameOverOverlay/Center/Panel/Margin/VBox/NewGameButton",
-            cancellationToken);
-        await context.WaitFramesAsync(20, cancellationToken);
+        await context.ForcePostSessionAllReadyAsync(cancellationToken);
+        await context.WaitFramesAsync(8, cancellationToken);
 
         var lobby = await context.GetLobbySnapshotAsync(cancellationToken);
         if (!lobby.IsLobbyScene)
-            return PlaybookResult.Fail("Expected lobby after New game.");
+            return PlaybookResult.Fail("Expected lobby after post-session all-ready.");
 
-        return PlaybookResult.Success("game-over-nav");
+        return PlaybookResult.Success("post-session-to-lobby");
     }
 }

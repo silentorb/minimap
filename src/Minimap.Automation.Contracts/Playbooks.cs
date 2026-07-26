@@ -37,6 +37,8 @@ public interface IPlaybookContext
 
     Task ForceGameOverAsync(CancellationToken cancellationToken = default);
 
+    Task ForcePostSessionAllReadyAsync(CancellationToken cancellationToken = default);
+
     Task FocusReconnectDropAsync(CancellationToken cancellationToken = default);
 
     Task ClearLocalPlayContextAsync(CancellationToken cancellationToken = default);

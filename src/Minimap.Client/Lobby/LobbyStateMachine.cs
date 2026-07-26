@@ -280,4 +280,52 @@ public sealed class LobbyStateMachine
             _accessorySelections[i] = null;
         }
     }
+
+    /// <summary>
+    /// Hydrate slots from a prior match roster. Lands each restored player in
+    /// <see cref="LobbySlotMode.SelectingAccessories"/>. Skips players with no remaining connected devices.
+    /// </summary>
+    /// <param name="deviceIsConnected">Optional filter; null treats all devices as connected.</param>
+    /// <returns>Number of slots restored.</returns>
+    public int ApplyFromRoster(
+        LocalPlayRoster roster,
+        Func<InputDeviceId, bool>? deviceIsConnected = null)
+    {
+        ArgumentNullException.ThrowIfNull(roster);
+        Reset();
+
+        var restored = 0;
+        for (var playerIndex = 0; playerIndex < roster.PlayerCount && restored < SlotCount; playerIndex++)
+        {
+            var entry = roster.Players[playerIndex];
+            var devices = new List<InputDeviceId>();
+            foreach (var device in entry.Devices)
+            {
+                if (deviceIsConnected is null || deviceIsConnected(device))
+                    devices.Add(device);
+            }
+
+            if (devices.Count == 0)
+                continue;
+
+            var slot = restored;
+            _modes[slot] = LobbySlotMode.SelectingAccessories;
+            foreach (var device in devices)
+                _bindings[slot].Add(device);
+
+            var profileState = new LobbyProfileSelectionState();
+            if (entry.ProfileId is Guid profileId && _profiles.Find(profileId) is not null)
+                profileState.RestoreConfirmed(profileId);
+            _profileSelections[slot] = profileState;
+
+            var accessoryState = new LobbyAccessorySelectionState(_accessoryPoints);
+            foreach (var accessory in entry.SelectedAccessories)
+                accessoryState.TryTake(accessory);
+            _accessorySelections[slot] = accessoryState;
+
+            restored++;
+        }
+
+        return restored;
+    }
 }

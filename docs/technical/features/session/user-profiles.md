@@ -9,14 +9,19 @@ Implements [user-profiles.md](../../../game/features/session/user-profiles.md). 
 ```json
 {
   "profiles": [
-    { "id": "<guid>", "name": "Alex", "deaths": 3 }
+    {
+      "id": "<guid>",
+      "name": "Alex",
+      "deaths": 3,
+      "unlockedAchievements": ["survive_5_minutes"]
+    }
   ]
 }
 ```
 
-- Missing file → empty store. Validate unique ids, non-empty unique names (case-insensitive), `deaths >= 0`. Mutations save immediately.
+- Missing file → empty store. Validate unique ids, non-empty unique names (case-insensitive), `deaths >= 0`. Optional `unlockedAchievements` (string ids; missing → empty). Mutations save immediately.
 - **Host hooks**: `WorldHostHooks` load/save delegates registered by `AppHostRegistration`. Client does not open the profiles path with App types directly.
-- **Profiles scene**: `res://scenes/profiles.tscn` — root `ProfilesApp` (`Minimap.Client.Profiles`). Pure `ProfilesScreenModel` for list selection and create/rename/delete outcomes (unit-tested); Godot UI mirrors it. Rename/create use `LineEdit` with temporary exclusive keyboard focus.
+- **Profiles scene**: `res://scenes/profiles.tscn` — root `ProfilesApp` (`Minimap.Client.Profiles`). Pure `ProfilesScreenModel` for list selection and create/rename/delete outcomes (unit-tested); Godot UI mirrors it. Rename/create use `LineEdit` with temporary exclusive keyboard focus. **Achievements** → set profile focus on `LocalPlayContext` and load `achievements.tscn` (see [achievements.md](achievements.md)).
 - **Main menu**: **Profiles** control between **New** and **Quit** → profiles scene. Popup unchanged.
 - **Lobby**: slot modes `Available` → `SelectingProfile` → `SelectingAccessories` → `Ready`. `LobbyProfileSelectionState` holds carousel index / confirmed profile id. `ProfileSelectionPanel` is select-only (no CRUD). Carousel omits profiles already chosen by other slots. Roster build includes `ProfileId` + `DisplayName` on `LocalPlayerEntry`.
 - **Deaths**: `GameSession.HumanDeathsThisTick` lists player indices that transitioned alive → dead after `World.Tick`. Client maps to roster profile ids and increments via the store. `DropHumanPlayer` is not a death.

@@ -28,6 +28,8 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/domains.md](gameplay/domains.md) | Changing **domains** (gardening / computing themes), domain tags on accessories, or domain-colored icon swatches. |
 | [session/players.md](session/players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [session/user-profiles.md](session/user-profiles.md) | Changing **user profiles**, Profiles screen, lobby profile selection, or persistent death counts. |
+| [session/achievements.md](session/achievements.md) | Changing **achievements**, Survive 5 minutes, Achievements screen, or per-profile unlocks. |
+| [ui/post-session.md](ui/post-session.md) | Changing the **post-session summary**, session achievement list, or all-ready → lobby gate. |
 | [gameplay/ai.md](gameplay/ai.md) | Changing **AI** wander / grass goals, AI combat behavior, or AI spawn counts per faction. |
 | [gameplay/combat.md](gameplay/combat.md) | Changing **missiles**, **Swing**, shoot/swing effects, fire rate, primary/secondary fire, mouse/stick aim, or AI nearest-hostile aim. |
 | [gameplay/factions.md](gameplay/factions.md) | Changing **faction** membership, hostility, or surface faction ids / spawn mix. |
@@ -37,5 +39,5 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [ui/main-menu.md](ui/main-menu.md) | Changing **main menu** screen or popup, start screen, New/Quit/Continue, or pause overlay. |
 | [session/scenarios.md](session/scenarios.md) | Changing **scenario** JSON, wave pacing, spawner counts, level transitions, or single-map sandbox session rules. |
 | [gameplay/waves.md](gameplay/waves.md) | Changing **wave timing**, spawner placement, per-wave enemy volume, or the parked/disabled wave stance. |
-| [ui/game-over.md](ui/game-over.md) | Changing **game over** detection, overlay, or post-game navigation. |
+| [ui/game-over.md](ui/game-over.md) | Changing **game over** detection (leads to post-session summary). |
 | [session/local-input.md](session/local-input.md) | Changing **gamepad/keyboard** binding, per-player devices, disconnect/reconnect, or in-world input. |

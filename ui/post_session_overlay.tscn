@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3 uid="uid://cpostsession01"]
+
+[ext_resource type="Script" path="res://src/Minimap.Client/PostSession/PostSessionOverlay.cs" id="1_overlay"]
+
+[node name="PostSessionOverlay" type="CanvasLayer"]
+layer = 101
+process_mode = 3
+script = ExtResource("1_overlay")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.85)
+mouse_filter = 0
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="Root/Margin/VBox"]
+layout_mode = 2
+text = "Session complete"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 32
+
+[node name="Hint" type="Label" parent="Root/Margin/VBox"]
+layout_mode = 2
+text = "All players must Ready to continue"
+horizontal_alignment = 1
+
+[node name="PlayerRow" type="HBoxContainer" parent="Root/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24

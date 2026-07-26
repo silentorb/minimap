@@ -12,7 +12,9 @@ Implements [lobby.md](../../../game/features/ui/lobby.md). Related: [local-input
 - **Boot**: ordered via `LobbySceneBoot` — (1) bind panels and refresh UI, (2) load extensions + core accessory points + player profiles via `WorldHostHooks` (App registers loaders), (3) only then accept input. Unit tests cover each step and abort.
 - **Boot failure**: on any exception during ready, abort the boot (no input, no panel refresh, no start-game), `GD.PushError`, and quit the process. Do **not** leave a half-initialized lobby interactive (Godot may still deliver input after a thrown `_Ready`).
 - **Navigation**: when start gate passes, write [`LocalPlayContext`](../session/local-play-context.md) roster (devices + profile id/name + selected accessories) and `ChangeSceneToFile("res://scenes/world.tscn")`.
-- **Entry**: reached from the [main menu](main-menu.md) (**New**) or `START_SCREEN=lobby`; `GodotRpcHost` default load path stays `world.tscn` for automation. `run/main_scene` is the main menu.
+- **Entry**: reached from the [main menu](main-menu.md) (**New**), `START_SCREEN=lobby`, or [post-session](post-session.md) → lobby. `GodotRpcHost` default load path stays `world.tscn` for automation. `run/main_scene` is the main menu.
+- **Fresh vs restore**: main menu **New** / `START_SCREEN=lobby` → `Clear()` then empty machine. Returning-from-session → `LobbyStateMachine.ApplyFromRoster` (or equivalent): for each still-connected roster player, claim slot, restore confirmed profile + accessories, land in **SelectingAccessories** (not Ready). Skip disconnected joypads. Then clear the returning flag.
+- **Leave to main menu**: primary player (lowest claimed slot index; if none, unbound Back/Escape) → `main_menu.tscn` and `Clear()` play context.
 - **Automation**: `LobbyApp` implements `ILobbySnapshotSource` for playbook snapshots.
 
 ## Non-goals (for now)

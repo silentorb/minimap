@@ -1,7 +1,9 @@
 using Godot;
+using Minimap.Client.Achievements;
 using Minimap.Client.Lobby;
 using Minimap.Client.LocalPlay;
 using Minimap.Client.MainMenu;
+using Minimap.Client.PostSession;
 using Minimap.Client.Profiles;
 using Minimap.Simulation;
 using Minimap.Simulation.Navigation;
@@ -13,7 +15,6 @@ namespace Minimap.Client.World;
 public partial class WorldApp : Node, IGameAutomationTarget
 {
     private const string LobbyScenePath = "res://scenes/lobby.tscn";
-    private const string MainMenuScenePath = "res://scenes/main_menu.tscn";
 
     [Export] public string CoreSettingsPath { get; set; } = "res://config/core.json";
     [Export] public string ExtensionsSettingsPath { get; set; } = "res://config/extensions.json";
@@ -26,6 +27,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
     [Export] public int LocalPlayerCount { get; set; } = 1;
 
     private readonly WorldSceneBoot _boot = new();
+    private readonly SessionAchievementLedger _sessionAchievements = new();
     private GameSession? _session;
     private ClientSession? _clientSession;
     private WorldView? _worldView;
@@ -33,12 +35,12 @@ public partial class WorldApp : Node, IGameAutomationTarget
     private LocalPlayContextNode? _playContext;
     private LocalInputAggregator? _input;
     private ReconnectOverlay? _reconnectOverlay;
-    private GameOverOverlay? _gameOverOverlay;
+    private PostSessionOverlay? _postSessionOverlay;
     private MainMenuPopup? _mainMenuPopup;
     private GodotNavigationHost? _navigation;
     private readonly ReconnectState _reconnect = new();
     private bool _gameplayPaused;
-    private bool _gameOverShown;
+    private bool _postSessionShown;
     private PlayerProfileCatalog? _profileCatalog;
     private string _profilesAbsolutePath = string.Empty;
 
@@ -47,9 +49,10 @@ public partial class WorldApp : Node, IGameAutomationTarget
     public int HumanPlayerCount => _clientSession?.Players.Count ?? 0;
     public bool GameplayPaused => _gameplayPaused;
     public ReconnectOverlay? ReconnectOverlay => _reconnectOverlay;
-    public GameOverOverlay? GameOverOverlay => _gameOverOverlay;
+    public PostSessionOverlay? PostSessionOverlay => _postSessionOverlay;
     public MainMenuPopup? MainMenuPopup => _mainMenuPopup;
     public bool MainMenuPopupVisible => _mainMenuPopup?.OverlayVisible ?? false;
+    public SessionAchievementLedger SessionAchievements => _sessionAchievements;
     internal WorldSceneBoot Boot => _boot;
 
     public override void _Ready()
@@ -108,6 +111,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
                 .Select(p => p.ProfileId)
                 .ToList();
             _clientSession = new ClientSession(_session, extensions.Domains, displayNames, profileIds);
+            _sessionAchievements.EnsurePlayerCount(count);
 
             _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
             if (profileIds.Any(id => id is not null))
@@ -133,12 +137,11 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _input = new LocalInputAggregator(_playContext.Roster, _worldView);
             _reconnectOverlay = GetNode<ReconnectOverlay>("ReconnectOverlay");
             _reconnectOverlay.DropPlayerRequested += OnDropDisconnectedPlayer;
-            _gameOverOverlay = GetNode<GameOverOverlay>("GameOverOverlay");
-            _gameOverOverlay.NewGameRequested += OnGameOverNewGame;
-            _gameOverOverlay.MainMenuRequested += OnGameOverMainMenu;
+            _postSessionOverlay = GetNode<PostSessionOverlay>("PostSessionOverlay");
+            _postSessionOverlay.AllReadyRequested += OnPostSessionAllReady;
             _mainMenuPopup = GetNode<MainMenuPopup>("MainMenuPopup");
             _mainMenuPopup.ContinueRequested += OnMainMenuContinue;
-            _mainMenuPopup.NewRequested += OnMainMenuNew;
+            _mainMenuPopup.EndGameRequested += OnMainMenuEndGame;
             _mainMenuPopup.QuitRequested += OnMainMenuQuit;
             Input.JoyConnectionChanged += OnJoyConnectionChanged;
             _boot.MarkViewsBound();
@@ -183,16 +186,13 @@ public partial class WorldApp : Node, IGameAutomationTarget
         Input.JoyConnectionChanged -= OnJoyConnectionChanged;
         if (_worldView is not null)
             _worldView.TerrainChanged -= OnTerrainChanged;
-        if (_gameOverOverlay is not null)
-        {
-            _gameOverOverlay.NewGameRequested -= OnGameOverNewGame;
-            _gameOverOverlay.MainMenuRequested -= OnGameOverMainMenu;
-        }
+        if (_postSessionOverlay is not null)
+            _postSessionOverlay.AllReadyRequested -= OnPostSessionAllReady;
 
         if (_mainMenuPopup is not null)
         {
             _mainMenuPopup.ContinueRequested -= OnMainMenuContinue;
-            _mainMenuPopup.NewRequested -= OnMainMenuNew;
+            _mainMenuPopup.EndGameRequested -= OnMainMenuEndGame;
             _mainMenuPopup.QuitRequested -= OnMainMenuQuit;
         }
 
@@ -230,6 +230,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
         EnsureGodotSteering();
         _session.Tick((float)delta);
         RecordProfileDeaths(_session.HumanDeathsThisTick);
+        RecordSurviveAchievements(_session.SurviveFiveMinutesThisTick);
 
         if (_session.LastScenarioTickResult.LevelRegenerated)
         {
@@ -237,12 +238,8 @@ public partial class WorldApp : Node, IGameAutomationTarget
             _worldView.OnLevelRegenerated(_session.HumanPawns);
         }
 
-        if (_session.IsGameOver && !_gameOverShown && _gameOverOverlay is not null)
-        {
-            _gameOverShown = true;
-            _gameplayPaused = true;
-            _gameOverOverlay.ShowOverlay();
-        }
+        if (_session.IsGameOver && !_postSessionShown)
+            ShowPostSession("Game Over");
 
         _worldView.SyncFrame(_clientSession.Players);
         _hudPanel.Apply(_clientSession.BuildHudModels());
@@ -297,11 +294,17 @@ public partial class WorldApp : Node, IGameAutomationTarget
         if (_reconnect.IsWaiting && _reconnectOverlay is not null && _playContext is not null)
             return HandleReconnectInput(device, key, button);
 
+        if (_postSessionShown && _postSessionOverlay is not null)
+        {
+            var activate = key is Key k && GameInput.IsActivateKey(k)
+                || button is JoyButton b && GameInput.IsActivateButton(b);
+            if (activate)
+                return _postSessionOverlay.TryHandleReadyInput(device);
+            return false;
+        }
+
         if (_mainMenuPopup is not null && _mainMenuPopup.OverlayVisible)
             return _mainMenuPopup.TryHandleOwnerDismiss(device, key, button);
-
-        if (_gameOverShown)
-            return false;
 
         return TryOpenMainMenu(device, key, button);
     }
@@ -426,29 +429,13 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
         if (_clientSession.Players.Count == 0)
         {
-            _gameplayPaused = false;
-            ChangeSceneOrThrow(LobbyScenePath);
+            ReturnToLobbyRestoringSession();
             return;
         }
 
+        _sessionAchievements.EnsurePlayerCount(_clientSession.Players.Count);
         _hudPanel?.Apply(_clientSession.BuildHudModels());
         EndReconnectWait();
-    }
-
-    private void OnGameOverNewGame()
-    {
-        if (!_boot.TryTick())
-            return;
-
-        ChangeSceneOrThrow(LobbyScenePath);
-    }
-
-    private void OnGameOverMainMenu()
-    {
-        if (!_boot.TryTick())
-            return;
-
-        ChangeSceneOrThrow(MainMenuScenePath);
     }
 
     private void OnMainMenuContinue()
@@ -457,16 +444,17 @@ public partial class WorldApp : Node, IGameAutomationTarget
             return;
 
         _mainMenuPopup?.HideOverlay();
-        if (!_reconnect.IsWaiting && !_gameOverShown)
+        if (!_reconnect.IsWaiting && !_postSessionShown)
             _gameplayPaused = false;
     }
 
-    private void OnMainMenuNew()
+    private void OnMainMenuEndGame()
     {
         if (!_boot.TryTick())
             return;
 
-        ChangeSceneOrThrow(LobbyScenePath);
+        _mainMenuPopup?.HideOverlay();
+        ShowPostSession("Session complete");
     }
 
     private void OnMainMenuQuit()
@@ -475,6 +463,31 @@ public partial class WorldApp : Node, IGameAutomationTarget
             return;
 
         GetTree().Quit();
+    }
+
+    private void OnPostSessionAllReady()
+    {
+        if (!_boot.TryTick())
+            return;
+
+        ReturnToLobbyRestoringSession();
+    }
+
+    private void ShowPostSession(string title)
+    {
+        if (_postSessionShown || _postSessionOverlay is null || _playContext is null)
+            return;
+
+        _postSessionShown = true;
+        _gameplayPaused = true;
+        _mainMenuPopup?.HideOverlay();
+        _postSessionOverlay.ShowSummary(_playContext.Roster, _sessionAchievements, title);
+    }
+
+    private void ReturnToLobbyRestoringSession()
+    {
+        _playContext?.MarkReturningFromSession();
+        ChangeSceneOrThrow(LobbyScenePath);
     }
 
     internal void EndReconnectWait()
@@ -499,7 +512,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
     public void ForceGameOverForTests()
     {
-        if (!_boot.TryTick() || _session is null || _gameOverOverlay is null)
+        if (!_boot.TryTick() || _session is null || _postSessionOverlay is null)
             return;
 
         foreach (var player in _session.Players)
@@ -510,13 +523,24 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
         _session.Tick(1f / 60f);
         RecordProfileDeaths(_session.HumanDeathsThisTick);
+        RecordSurviveAchievements(_session.SurviveFiveMinutesThisTick);
         if (!_session.IsGameOver)
             return;
 
-        _gameOverShown = true;
-        _gameplayPaused = true;
-        _mainMenuPopup?.HideOverlay();
-        _gameOverOverlay.ShowOverlay();
+        ShowPostSession("Game Over");
+    }
+
+    public void ForcePostSessionAllReadyForTests()
+    {
+        if (!_boot.TryTick() || !_postSessionShown || _postSessionOverlay?.ReadyModel is null)
+            return;
+
+        var model = _postSessionOverlay.ReadyModel;
+        for (var i = 0; i < model.PlayerCount; i++)
+            model.TrySetReady(i, true);
+
+        if (model.AllReady)
+            OnPostSessionAllReady();
     }
 
     private void RecordProfileDeaths(IReadOnlyList<int> playerIndices)
@@ -534,6 +558,38 @@ public partial class WorldApp : Node, IGameAutomationTarget
         }
 
         if (changed)
+            WorldHostHooks.RequireSavePlayerProfiles(_profilesAbsolutePath, _profileCatalog);
+    }
+
+    private void RecordSurviveAchievements(IReadOnlyList<int> playerIndices)
+    {
+        if (_clientSession is null || playerIndices.Count == 0)
+            return;
+
+        var changed = false;
+        foreach (var index in playerIndices)
+        {
+            if (_clientSession.GetProfileId(index) is not Guid profileId)
+            {
+                // Direct world / no profile: still track session earn for summary display.
+                _sessionAchievements.TryRecord(index, AchievementIds.Survive5Minutes, firstTime: true);
+                continue;
+            }
+
+            _profileCatalog ??= WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath);
+            var profile = _profileCatalog.Find(profileId);
+            var firstTime = profile is null || !profile.HasAchievement(AchievementIds.Survive5Minutes);
+            if (!_sessionAchievements.TryRecord(index, AchievementIds.Survive5Minutes, firstTime))
+                continue;
+            if (firstTime
+                && _profileCatalog is not null
+                && _profileCatalog.TryUnlockAchievement(profileId, AchievementIds.Survive5Minutes))
+            {
+                changed = true;
+            }
+        }
+
+        if (changed && _profileCatalog is not null)
             WorldHostHooks.RequireSavePlayerProfiles(_profilesAbsolutePath, _profileCatalog);
     }
 }

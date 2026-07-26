@@ -10,12 +10,12 @@ public partial class MainMenuPopup : CanvasLayer
 
     private ColorRect? _dimmer;
     private Button? _continueButton;
-    private Button? _newButton;
+    private Button? _endGameButton;
     private Button? _quitButton;
     private readonly MainMenuOwnership _ownership = new();
 
     public event Action? ContinueRequested;
-    public event Action? NewRequested;
+    public event Action? EndGameRequested;
     public event Action? QuitRequested;
 
     public MainMenuOwnership Ownership => _ownership;
@@ -28,11 +28,14 @@ public partial class MainMenuPopup : CanvasLayer
         _dimmer = GetNode<ColorRect>("Dimmer");
         _dimmer.Color = new Color(0f, 0f, 0f, OverlayAlpha);
         _continueButton = GetNode<Button>("Center/Panel/Margin/VBox/ContinueButton");
-        _newButton = GetNode<Button>("Center/Panel/Margin/VBox/NewButton");
+        _endGameButton = GetNodeOrNull<Button>("Center/Panel/Margin/VBox/EndGameButton")
+            ?? GetNode<Button>("Center/Panel/Margin/VBox/NewButton");
         _quitButton = GetNode<Button>("Center/Panel/Margin/VBox/QuitButton");
         _continueButton.Pressed += () => ContinueRequested?.Invoke();
-        _newButton.Pressed += () => NewRequested?.Invoke();
+        _endGameButton.Pressed += () => EndGameRequested?.Invoke();
         _quitButton.Pressed += () => QuitRequested?.Invoke();
+        if (_endGameButton.Text != "End game")
+            _endGameButton.Text = "End game";
     }
 
     public void ShowForOwner(InputDeviceId owner)

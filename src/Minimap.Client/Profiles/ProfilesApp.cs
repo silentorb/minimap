@@ -6,10 +6,12 @@ namespace Minimap.Client.Profiles;
 public partial class ProfilesApp : Control
 {
     public const string MainMenuScenePath = "res://scenes/main_menu.tscn";
+    public const string AchievementsScenePath = "res://scenes/achievements.tscn";
     public const string PlaceholderText = "Select or create a profile";
 
     private ProfilesScreenModel? _model;
     private string _profilesAbsolutePath = string.Empty;
+    private LocalPlayContextNode? _playContext;
 
     private ItemList? _list;
     private Label? _nameLabel;
@@ -20,6 +22,7 @@ public partial class ProfilesApp : Control
     private Button? _createButton;
     private Button? _renameButton;
     private Button? _deleteButton;
+    private Button? _achievementsButton;
     private Button? _confirmButton;
     private Button? _cancelButton;
     private Button? _backButton;
@@ -38,11 +41,13 @@ public partial class ProfilesApp : Control
         _createButton = GetNode<Button>("Margin/HBox/Left/VBox/CreateButton");
         _renameButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/RenameButton");
         _deleteButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/DeleteButton");
+        _achievementsButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/AchievementsButton");
         _confirmButton = GetNode<Button>("Margin/HBox/Right/VBox/EditButtonRow/ConfirmButton");
         _cancelButton = GetNode<Button>("Margin/HBox/Right/VBox/EditButtonRow/CancelButton");
         _backButton = GetNode<Button>("Margin/HBox/Left/VBox/BackButton");
         _detailContent = GetNode<Control>("Margin/HBox/Right/VBox/DetailContent");
 
+        _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
         _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
         var catalog = WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath);
         _model = new ProfilesScreenModel(catalog);
@@ -51,6 +56,7 @@ public partial class ProfilesApp : Control
         _createButton.Pressed += OnCreatePressed;
         _renameButton.Pressed += OnRenamePressed;
         _deleteButton.Pressed += OnDeletePressed;
+        _achievementsButton.Pressed += OnAchievementsPressed;
         _confirmButton.Pressed += OnConfirmPressed;
         _cancelButton.Pressed += OnCancelPressed;
         _backButton.Pressed += OnBackPressed;
@@ -136,6 +142,14 @@ public partial class ProfilesApp : Control
 
     private void OnBackPressed() => ChangeSceneOrThrow(MainMenuScenePath);
 
+    private void OnAchievementsPressed()
+    {
+        if (_model?.SelectedProfile is null || _playContext is null)
+            return;
+        _playContext.ProfilesFocusId = _model.SelectedProfile.Id;
+        ChangeSceneOrThrow(AchievementsScenePath);
+    }
+
     private void Persist()
     {
         if (_model is null)
@@ -155,6 +169,7 @@ public partial class ProfilesApp : Control
             || _createButton is null
             || _renameButton is null
             || _deleteButton is null
+            || _achievementsButton is null
             || _confirmButton is null
             || _cancelButton is null
             || _detailContent is null)
@@ -203,6 +218,7 @@ public partial class ProfilesApp : Control
         _createButton.Disabled = editing;
         _renameButton.Disabled = editing || selected is null;
         _deleteButton.Disabled = editing || selected is null;
+        _achievementsButton.Disabled = editing || selected is null;
         _list.MouseFilter = editing ? MouseFilterEnum.Ignore : MouseFilterEnum.Stop;
 
         if (_model.EditMode == ProfilesScreenEditMode.ConfirmDelete && selected is not null)

@@ -57,6 +57,7 @@ public class PlayerProfileCatalogTests
             Assert.Single(loaded.Profiles);
             Assert.Equal("Alex", loaded.Profiles[0].Name);
             Assert.Equal(0, loaded.Profiles[0].Deaths);
+            Assert.Empty(loaded.Profiles[0].UnlockedAchievements);
         }
         finally
         {

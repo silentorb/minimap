@@ -14,4 +14,6 @@ public interface IGameAutomationTarget
     void SimulateJoypadDisconnectForTests(int playerIndex);
 
     void ForceGameOverForTests();
+
+    void ForcePostSessionAllReadyForTests();
 }

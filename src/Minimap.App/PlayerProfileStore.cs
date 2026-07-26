@@ -64,12 +64,15 @@ public static class PlayerProfileStore
             if (entry.Deaths < 0)
                 throw new InvalidOperationException($"Profile {entry.Id} deaths must be >= 0.");
 
-            records.Add(new PlayerProfileRecord
+            var record = new PlayerProfileRecord
             {
                 Id = entry.Id,
                 Name = name,
                 Deaths = entry.Deaths,
-            });
+            };
+            if (entry.UnlockedAchievements is { Count: > 0 })
+                record.ReplaceUnlockedAchievements(entry.UnlockedAchievements);
+            records.Add(record);
         }
 
         catalog.ReplaceAll(records);
@@ -89,6 +92,9 @@ public static class PlayerProfileStore
                     Id = p.Id,
                     Name = p.Name,
                     Deaths = p.Deaths,
+                    UnlockedAchievements = p.UnlockedAchievements.Count == 0
+                        ? null
+                        : p.UnlockedAchievements.OrderBy(id => id, StringComparer.Ordinal).ToList(),
                 })
                 .ToList(),
         };
@@ -117,5 +123,8 @@ public static class PlayerProfileStore
 
         [JsonPropertyName("deaths")]
         public int Deaths { get; set; }
+
+        [JsonPropertyName("unlockedAchievements")]
+        public List<string>? UnlockedAchievements { get; set; }
     }
 }

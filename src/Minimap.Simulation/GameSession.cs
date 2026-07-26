@@ -8,10 +8,16 @@ namespace Minimap.Simulation;
 /// </summary>
 public sealed class GameSession
 {
+    /// <summary>Consecutive alive sim seconds required for the Survive 5 minutes crossing signal.</summary>
+    public const float SurviveFiveMinutesSeconds = 300f;
+
     private readonly List<Player> _players = new();
     private readonly SpawnConfig _spawnConfig;
     private readonly ScenarioRunner _scenarioRunner = new();
     private readonly List<int> _humanDeathsThisTick = new();
+    private readonly List<int> _surviveFiveMinutesThisTick = new();
+    private float[] _consecutiveAliveSeconds = Array.Empty<float>();
+    private bool[] _surviveFiveMinutesSignaled = Array.Empty<bool>();
     private bool _isGameOver;
 
     private GameSession(
@@ -44,6 +50,19 @@ public sealed class GameSession
 
     /// <summary>Player indices whose character transitioned alive → dead during the last <see cref="Tick"/>.</summary>
     public IReadOnlyList<int> HumanDeathsThisTick => _humanDeathsThisTick;
+
+    /// <summary>
+    /// Player indices whose consecutive alive sim time first crossed
+    /// <see cref="SurviveFiveMinutesSeconds"/> during the last <see cref="Tick"/>.
+    /// </summary>
+    public IReadOnlyList<int> SurviveFiveMinutesThisTick => _surviveFiveMinutesThisTick;
+
+    public float GetConsecutiveAliveSeconds(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _consecutiveAliveSeconds.Length)
+            return 0f;
+        return _consecutiveAliveSeconds[playerIndex];
+    }
 
     public static GameSession Create(
         int radiusX,
@@ -87,6 +106,7 @@ public sealed class GameSession
     public void Tick(float dt)
     {
         _humanDeathsThisTick.Clear();
+        _surviveFiveMinutesThisTick.Clear();
         if (_isGameOver)
             return;
 
@@ -119,7 +139,10 @@ public sealed class GameSession
             if (character is { IsAlive: true } && World.Characters.Contains(character))
                 continue;
             _humanDeathsThisTick.Add(i);
+            ResetConsecutiveAlive(i);
         }
+
+        AccumulateConsecutiveAlive(dt);
 
         if (AllHumanPawnsDead())
             _isGameOver = true;
@@ -135,6 +158,7 @@ public sealed class GameSession
         var pawn = player.Character;
         player.Character = null;
         _players.RemoveAt(playerIndex);
+        RemoveTrackingAt(playerIndex);
         if (pawn is not null)
             World.ForceRemoveCharacter(pawn);
         return true;
@@ -153,6 +177,54 @@ public sealed class GameSession
                 player.SetSelectedAccessories(selectedAccessoriesByPlayer[i]);
             _players.Add(player);
         }
+
+        _consecutiveAliveSeconds = new float[count];
+        _surviveFiveMinutesSignaled = new bool[count];
+    }
+
+    private void AccumulateConsecutiveAlive(float dt)
+    {
+        for (var i = 0; i < _players.Count; i++)
+        {
+            var character = _players[i].Character;
+            if (character is not { IsAlive: true } || !World.Characters.Contains(character))
+                continue;
+
+            _consecutiveAliveSeconds[i] += dt;
+            if (_surviveFiveMinutesSignaled[i])
+                continue;
+            if (_consecutiveAliveSeconds[i] < SurviveFiveMinutesSeconds)
+                continue;
+
+            _surviveFiveMinutesSignaled[i] = true;
+            _surviveFiveMinutesThisTick.Add(i);
+        }
+    }
+
+    private void ResetConsecutiveAlive(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _consecutiveAliveSeconds.Length)
+            return;
+        _consecutiveAliveSeconds[playerIndex] = 0f;
+        _surviveFiveMinutesSignaled[playerIndex] = false;
+    }
+
+    private void RemoveTrackingAt(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _consecutiveAliveSeconds.Length)
+            return;
+
+        var nextAlive = new float[_players.Count];
+        var nextSignaled = new bool[_players.Count];
+        for (var i = 0; i < _players.Count; i++)
+        {
+            var src = i < playerIndex ? i : i + 1;
+            nextAlive[i] = _consecutiveAliveSeconds[src];
+            nextSignaled[i] = _surviveFiveMinutesSignaled[src];
+        }
+
+        _consecutiveAliveSeconds = nextAlive;
+        _surviveFiveMinutesSignaled = nextSignaled;
     }
 
     private void SpawnPlayers(SpawnConfig spawn)

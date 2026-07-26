@@ -5,7 +5,7 @@ Local multiplayer join screen before a match. Related: [local-input.md](../sessi
 ## Requirements
 
 - **Local multiplayer only** — no networking or remote join.
-- The lobby is reached via **New** on the [main menu](main-menu.md) (or `START_SCREEN=lobby` for developers).
+- The lobby is reached via **New** on the [main menu](main-menu.md) (or `START_SCREEN=lobby` for developers), or by finishing a match on the [post-session summary](post-session.md).
 - The screen is divided into **four horizontal panels**, one per possible player (1–4).
 - Each panel is a **wizard** with modes in sequence:
   1. **Available** (inactive) — default; no player assigned.
@@ -25,6 +25,8 @@ Local multiplayer join screen before a match. Related: [local-input.md](../sessi
 - **Start game**: when **at least one** panel is claimed and **every claimed** panel is Ready (Available panels ignored) → navigate to the world scene with that player count, device bindings, selected profiles, and selected accessories.
 - A device already bound to a slot cannot claim another (except the reconnect flow in [local-input.md](../session/local-input.md)).
 - **Keyboard** may claim **one** lobby slot like a gamepad.
+- **Return from a match**: when arriving from post-session (or other world→lobby end paths that keep the roster), the lobby **restores** still-connected players with their previous profile and accessory selections in **Selecting accessories** (one step before Ready). Disconnected joypad players are not restored. Fresh entry from the main menu still starts empty.
+- **Leave to main menu**: the **primary** player (lowest-index claimed slot; if none claimed, any unbound Back/Escape) may return to the [main menu](main-menu.md). With claimed slots, the primary backs through the wizard to Available (unclaim), then Back/Escape leaves to the main menu and clears the play context. This is how players reach the main menu after a match has started.
 
 ## Non-goals (for now)
 

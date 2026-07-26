@@ -1,12 +1,12 @@
 # User profiles
 
-Local persistent player identities across app launches. Related: [players.md](players.md), [lobby.md](../ui/lobby.md), [main-menu.md](../ui/main-menu.md), [player-hud.md](../ui/player-hud.md), [health.md](../gameplay/health.md). Technical: [user-profiles.md](../../../technical/features/session/user-profiles.md).
+Local persistent player identities across app launches. Related: [players.md](players.md), [achievements.md](achievements.md), [lobby.md](../ui/lobby.md), [main-menu.md](../ui/main-menu.md), [player-hud.md](../ui/player-hud.md), [health.md](../gameplay/health.md). Technical: [user-profiles.md](../../../technical/features/session/user-profiles.md).
 
 ## Requirements
 
-- Players may create multiple **user profiles**. Each profile has a **display name** and persistent stats (initially **death count**).
+- Players may create multiple **user profiles**. Each profile has a **display name**, persistent stats (initially **death count**), and [achievements](achievements.md).
 - **Create, rename, and delete** happen on a dedicated **Profiles** screen reached from the [main menu](../ui/main-menu.md) (**Profiles**), not from the lobby.
-- Profiles screen: scrollable **list** of profiles on the left; **detail panel** on the right for the selected profile (name, deaths, rename, delete). **Create** starts name entry for a new profile. **Back** returns to the main menu.
+- Profiles screen: scrollable **list** of profiles on the left; **detail panel** on the right for the selected profile (name, deaths, rename, delete, **Achievements**). **Create** starts name entry for a new profile. **Back** returns to the main menu. **Achievements** opens the full-screen achievements view for the selected profile.
 - Name rules: trimmed, non-empty, max length **24**, **case-insensitive unique** among profiles.
 - In the [lobby](../ui/lobby.md), after claiming a slot, each player **selects** a profile (carousel) before accessory selection. A profile may be selected by **at most one** lobby slot at a time.
 - If no profiles exist or none remain available for a slot, the lobby shows that profiles are managed from the main menu Profiles screen; the player cannot advance until a free profile is available.
@@ -18,4 +18,4 @@ Local persistent player identities across app launches. Related: [players.md](pl
 
 - Online accounts or cloud sync
 - Profiles entry from the in-world main menu popup
-- Stats beyond death count
+- Stats beyond death count and achievement unlocks

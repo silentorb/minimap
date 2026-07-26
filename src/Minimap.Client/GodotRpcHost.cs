@@ -256,6 +256,14 @@ public partial class GodotRpcHost : Node
                 return Task.CompletedTask;
             });
 
+        public Task ForcePostSessionAllReadyAsync(CancellationToken cancellationToken = default) =>
+            owner.RunOnMainThread(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                owner.GetGameTarget()?.ForcePostSessionAllReadyForTests();
+                return Task.CompletedTask;
+            });
+
         public Task FocusReconnectDropAsync(CancellationToken cancellationToken = default) =>
             owner.RunOnMainThread(() =>
             {

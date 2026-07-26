@@ -50,6 +50,15 @@ public sealed class LobbyProfileSelectionState
         return true;
     }
 
+    /// <summary>Restore a previously confirmed profile (lobby return-from-session).</summary>
+    public void RestoreConfirmed(Guid profileId)
+    {
+        if (profileId == Guid.Empty)
+            throw new ArgumentException("Profile id must be non-empty.", nameof(profileId));
+        ConfirmedProfileId = profileId;
+        CarouselIndex = 0;
+    }
+
     public void Clear()
     {
         ConfirmedProfileId = null;

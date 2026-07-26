@@ -102,6 +102,10 @@ text = "Rename"
 layout_mode = 2
 text = "Delete"
 
+[node name="AchievementsButton" type="Button" parent="Margin/HBox/Right/VBox/DetailContent/ButtonRow"]
+layout_mode = 2
+text = "Achievements"
+
 [node name="NameEdit" type="LineEdit" parent="Margin/HBox/Right/VBox"]
 visible = false
 layout_mode = 2

@@ -28,6 +28,8 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/domains.md](gameplay/domains.md) | Working on **DomainDefinition**, domain JSON, domain color resolver, or domain-colored accessory icons. |
 | [session/players.md](session/players.md) | Working on Simulation **`Player`**, accessory points, or controller↔player association. |
 | [session/user-profiles.md](session/user-profiles.md) | Working on **player profiles** store, Profiles screen, lobby profile carousel, or death→profile counters. |
+| [session/achievements.md](session/achievements.md) | Working on **achievement** catalog, unlock persistence, Survive 5 minutes tracking, or Achievements scene. |
+| [ui/post-session.md](ui/post-session.md) | Working on **post-session** overlay, session achievement ledger UI, or all-ready → lobby. |
 | [platform/definition-config.md](platform/definition-config.md) | Changing **accessory/character/actor/resource JSON** under an extension’s `config/` (e.g. CompuQuest), effect `type` map, or `DefinitionConfig` load APIs. |
 | [gameplay/depiction.md](gameplay/depiction.md) | Working on **DepictionConfig**, SpriteFrames / texture depictions, or CompuQuest Kenney art under `assets/compuquest/`. |
 | [ui/ui-icons.md](ui/ui-icons.md) | Working on **IconConfig**, definition `icon` JSON, or CompuQuest game-icons under `assets/compuquest/game-icons/`. |

@@ -87,6 +87,15 @@ public sealed class PlayerProfileCatalog
         return true;
     }
 
+    /// <summary>Unlocks an achievement on the profile. Returns false if missing profile or already unlocked.</summary>
+    public bool TryUnlockAchievement(Guid id, string achievementId)
+    {
+        var existing = Find(id);
+        if (existing is null)
+            return false;
+        return existing.TryUnlockAchievement(achievementId);
+    }
+
     private bool TryNormalizeName(string name, Guid? excludeId, out string normalized, out string? error)
     {
         normalized = (name ?? string.Empty).Trim();

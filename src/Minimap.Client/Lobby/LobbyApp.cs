@@ -8,6 +8,7 @@ namespace Minimap.Client.Lobby;
 public partial class LobbyApp : Control, ILobbySnapshotSource
 {
     private const string WorldScenePath = "res://scenes/world.tscn";
+    private const string MainMenuScenePath = "res://scenes/main_menu.tscn";
 
     private readonly LobbyStateMachine _lobby = new();
     private readonly LobbySceneBoot _boot = new();
@@ -26,7 +27,7 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         try
         {
             _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
-            _playContext.Clear();
+            var returning = _playContext.ReturningFromSession && !_playContext.Roster.IsEmpty;
 
             var row = GetNode<HBoxContainer>("Margin/PanelRow");
             _panels = new LobbyPanel[LobbyStateMachine.SlotCount];
@@ -47,6 +48,18 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
 
             _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
             _lobby.ConfigureProfiles(WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath));
+
+            if (returning)
+            {
+                _lobby.ApplyFromRoster(
+                    _playContext.Roster,
+                    device => !device.IsJoypad || GameInput.IsJoypadConnected(device.JoypadDevice));
+                _playContext.ClearReturningFromSession();
+            }
+            else
+            {
+                _playContext.Clear();
+            }
 
             _boot.MarkExtensionsLoaded();
             RefreshPanels();
@@ -107,6 +120,11 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             {
                 if (_lobby.TryBack(device))
                     RefreshPanels();
+                else if (TryLeaveToMainMenu(device))
+                {
+                    // scene change
+                }
+
                 GetViewport().SetInputAsHandled();
                 return;
             }
@@ -125,6 +143,11 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             {
                 if (_lobby.TryBack(device))
                     RefreshPanels();
+                else if (TryLeaveToMainMenu(device))
+                {
+                    // scene change
+                }
+
                 GetViewport().SetInputAsHandled();
                 return;
             }
@@ -135,6 +158,19 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
                     GetViewport().SetInputAsHandled();
             }
         }
+    }
+
+    /// <summary>
+    /// Unbound Back/Escape leaves to the main menu (primary backs out after unclaim, or fresh lobby).
+    /// </summary>
+    private bool TryLeaveToMainMenu(InputDeviceId device)
+    {
+        if (_lobby.IsDeviceBound(device) || _playContext is null)
+            return false;
+
+        _playContext.Clear();
+        ChangeSceneOrThrow(MainMenuScenePath);
+        return true;
     }
 
     private bool TryHandleProfileNavigation(
