@@ -303,8 +303,9 @@ public partial class WorldApp : Node, IGameAutomationTarget
             return false;
         }
 
+        // Popup consumes owner (and blocks non-owner) input in MainMenuPopup._Input.
         if (_mainMenuPopup is not null && _mainMenuPopup.OverlayVisible)
-            return _mainMenuPopup.TryHandleOwnerDismiss(device, key, button);
+            return true;
 
         return TryOpenMainMenu(device, key, button);
     }

@@ -19,7 +19,7 @@ Input devices for local human players. Related: [lobby.md](../ui/lobby.md), [mai
 - **Modal ability activate**: joypad **`JoyButton.X`**; keyboard **Space**. (Immediate or preview/confirm depending on the ability; see [active-abilities.md](../gameplay/active-abilities.md).)
 - **Environment interact**: joypad **`JoyButton.A`**; keyboard **E** (see [interaction.md](../gameplay/interaction.md)).
 - **Cancel placement preview**: joypad **`JoyButton.B`**; keyboard **Escape**.
-- **Open main menu popup** (in-world): joypad **`JoyButton.Start`**; keyboard **Escape** when not consuming Escape as placement/ability cancel; see [main-menu.md](../ui/main-menu.md). The activating player has exclusive menu control.
+- **Open main menu popup** (in-world): joypad **`JoyButton.Start`**; keyboard **Escape** when not consuming Escape as placement/ability cancel; see [main-menu.md](../ui/main-menu.md). The activating player has exclusive menu control (D-pad / arrows to move, A / Enter / Space to activate, Start / Escape to Continue).
 - **Direct world start** (no lobby): default **solo keyboard** on player 1 for developers and automation.
 
 ### Disconnect / reconnect

@@ -26,6 +26,8 @@ public sealed class GodotAutomationFixture : IAsyncLifetime
         "Minimap.Functional.Godot.Playbooks.MainMenuProfilesGoesToProfiles";
     public const string MainMenuPopupPauseAndContinueId =
         "Minimap.Functional.Godot.Playbooks.MainMenuPopupPauseAndContinue";
+    public const string MainMenuPopupJoypadNavigateId =
+        "Minimap.Functional.Godot.Playbooks.MainMenuPopupJoypadNavigate";
     public const string GameOverNewAndMainMenuId = "Minimap.Functional.Godot.Playbooks.GameOverNewAndMainMenu";
 
     private Process? _godotProcess;

@@ -5,6 +5,7 @@ public enum MainMenuAction
 {
     Continue,
     New,
+    EndGame,
     Quit,
 }
 
@@ -16,6 +17,6 @@ public static class MainMenuModel
 
     public static IReadOnlyList<MainMenuAction> PopupOptions(bool activeGame) =>
         activeGame
-            ? new[] { MainMenuAction.Continue, MainMenuAction.New, MainMenuAction.Quit }
-            : new[] { MainMenuAction.New, MainMenuAction.Quit };
+            ? new[] { MainMenuAction.Continue, MainMenuAction.EndGame, MainMenuAction.Quit }
+            : new[] { MainMenuAction.EndGame, MainMenuAction.Quit };
 }

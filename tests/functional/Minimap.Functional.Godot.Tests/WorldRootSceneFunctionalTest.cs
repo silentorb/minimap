@@ -136,6 +136,16 @@ public class MainMenuFunctionalTest(GodotAutomationFixture fixture)
     }
 
     [Fact]
+    public async Task Main_menu_popup_joypad_navigates_to_end_game()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuPopupJoypadNavigateId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
     public async Task Game_over_new_and_main_menu_navigate()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest

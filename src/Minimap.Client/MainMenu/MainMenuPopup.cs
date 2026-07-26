@@ -12,13 +12,13 @@ public partial class MainMenuPopup : CanvasLayer
     private Button? _continueButton;
     private Button? _endGameButton;
     private Button? _quitButton;
-    private readonly MainMenuOwnership _ownership = new();
+    private readonly MainMenuPopupController _controller = new();
 
     public event Action? ContinueRequested;
     public event Action? EndGameRequested;
     public event Action? QuitRequested;
 
-    public MainMenuOwnership Ownership => _ownership;
+    public MainMenuOwnership Ownership => _controller.Ownership;
     public bool OverlayVisible => Visible;
 
     public override void _Ready()
@@ -31,38 +31,175 @@ public partial class MainMenuPopup : CanvasLayer
         _endGameButton = GetNodeOrNull<Button>("Center/Panel/Margin/VBox/EndGameButton")
             ?? GetNode<Button>("Center/Panel/Margin/VBox/NewButton");
         _quitButton = GetNode<Button>("Center/Panel/Margin/VBox/QuitButton");
-        _continueButton.Pressed += () => ContinueRequested?.Invoke();
-        _endGameButton.Pressed += () => EndGameRequested?.Invoke();
-        _quitButton.Pressed += () => QuitRequested?.Invoke();
+        _continueButton.Pressed += () => TryInvokeFromPointer(MainMenuAction.Continue);
+        _endGameButton.Pressed += () => TryInvokeFromPointer(MainMenuAction.EndGame);
+        _quitButton.Pressed += () => TryInvokeFromPointer(MainMenuAction.Quit);
         if (_endGameButton.Text != "End game")
             _endGameButton.Text = "End game";
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (!Visible || !_controller.IsOpen)
+            return;
+
+        if (@event is InputEventMouseButton mouse && mouse.Pressed)
+        {
+            // Mouse belongs to the keyboard device; block it when a joypad owns the menu.
+            if (!_controller.Ownership.Accepts(InputDeviceId.Keyboard))
+                GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (@event is InputEventKey key && !key.Echo && key.Pressed)
+        {
+            if (TryHandleOwnerInput(GameInput.DeviceFromKeyEvent(key), key.Keycode, null))
+                GetViewport().SetInputAsHandled();
+            else if (!_controller.Ownership.Accepts(InputDeviceId.Keyboard))
+                GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (@event is InputEventJoypadButton joy && joy.Pressed)
+        {
+            var device = GameInput.DeviceFromJoyEvent(joy);
+            if (TryHandleOwnerInput(device, null, joy.ButtonIndex))
+                GetViewport().SetInputAsHandled();
+            else if (!_controller.Ownership.Accepts(device))
+                GetViewport().SetInputAsHandled();
+        }
+    }
+
     public void ShowForOwner(InputDeviceId owner)
     {
-        _ownership.Open(owner);
+        _controller.Open(owner);
         if (_continueButton is not null)
             _continueButton.Visible = true;
         Visible = true;
+        SyncFocus();
     }
 
     public void HideOverlay()
     {
         Visible = false;
-        _ownership.Close();
+        _controller.Close();
     }
 
-    public bool TryHandleOwnerDismiss(InputDeviceId device, Key? key, JoyButton? button)
+    /// <summary>Owner Start/Escape dismiss (Continue). Kept for WorldApp modal routing.</summary>
+    public bool TryHandleOwnerDismiss(InputDeviceId device, Key? key, JoyButton? button) =>
+        TryHandleOwnerInput(device, key, button);
+
+    public bool TryHandleOwnerInput(InputDeviceId device, Key? key, JoyButton? button)
     {
-        if (!_ownership.IsOpen || !_ownership.Accepts(device))
+        Decode(key, button, out var delta, out var activate, out var dismiss);
+        if (!dismiss && delta == 0 && !activate)
             return false;
 
-        var dismiss = key is Key k && GameInput.IsMenuOpenKey(k)
-            || button is JoyButton b && GameInput.IsMenuOpenButton(b);
-        if (!dismiss)
+        if (!_controller.TryHandle(device, delta, activate, dismiss, out var activated))
             return false;
 
-        ContinueRequested?.Invoke();
+        if (activated is MainMenuAction action)
+        {
+            InvokeAction(action);
+            return true;
+        }
+
+        SyncFocus();
         return true;
+    }
+
+    private void TryInvokeFromPointer(MainMenuAction action)
+    {
+        // Button.Pressed is mouse/keyboard GUI; only when keyboard owns (or no exclusive joypad).
+        if (!_controller.Ownership.Accepts(InputDeviceId.Keyboard))
+            return;
+        InvokeAction(action);
+    }
+
+    private void InvokeAction(MainMenuAction action)
+    {
+        switch (action)
+        {
+            case MainMenuAction.Continue:
+                ContinueRequested?.Invoke();
+                break;
+            case MainMenuAction.EndGame:
+                EndGameRequested?.Invoke();
+                break;
+            case MainMenuAction.Quit:
+                QuitRequested?.Invoke();
+                break;
+        }
+    }
+
+    private void SyncFocus()
+    {
+        var button = ButtonFor(_controller.SelectedAction);
+        button?.GrabFocus();
+    }
+
+    private Button? ButtonFor(MainMenuAction action) =>
+        action switch
+        {
+            MainMenuAction.Continue => _continueButton,
+            MainMenuAction.EndGame => _endGameButton,
+            MainMenuAction.Quit => _quitButton,
+            _ => null,
+        };
+
+    private static void Decode(
+        Key? key,
+        JoyButton? button,
+        out int navigateDelta,
+        out bool activateSelected,
+        out bool dismiss)
+    {
+        navigateDelta = 0;
+        activateSelected = false;
+        dismiss = false;
+
+        if (key is Key k)
+        {
+            if (GameInput.IsMenuOpenKey(k))
+            {
+                dismiss = true;
+                return;
+            }
+
+            navigateDelta = k switch
+            {
+                Key.Up => -1,
+                Key.Down => 1,
+                _ => 0,
+            };
+            if (navigateDelta != 0)
+                return;
+
+            if (GameInput.IsActivateKey(k))
+                activateSelected = true;
+            return;
+        }
+
+        if (button is JoyButton b)
+        {
+            if (GameInput.IsMenuOpenButton(b))
+            {
+                dismiss = true;
+                return;
+            }
+
+            navigateDelta = b switch
+            {
+                JoyButton.DpadUp => -1,
+                JoyButton.DpadDown => 1,
+                _ => 0,
+            };
+            if (navigateDelta != 0)
+                return;
+
+            // A activates the focused option; Start is dismiss (handled above).
+            if (b is JoyButton.A)
+                activateSelected = true;
+        }
     }
 }

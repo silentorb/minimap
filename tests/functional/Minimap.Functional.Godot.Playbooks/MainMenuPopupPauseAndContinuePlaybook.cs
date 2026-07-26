@@ -12,6 +12,7 @@ public sealed class MainMenuPopupPauseAndContinuePlaybook : IPlaybook
         string argsJson,
         CancellationToken cancellationToken)
     {
+        await context.ClearLocalPlayContextAsync(cancellationToken);
         await context.LoadSceneAsync("res://scenes/world.tscn", cancellationToken);
         await context.WaitFramesAsync(20, cancellationToken);
 
