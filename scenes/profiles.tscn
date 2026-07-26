@@ -81,6 +81,34 @@ autowrap_mode = 3
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="AvatarRow" type="HBoxContainer" parent="Margin/HBox/Right/VBox/DetailContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AvatarPlaceholder" type="ColorRect" parent="Margin/HBox/Right/VBox/DetailContent/AvatarRow"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+color = Color(0.22, 0.24, 0.28, 1)
+
+[node name="AvatarPreview" type="TextureRect" parent="Margin/HBox/Right/VBox/DetailContent/AvatarRow"]
+visible = false
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AvatarButtonColumn" type="VBoxContainer" parent="Margin/HBox/Right/VBox/DetailContent/AvatarRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ChangePictureButton" type="Button" parent="Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarButtonColumn"]
+layout_mode = 2
+text = "Change picture"
+
+[node name="ClearPictureButton" type="Button" parent="Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarButtonColumn"]
+layout_mode = 2
+text = "Clear picture"
+
 [node name="NameLabel" type="Label" parent="Margin/HBox/Right/VBox/DetailContent"]
 layout_mode = 2
 text = "Name"

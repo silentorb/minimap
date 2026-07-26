@@ -7,7 +7,10 @@ namespace Minimap.Client.Lobby;
 /// <summary>One of four lobby player panels with profile carousel and accessory selection.</summary>
 public partial class LobbyPanel : PanelContainer
 {
+    public static readonly Vector2 TitleAvatarSize = new(28, 28);
+
     private Label? _title;
+    private TextureRect? _titleAvatar;
     private Label? _status;
     private Control? _customizeArea;
     private Control? _navRow;
@@ -15,6 +18,7 @@ public partial class LobbyPanel : PanelContainer
     private Button? _forwardButton;
     private AccessorySelectionPanel? _accessoryPanel;
     private ProfileSelectionPanel? _profilePanel;
+    private string _avatarsAbsolutePath = string.Empty;
 
     public AccessorySelectionPanel? AccessoryPanel => _accessoryPanel;
 
@@ -28,7 +32,9 @@ public partial class LobbyPanel : PanelContainer
 
     public override void _Ready()
     {
-        _title = GetNode<Label>("Margin/VBox/Title");
+        _avatarsAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerAvatarsResPath);
+        _title = GetNode<Label>("Margin/VBox/TitleRow/Title");
+        _titleAvatar = GetNode<TextureRect>("Margin/VBox/TitleRow/TitleAvatar");
         _status = GetNode<Label>("Margin/VBox/Status");
         _customizeArea = GetNode<Control>("Margin/VBox/CustomizeArea");
         _navRow = GetNode<Control>("Margin/VBox/NavRow");
@@ -78,7 +84,8 @@ public partial class LobbyPanel : PanelContainer
         LobbySlotMode mode,
         int slotIndex,
         string? profileDisplayName = null,
-        bool canAdvance = true)
+        bool canAdvance = true,
+        string? avatarFile = null)
     {
         if (_title is null || _status is null)
             return;
@@ -86,6 +93,7 @@ public partial class LobbyPanel : PanelContainer
         _title.Text = string.IsNullOrWhiteSpace(profileDisplayName)
             ? $"Player {slotIndex + 1}"
             : profileDisplayName;
+        ApplyTitleAvatar(string.IsNullOrWhiteSpace(profileDisplayName) ? null : avatarFile);
         _status.Text = mode switch
         {
             LobbySlotMode.Available => "Available",
@@ -121,6 +129,27 @@ public partial class LobbyPanel : PanelContainer
         });
 
         ApplyStepNav(mode, canAdvance);
+    }
+
+    private void ApplyTitleAvatar(string? avatarFile)
+    {
+        if (_titleAvatar is null)
+            return;
+
+        var absolute = ProfileAvatarLoader.ResolveAbsolutePath(_avatarsAbsolutePath, avatarFile);
+        var texture = ProfileAvatarLoader.TryLoad(absolute);
+        if (texture is null)
+        {
+            _titleAvatar.Texture = null;
+            _titleAvatar.Visible = false;
+            return;
+        }
+
+        _titleAvatar.Texture = texture;
+        _titleAvatar.CustomMinimumSize = TitleAvatarSize;
+        _titleAvatar.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        _titleAvatar.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        _titleAvatar.Visible = true;
     }
 
     private void ApplyStepNav(LobbySlotMode mode, bool canAdvance)

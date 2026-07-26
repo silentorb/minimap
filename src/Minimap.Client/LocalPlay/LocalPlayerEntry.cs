@@ -16,17 +16,22 @@ public sealed class LocalPlayerEntry
 
     public string? DisplayName { get; private set; }
 
-    public void SetProfile(Guid profileId, string displayName)
+    /// <summary>Relative avatar filename under the profile avatars directory, when set.</summary>
+    public string? AvatarFile { get; private set; }
+
+    public void SetProfile(Guid profileId, string displayName, string? avatarFile = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
         ProfileId = profileId;
         DisplayName = displayName;
+        AvatarFile = string.IsNullOrWhiteSpace(avatarFile) ? null : avatarFile.Trim();
     }
 
     public void ClearProfile()
     {
         ProfileId = null;
         DisplayName = null;
+        AvatarFile = null;
     }
 
     public void AddDevice(InputDeviceId device) => _devices.Add(device);

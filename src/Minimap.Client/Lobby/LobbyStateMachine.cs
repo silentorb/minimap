@@ -263,7 +263,7 @@ public sealed class LobbyStateMachine
             if (profileState?.ConfirmedProfileId is Guid profileId
                 && _profiles.Find(profileId) is { } profile)
             {
-                roster.Players[i].SetProfile(profile.Id, profile.Name);
+                roster.Players[i].SetProfile(profile.Id, profile.Name, profile.AvatarFile);
             }
         }
 

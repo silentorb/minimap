@@ -1,4 +1,5 @@
 using Godot;
+using Minimap.Client.Profiles;
 
 namespace Minimap.Client;
 
@@ -6,29 +7,35 @@ namespace Minimap.Client;
 public partial class PlayerHud : Control
 {
     public const int MaxVisibleResources = 4;
+    public static readonly Vector2 AvatarSize = new(28, 28);
 
+    private TextureRect? _avatar;
     private Label? _nameLabel;
     private HBoxContainer? _abilityRow;
     private HBoxContainer? _resourcesRow;
 
     public override void _Ready()
     {
-        _nameLabel = GetNode<Label>("VBox/NameLabel");
+        _avatar = GetNode<TextureRect>("VBox/NameRow/Avatar");
+        _nameLabel = GetNode<Label>("VBox/NameRow/NameLabel");
         _abilityRow = GetNode<HBoxContainer>("VBox/AbilityRow");
         _resourcesRow = GetNode<HBoxContainer>("VBox/ResourcesRow");
     }
 
     public void Apply(PlayerHudModel model)
     {
-        if (_nameLabel is null || _abilityRow is null || _resourcesRow is null)
+        if (_avatar is null || _nameLabel is null || _abilityRow is null || _resourcesRow is null)
         {
-            _nameLabel = GetNodeOrNull<Label>("VBox/NameLabel");
+            _avatar = GetNodeOrNull<TextureRect>("VBox/NameRow/Avatar");
+            _nameLabel = GetNodeOrNull<Label>("VBox/NameRow/NameLabel");
             _abilityRow = GetNodeOrNull<HBoxContainer>("VBox/AbilityRow");
             _resourcesRow = GetNodeOrNull<HBoxContainer>("VBox/ResourcesRow");
         }
 
         if (_nameLabel is not null)
             _nameLabel.Text = model.DisplayName;
+
+        ProfileAvatarLoader.ApplyTo(_avatar, model.AvatarAbsolutePath, AvatarSize);
 
         ApplyAbility(model.SelectedAbility);
         ApplyResources(model.Resources);

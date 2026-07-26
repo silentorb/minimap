@@ -11,6 +11,9 @@ public sealed class PlayerProfileRecord
 
     public int Deaths { get; set; }
 
+    /// <summary>Filename under the profile avatars directory, or null when unset.</summary>
+    public string? AvatarFile { get; set; }
+
     public IReadOnlyCollection<string> UnlockedAchievements => _unlockedAchievements;
 
     public bool HasAchievement(string achievementId) =>

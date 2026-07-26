@@ -6,7 +6,7 @@ Host-side settings and extension **file I/O**, plus ModuleInitializer hooks so C
 
 ## What may live here
 
-- Settings/config load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionConfig`, `ExtensionsSettings`, `PlayerProfileStore`)
+- Settings/config load APIs (`CoreSettings`, `ScenarioSettings`, `DefinitionConfig`, `ExtensionsSettings`, `PlayerProfileStore`, `PlayerAvatarStore`)
 - Extension loading (`ExtensionLoader`, `ExtensionPathResolver`) and registering Client hooks (`AppHostRegistration` → `ExtensionPreflight`, `WorldHostHooks`)
 - Extension content deploy helper (`ExtensionContentMirror` — wipe+copy JSON trees for gitignored `extensions/*/`)
 - CLI / env bootstrap parsing (`CliArgs`) and optional dotenv (`DotEnvBootstrap` — manual play only; never in tests)

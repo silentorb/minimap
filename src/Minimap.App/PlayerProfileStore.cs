@@ -64,11 +64,24 @@ public static class PlayerProfileStore
             if (entry.Deaths < 0)
                 throw new InvalidOperationException($"Profile {entry.Id} deaths must be >= 0.");
 
+            string? avatarFile = null;
+            if (entry.AvatarFile is not null)
+            {
+                if (!PlayerAvatarStore.IsValidAvatarFileName(entry.AvatarFile, out var avatarError))
+                {
+                    throw new InvalidOperationException(
+                        $"Profile {entry.Id} has an invalid avatarFile: {avatarError}");
+                }
+
+                avatarFile = entry.AvatarFile.Trim();
+            }
+
             var record = new PlayerProfileRecord
             {
                 Id = entry.Id,
                 Name = name,
                 Deaths = entry.Deaths,
+                AvatarFile = avatarFile,
             };
             if (entry.UnlockedAchievements is { Count: > 0 })
                 record.ReplaceUnlockedAchievements(entry.UnlockedAchievements);
@@ -92,6 +105,7 @@ public static class PlayerProfileStore
                     Id = p.Id,
                     Name = p.Name,
                     Deaths = p.Deaths,
+                    AvatarFile = string.IsNullOrWhiteSpace(p.AvatarFile) ? null : p.AvatarFile,
                     UnlockedAchievements = p.UnlockedAchievements.Count == 0
                         ? null
                         : p.UnlockedAchievements.OrderBy(id => id, StringComparer.Ordinal).ToList(),
@@ -123,6 +137,9 @@ public static class PlayerProfileStore
 
         [JsonPropertyName("deaths")]
         public int Deaths { get; set; }
+
+        [JsonPropertyName("avatarFile")]
+        public string? AvatarFile { get; set; }
 
         [JsonPropertyName("unlockedAchievements")]
         public List<string>? UnlockedAchievements { get; set; }

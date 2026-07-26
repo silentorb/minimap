@@ -8,6 +8,7 @@ On-screen player status for local humans. Related: [health.md](../gameplay/healt
 - Slots are arranged in a **panel along the bottom** of the screen.
 - Each slot shows:
   - **Player name** — [user profile](../session/user-profiles.md) display name when the player entered from the lobby with a profile; otherwise `"Player 1"`, `"Player 2"`, …
+  - **Avatar** — small profile picture beside the name when the roster profile has an avatar; omitted (or neutral placeholder) when unset / unloadable
   - A **horizontal list** of **visible** character resources (see [resources.md](../gameplay/resources.md)), sorted by **uiPriority** (higher first), each with **icon** and amount
   - Resources with a limit show **`VALUE / MAX`** (limit types themselves are not listed)
   - The **currently selected modal ability** (icon + display name), when one is selected; hidden when none (disabled abilities are already omitted from the loadout)

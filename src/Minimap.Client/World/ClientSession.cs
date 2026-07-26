@@ -14,12 +14,14 @@ public sealed class ClientSession
     private readonly List<PlayerController> _players = new();
     private readonly List<string?> _displayNames = new();
     private readonly List<Guid?> _profileIds = new();
+    private readonly List<string?> _avatarAbsolutePaths = new();
 
     public ClientSession(
         GameSession session,
         IReadOnlyList<DomainDefinition>? domains = null,
         IReadOnlyList<string?>? displayNames = null,
-        IReadOnlyList<Guid?>? profileIds = null)
+        IReadOnlyList<Guid?>? profileIds = null,
+        IReadOnlyList<string?>? avatarAbsolutePaths = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
@@ -30,6 +32,10 @@ public sealed class ClientSession
                 displayNames is not null && i < displayNames.Count ? displayNames[i] : null);
             _profileIds.Add(
                 profileIds is not null && i < profileIds.Count ? profileIds[i] : null);
+            _avatarAbsolutePaths.Add(
+                avatarAbsolutePaths is not null && i < avatarAbsolutePaths.Count
+                    ? avatarAbsolutePaths[i]
+                    : null);
         }
 
         AttachHumanPlayers();
@@ -119,9 +125,11 @@ public sealed class ClientSession
             var displayName = !string.IsNullOrWhiteSpace(_displayNames[i])
                 ? _displayNames[i]!
                 : $"Player {i + 1}";
+            var avatarPath = i < _avatarAbsolutePaths.Count ? _avatarAbsolutePaths[i] : null;
             models.Add(new PlayerHudModel
             {
                 DisplayName = displayName,
+                AvatarAbsolutePath = string.IsNullOrWhiteSpace(avatarPath) ? null : avatarPath,
                 Resources = BuildResourceModels(pawn, _session.Content),
                 SelectedAbility = BuildSelectedAbilityModel(pawn, _domains),
             });
@@ -146,6 +154,8 @@ public sealed class ClientSession
             _displayNames.RemoveAt(playerIndex);
         if (playerIndex < _profileIds.Count)
             _profileIds.RemoveAt(playerIndex);
+        if (playerIndex < _avatarAbsolutePaths.Count)
+            _avatarAbsolutePaths.RemoveAt(playerIndex);
         return true;
     }
 

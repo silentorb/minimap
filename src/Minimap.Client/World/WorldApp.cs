@@ -110,7 +110,20 @@ public partial class WorldApp : Node, IGameAutomationTarget
             var profileIds = _playContext.Roster.Players
                 .Select(p => p.ProfileId)
                 .ToList();
-            _clientSession = new ClientSession(_session, extensions.Domains, displayNames, profileIds);
+            var avatarsDir = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerAvatarsResPath);
+            var avatarAbsolutePaths = _playContext.Roster.Players
+                .Select(p =>
+                {
+                    var path = ProfileAvatarLoader.ResolveAbsolutePath(avatarsDir, p.AvatarFile);
+                    return string.IsNullOrWhiteSpace(path) ? null : path;
+                })
+                .ToList();
+            _clientSession = new ClientSession(
+                _session,
+                extensions.Domains,
+                displayNames,
+                profileIds,
+                avatarAbsolutePaths);
             _sessionAchievements.EnsurePlayerCount(count);
 
             _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);

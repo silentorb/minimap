@@ -83,6 +83,25 @@ public class LobbyProfileSelectionTests
         var roster = lobby.BuildRoster();
         Assert.Equal("Alex", roster.Players[0].DisplayName);
         Assert.NotNull(roster.Players[0].ProfileId);
+        Assert.Null(roster.Players[0].AvatarFile);
+    }
+
+    [Fact]
+    public void BuildRoster_includes_avatar_file_when_set()
+    {
+        var catalog = new PlayerProfileCatalog();
+        Assert.True(catalog.TryCreate("Alex", out var alex, out _));
+        var avatarFile = $"{alex!.Id:D}.png";
+        Assert.True(catalog.TrySetAvatar(alex.Id, avatarFile, out _));
+        var lobby = new LobbyStateMachine();
+        lobby.ConfigureProfiles(catalog);
+
+        Assert.True(lobby.TryClaim(Pad0, out _));
+        Assert.True(lobby.TryConfirmProfile(Pad0));
+        Assert.True(lobby.TryReady(Pad0));
+
+        var roster = lobby.BuildRoster();
+        Assert.Equal(avatarFile, roster.Players[0].AvatarFile);
     }
 
     [Fact]

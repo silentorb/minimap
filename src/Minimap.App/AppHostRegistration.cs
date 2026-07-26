@@ -36,5 +36,21 @@ internal static class AppHostRegistration
         WorldHostHooks.ShouldStartAtLobby = CliArgs.ShouldStartAtLobby;
         WorldHostHooks.LoadPlayerProfilesFromAbsolutePath = PlayerProfileStore.LoadFromFile;
         WorldHostHooks.SavePlayerProfilesToAbsolutePath = PlayerProfileStore.SaveToFile;
+        WorldHostHooks.TryImportPlayerAvatar = (avatarsDir, profileId, sourcePath, previous) =>
+        {
+            var ok = PlayerAvatarStore.TryImport(
+                avatarsDir,
+                profileId,
+                sourcePath,
+                previous,
+                out var avatarFile,
+                out var error);
+            return new PlayerAvatarImportResult(ok, avatarFile, error);
+        };
+        WorldHostHooks.TryDeletePlayerAvatar = (avatarsDir, avatarFile) =>
+        {
+            var ok = PlayerAvatarStore.TryDelete(avatarsDir, avatarFile, out var error);
+            return new PlayerAvatarDeleteResult(ok, error);
+        };
     }
 }

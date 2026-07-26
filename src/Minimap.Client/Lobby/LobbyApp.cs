@@ -1,5 +1,6 @@
 using Godot;
 using Minimap.Client.LocalPlay;
+using Minimap.Client.Profiles;
 using Minimap.Simulation.Types;
 
 namespace Minimap.Client.Lobby;
@@ -393,10 +394,10 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
         {
             var mode = _lobby.GetMode(i);
-            var profileName = ResolveProfileDisplayName(i);
+            var profile = ResolveConfirmedProfile(i);
             var canAdvance = mode != LobbySlotMode.SelectingProfile
                 || _lobby.GetAvailableProfilesForSlot(i).Count > 0;
-            _panels[i].ApplyMode(mode, i, profileName, canAdvance);
+            _panels[i].ApplyMode(mode, i, profile?.Name, canAdvance, profile?.AvatarFile);
 
             if (mode == LobbySlotMode.SelectingProfile
                 && _lobby.GetProfileSelection(i) is { } profileState)
@@ -420,12 +421,12 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         }
     }
 
-    private string? ResolveProfileDisplayName(int slotIndex)
+    private PlayerProfileRecord? ResolveConfirmedProfile(int slotIndex)
     {
         var state = _lobby.GetProfileSelection(slotIndex);
         if (state?.ConfirmedProfileId is not Guid id)
             return null;
-        return _lobby.Profiles.Find(id)?.Name;
+        return _lobby.Profiles.Find(id);
     }
 
     public LobbySnapshot GetLobbySnapshot() =>

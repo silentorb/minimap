@@ -153,7 +153,7 @@ public class LocalPlayRosterTests
         source.SetPlayerCount(1);
         source.Players[0].AddDevice(InputDeviceId.Joypad(0));
         source.Players[0].SetSelectedAccessories([farm]);
-        source.Players[0].SetProfile(profileId, "Alex");
+        source.Players[0].SetProfile(profileId, "Alex", $"{profileId:D}.png");
 
         var target = new LocalPlayRoster();
         target.CopyFrom(source);
@@ -163,6 +163,7 @@ public class LocalPlayRosterTests
         Assert.Equal(["farm"], target.Players[0].SelectedAccessories.Select(a => a.Id));
         Assert.Equal(profileId, target.Players[0].ProfileId);
         Assert.Equal("Alex", target.Players[0].DisplayName);
+        Assert.Equal($"{profileId:D}.png", target.Players[0].AvatarFile);
     }
 }
 

@@ -38,7 +38,7 @@ public sealed class LocalPlayRoster
             _players[i].SetSelectedAccessories(source.Players[i].SelectedAccessories);
             var src = source.Players[i];
             if (src.ProfileId is Guid profileId && !string.IsNullOrWhiteSpace(src.DisplayName))
-                _players[i].SetProfile(profileId, src.DisplayName);
+                _players[i].SetProfile(profileId, src.DisplayName, src.AvatarFile);
             else
                 _players[i].ClearProfile();
         }

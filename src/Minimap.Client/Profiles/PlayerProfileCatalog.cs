@@ -78,6 +78,43 @@ public sealed class PlayerProfileCatalog
         return false;
     }
 
+    public bool TrySetAvatar(Guid id, string avatarFile, out string? error)
+    {
+        var existing = Find(id);
+        if (existing is null)
+        {
+            error = "Profile not found.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(avatarFile))
+        {
+            error = "Avatar file name cannot be empty.";
+            return false;
+        }
+
+        var trimmed = avatarFile.Trim();
+        if (!string.Equals(trimmed, Path.GetFileName(trimmed), StringComparison.Ordinal)
+            || trimmed.Contains("..", StringComparison.Ordinal))
+        {
+            error = "Avatar file must be a plain filename.";
+            return false;
+        }
+
+        existing.AvatarFile = trimmed;
+        error = null;
+        return true;
+    }
+
+    public bool TryClearAvatar(Guid id)
+    {
+        var existing = Find(id);
+        if (existing is null)
+            return false;
+        existing.AvatarFile = null;
+        return true;
+    }
+
     public bool TryIncrementDeaths(Guid id)
     {
         var existing = Find(id);

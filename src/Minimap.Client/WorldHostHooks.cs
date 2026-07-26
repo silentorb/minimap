@@ -47,7 +47,22 @@ public static class WorldHostHooks
     /// <summary>Absolute filesystem path + catalog → write player_profiles.json.</summary>
     public static Action<string, PlayerProfileCatalog>? SavePlayerProfilesToAbsolutePath { get; set; }
 
+    /// <summary>
+    /// Import a filesystem image into the avatars directory.
+    /// Args: avatarsDirAbsolute, profileId, sourceAbsolute, previousAvatarFile → (ok, avatarFile, error).
+    /// </summary>
+    public static Func<string, Guid, string, string?, PlayerAvatarImportResult>?
+        TryImportPlayerAvatar { get; set; }
+
+    /// <summary>
+    /// Delete an avatar filename under the avatars directory.
+    /// Args: avatarsDirAbsolute, avatarFile → (ok, error).
+    /// </summary>
+    public static Func<string, string?, PlayerAvatarDeleteResult>? TryDeletePlayerAvatar { get; set; }
+
     public const string DefaultPlayerProfilesResPath = "user://player_profiles.json";
+
+    public const string DefaultPlayerAvatarsResPath = "user://profile_avatars/";
 
     public static SimVec2I RequireCoreMapRadius(string absolutePath)
     {
@@ -127,6 +142,59 @@ public static class WorldHostHooks
                 "World host hooks are not registered. Minimap.App must set WorldHostHooks.SavePlayerProfilesToAbsolutePath.");
         save(absolutePath, catalog);
     }
+
+    public static PlayerAvatarImportResult RequireImportPlayerAvatar(
+        string avatarsDirectoryAbsolute,
+        Guid profileId,
+        string sourceAbsolutePath,
+        string? previousAvatarFile)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(avatarsDirectoryAbsolute);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceAbsolutePath);
+        var import = TryImportPlayerAvatar
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.TryImportPlayerAvatar.");
+        return import(avatarsDirectoryAbsolute, profileId, sourceAbsolutePath, previousAvatarFile);
+    }
+
+    public static PlayerAvatarDeleteResult RequireDeletePlayerAvatar(
+        string avatarsDirectoryAbsolute,
+        string? avatarFile)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(avatarsDirectoryAbsolute);
+        var delete = TryDeletePlayerAvatar
+            ?? throw new InvalidOperationException(
+                "World host hooks are not registered. Minimap.App must set WorldHostHooks.TryDeletePlayerAvatar.");
+        return delete(avatarsDirectoryAbsolute, avatarFile);
+    }
+}
+
+/// <summary>Outcome of copying a profile avatar into the user avatars directory.</summary>
+public readonly struct PlayerAvatarImportResult
+{
+    public PlayerAvatarImportResult(bool ok, string? avatarFile, string? error)
+    {
+        Ok = ok;
+        AvatarFile = avatarFile;
+        Error = error;
+    }
+
+    public bool Ok { get; }
+    public string? AvatarFile { get; }
+    public string? Error { get; }
+}
+
+/// <summary>Outcome of deleting a profile avatar file.</summary>
+public readonly struct PlayerAvatarDeleteResult
+{
+    public PlayerAvatarDeleteResult(bool ok, string? error)
+    {
+        Ok = ok;
+        Error = error;
+    }
+
+    public bool Ok { get; }
+    public string? Error { get; }
 }
 
 /// <summary>Client-facing snapshot of a successful extension load.</summary>

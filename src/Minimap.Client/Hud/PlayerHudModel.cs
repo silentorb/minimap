@@ -27,6 +27,10 @@ public sealed class PlayerHudAbilityModel
 public sealed class PlayerHudModel
 {
     public required string DisplayName { get; init; }
+
+    /// <summary>Absolute filesystem path to the profile avatar image, when set.</summary>
+    public string? AvatarAbsolutePath { get; init; }
+
     public required IReadOnlyList<PlayerHudResourceModel> Resources { get; init; }
     public PlayerHudAbilityModel? SelectedAbility { get; init; }
 }

@@ -2,16 +2,19 @@ using Godot;
 
 namespace Minimap.Client.Profiles;
 
-/// <summary>Main-menu Profiles screen: list + detail panel for create/rename/delete.</summary>
+/// <summary>Main-menu Profiles screen: list + detail panel for create/rename/delete/avatar.</summary>
 public partial class ProfilesApp : Control
 {
     public const string MainMenuScenePath = "res://scenes/main_menu.tscn";
     public const string AchievementsScenePath = "res://scenes/achievements.tscn";
     public const string PlaceholderText = "Select or create a profile";
+    public static readonly Vector2 AvatarPreviewSize = new(96, 96);
 
     private ProfilesScreenModel? _model;
     private string _profilesAbsolutePath = string.Empty;
+    private string _avatarsAbsolutePath = string.Empty;
     private LocalPlayContextNode? _playContext;
+    private string? _transientError;
 
     private ItemList? _list;
     private Label? _nameLabel;
@@ -23,10 +26,15 @@ public partial class ProfilesApp : Control
     private Button? _renameButton;
     private Button? _deleteButton;
     private Button? _achievementsButton;
+    private Button? _changePictureButton;
+    private Button? _clearPictureButton;
     private Button? _confirmButton;
     private Button? _cancelButton;
     private Button? _backButton;
     private Control? _detailContent;
+    private TextureRect? _avatarPreview;
+    private ColorRect? _avatarPlaceholder;
+    private FileDialog? _fileDialog;
 
     public ProfilesScreenModel? Model => _model;
 
@@ -42,21 +50,44 @@ public partial class ProfilesApp : Control
         _renameButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/RenameButton");
         _deleteButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/DeleteButton");
         _achievementsButton = GetNode<Button>("Margin/HBox/Right/VBox/DetailContent/ButtonRow/AchievementsButton");
+        _changePictureButton = GetNode<Button>(
+            "Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarButtonColumn/ChangePictureButton");
+        _clearPictureButton = GetNode<Button>(
+            "Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarButtonColumn/ClearPictureButton");
         _confirmButton = GetNode<Button>("Margin/HBox/Right/VBox/EditButtonRow/ConfirmButton");
         _cancelButton = GetNode<Button>("Margin/HBox/Right/VBox/EditButtonRow/CancelButton");
         _backButton = GetNode<Button>("Margin/HBox/Left/VBox/BackButton");
         _detailContent = GetNode<Control>("Margin/HBox/Right/VBox/DetailContent");
+        _avatarPreview = GetNode<TextureRect>("Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarPreview");
+        _avatarPlaceholder = GetNode<ColorRect>(
+            "Margin/HBox/Right/VBox/DetailContent/AvatarRow/AvatarPlaceholder");
 
         _playContext = GetNode<LocalPlayContextNode>("/root/LocalPlayContext");
         _profilesAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerProfilesResPath);
+        _avatarsAbsolutePath = ProjectSettings.GlobalizePath(WorldHostHooks.DefaultPlayerAvatarsResPath);
         var catalog = WorldHostHooks.RequirePlayerProfiles(_profilesAbsolutePath);
         _model = new ProfilesScreenModel(catalog);
+
+        _fileDialog = new FileDialog
+        {
+            Name = "AvatarFileDialog",
+            FileMode = FileDialog.FileModeEnum.OpenFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Title = "Choose profile picture",
+            Exclusive = true,
+            UseNativeDialog = true,
+        };
+        _fileDialog.AddFilter("*.png,*.jpg,*.jpeg,*.webp;Image files");
+        AddChild(_fileDialog);
+        _fileDialog.FileSelected += OnAvatarFileSelected;
 
         _list.ItemSelected += OnListItemSelected;
         _createButton.Pressed += OnCreatePressed;
         _renameButton.Pressed += OnRenamePressed;
         _deleteButton.Pressed += OnDeletePressed;
         _achievementsButton.Pressed += OnAchievementsPressed;
+        _changePictureButton.Pressed += OnChangePicturePressed;
+        _clearPictureButton.Pressed += OnClearPicturePressed;
         _confirmButton.Pressed += OnConfirmPressed;
         _cancelButton.Pressed += OnCancelPressed;
         _backButton.Pressed += OnBackPressed;
@@ -93,12 +124,14 @@ public partial class ProfilesApp : Control
             return;
         if (index < 0 || index >= _model.Catalog.Profiles.Count)
             return;
+        _transientError = null;
         _model.Select(_model.Catalog.Profiles[(int)index].Id);
         RefreshUi();
     }
 
     private void OnCreatePressed()
     {
+        _transientError = null;
         _model?.BeginCreate();
         RefreshUi();
         _nameEdit?.GrabFocus();
@@ -106,6 +139,7 @@ public partial class ProfilesApp : Control
 
     private void OnRenamePressed()
     {
+        _transientError = null;
         _model?.BeginRename();
         RefreshUi();
         _nameEdit?.GrabFocus();
@@ -113,6 +147,7 @@ public partial class ProfilesApp : Control
 
     private void OnDeletePressed()
     {
+        _transientError = null;
         _model?.BeginDelete();
         RefreshUi();
         _confirmButton?.GrabFocus();
@@ -129,13 +164,29 @@ public partial class ProfilesApp : Control
         if (_model.EditMode is ProfilesScreenEditMode.Creating or ProfilesScreenEditMode.Renaming)
             _model.SetEditBuffer(_nameEdit?.Text ?? string.Empty);
 
-        if (_model.ConfirmEdit())
-            Persist();
+        var deleting = _model.EditMode == ProfilesScreenEditMode.ConfirmDelete;
+        var avatarToDelete = deleting ? _model.SelectedProfile?.AvatarFile : null;
+
+        if (!_model.ConfirmEdit())
+        {
+            RefreshUi();
+            return;
+        }
+
+        Persist();
+        if (deleting && !string.IsNullOrWhiteSpace(avatarToDelete))
+        {
+            var deleteResult = WorldHostHooks.RequireDeletePlayerAvatar(_avatarsAbsolutePath, avatarToDelete);
+            if (!deleteResult.Ok)
+                _transientError = deleteResult.Error;
+        }
+
         RefreshUi();
     }
 
     private void OnCancelPressed()
     {
+        _transientError = null;
         _model?.CancelEdit();
         RefreshUi();
     }
@@ -148,6 +199,71 @@ public partial class ProfilesApp : Control
             return;
         _playContext.ProfilesFocusId = _model.SelectedProfile.Id;
         ChangeSceneOrThrow(AchievementsScenePath);
+    }
+
+    private void OnChangePicturePressed()
+    {
+        if (_model?.SelectedProfile is null || _fileDialog is null)
+            return;
+        if (_model.EditMode != ProfilesScreenEditMode.None)
+            return;
+
+        _transientError = null;
+        _fileDialog.PopupCenteredClamped(new Vector2I(900, 600));
+    }
+
+    private void OnClearPicturePressed()
+    {
+        if (_model?.SelectedProfile is null)
+            return;
+        if (_model.EditMode != ProfilesScreenEditMode.None)
+            return;
+
+        var previous = _model.SelectedProfile.AvatarFile;
+        if (string.IsNullOrWhiteSpace(previous))
+            return;
+
+        if (!_model.Catalog.TryClearAvatar(_model.SelectedProfile.Id))
+        {
+            _transientError = "Could not clear avatar.";
+            RefreshUi();
+            return;
+        }
+
+        Persist();
+        var deleteResult = WorldHostHooks.RequireDeletePlayerAvatar(_avatarsAbsolutePath, previous);
+        _transientError = deleteResult.Ok ? null : deleteResult.Error;
+        RefreshUi();
+    }
+
+    private void OnAvatarFileSelected(string path)
+    {
+        if (_model?.SelectedProfile is null)
+            return;
+
+        var previous = _model.SelectedProfile.AvatarFile;
+        var import = WorldHostHooks.RequireImportPlayerAvatar(
+            _avatarsAbsolutePath,
+            _model.SelectedProfile.Id,
+            path,
+            previous);
+        if (!import.Ok || string.IsNullOrWhiteSpace(import.AvatarFile))
+        {
+            _transientError = import.Error ?? "Could not import avatar.";
+            RefreshUi();
+            return;
+        }
+
+        if (!_model.Catalog.TrySetAvatar(_model.SelectedProfile.Id, import.AvatarFile, out var setError))
+        {
+            _transientError = setError ?? "Could not set avatar.";
+            RefreshUi();
+            return;
+        }
+
+        Persist();
+        _transientError = null;
+        RefreshUi();
     }
 
     private void Persist()
@@ -170,9 +286,13 @@ public partial class ProfilesApp : Control
             || _renameButton is null
             || _deleteButton is null
             || _achievementsButton is null
+            || _changePictureButton is null
+            || _clearPictureButton is null
             || _confirmButton is null
             || _cancelButton is null
-            || _detailContent is null)
+            || _detailContent is null
+            || _avatarPreview is null
+            || _avatarPlaceholder is null)
         {
             return;
         }
@@ -202,6 +322,11 @@ public partial class ProfilesApp : Control
         {
             _nameLabel.Text = selected.Name;
             _deathsLabel.Text = $"Deaths: {selected.Deaths}";
+            RefreshAvatarPreview(selected.AvatarFile);
+        }
+        else
+        {
+            RefreshAvatarPreview(null);
         }
 
         _nameEdit.Visible = _model.EditMode is ProfilesScreenEditMode.Creating or ProfilesScreenEditMode.Renaming;
@@ -212,13 +337,16 @@ public partial class ProfilesApp : Control
         _cancelButton.Visible = editing;
         _confirmButton.Text = _model.EditMode == ProfilesScreenEditMode.ConfirmDelete ? "Delete" : "Confirm";
 
-        _errorLabel.Visible = !string.IsNullOrEmpty(_model.Error);
-        _errorLabel.Text = _model.Error ?? string.Empty;
+        var errorText = !string.IsNullOrEmpty(_model.Error) ? _model.Error : _transientError;
+        _errorLabel.Visible = !string.IsNullOrEmpty(errorText);
+        _errorLabel.Text = errorText ?? string.Empty;
 
         _createButton.Disabled = editing;
         _renameButton.Disabled = editing || selected is null;
         _deleteButton.Disabled = editing || selected is null;
         _achievementsButton.Disabled = editing || selected is null;
+        _changePictureButton.Disabled = editing || selected is null;
+        _clearPictureButton.Disabled = editing || selected is null || string.IsNullOrWhiteSpace(selected?.AvatarFile);
         _list.MouseFilter = editing ? MouseFilterEnum.Ignore : MouseFilterEnum.Stop;
 
         if (_model.EditMode == ProfilesScreenEditMode.ConfirmDelete && selected is not null)
@@ -226,6 +354,30 @@ public partial class ProfilesApp : Control
             _nameLabel.Text = $"Delete {selected.Name}?";
             _deathsLabel.Text = "This cannot be undone.";
         }
+    }
+
+    private void RefreshAvatarPreview(string? avatarFile)
+    {
+        if (_avatarPreview is null || _avatarPlaceholder is null)
+            return;
+
+        var absolute = ProfileAvatarLoader.ResolveAbsolutePath(_avatarsAbsolutePath, avatarFile);
+        var texture = ProfileAvatarLoader.TryLoad(absolute);
+        if (texture is null)
+        {
+            _avatarPreview.Texture = null;
+            _avatarPreview.Visible = false;
+            _avatarPlaceholder.Visible = true;
+            _avatarPlaceholder.CustomMinimumSize = AvatarPreviewSize;
+            return;
+        }
+
+        _avatarPreview.Texture = texture;
+        _avatarPreview.CustomMinimumSize = AvatarPreviewSize;
+        _avatarPreview.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        _avatarPreview.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        _avatarPreview.Visible = true;
+        _avatarPlaceholder.Visible = false;
     }
 
     private void ChangeSceneOrThrow(string path)

@@ -11,7 +11,19 @@ script = ExtResource("1_hud")
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="NameLabel" type="Label" parent="VBox"]
+[node name="NameRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="Avatar" type="TextureRect" parent="VBox/NameRow"]
+visible = false
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="VBox/NameRow"]
 layout_mode = 2
 text = "Player 1"
 horizontal_alignment = 1
