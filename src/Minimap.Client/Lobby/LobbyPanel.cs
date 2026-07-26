@@ -10,6 +10,9 @@ public partial class LobbyPanel : PanelContainer
     private Label? _title;
     private Label? _status;
     private Control? _customizeArea;
+    private Control? _navRow;
+    private Button? _backButton;
+    private Button? _forwardButton;
     private AccessorySelectionPanel? _accessoryPanel;
     private ProfileSelectionPanel? _profilePanel;
 
@@ -17,11 +20,23 @@ public partial class LobbyPanel : PanelContainer
 
     public ProfileSelectionPanel? ProfilePanel => _profilePanel;
 
+    /// <summary>Raised when the step Back button is pressed.</summary>
+    public event Action? BackPressed;
+
+    /// <summary>Raised when the step Forward button is pressed.</summary>
+    public event Action? ForwardPressed;
+
     public override void _Ready()
     {
         _title = GetNode<Label>("Margin/VBox/Title");
         _status = GetNode<Label>("Margin/VBox/Status");
         _customizeArea = GetNode<Control>("Margin/VBox/CustomizeArea");
+        _navRow = GetNode<Control>("Margin/VBox/NavRow");
+        _backButton = GetNode<Button>("Margin/VBox/NavRow/BackButton");
+        _forwardButton = GetNode<Button>("Margin/VBox/NavRow/ForwardButton");
+
+        _backButton.Pressed += () => BackPressed?.Invoke();
+        _forwardButton.Pressed += () => ForwardPressed?.Invoke();
 
         _accessoryPanel = new AccessorySelectionPanel
         {
@@ -59,7 +74,11 @@ public partial class LobbyPanel : PanelContainer
         base._ExitTree();
     }
 
-    public void ApplyMode(LobbySlotMode mode, int slotIndex, string? profileDisplayName = null)
+    public void ApplyMode(
+        LobbySlotMode mode,
+        int slotIndex,
+        string? profileDisplayName = null,
+        bool canAdvance = true)
     {
         if (_title is null || _status is null)
             return;
@@ -100,6 +119,21 @@ public partial class LobbyPanel : PanelContainer
             ContentMarginRight = 8,
             ContentMarginBottom = 8,
         });
+
+        ApplyStepNav(mode, canAdvance);
+    }
+
+    private void ApplyStepNav(LobbySlotMode mode, bool canAdvance)
+    {
+        if (_navRow is null || _backButton is null || _forwardButton is null)
+            return;
+
+        var canBack = LobbyStepNavigation.CanGoBack(mode);
+        var canForward = LobbyStepNavigation.CanGoForward(mode);
+        _navRow.Visible = canBack || canForward;
+        _backButton.Visible = canBack;
+        _forwardButton.Visible = canForward;
+        _forwardButton.Disabled = canForward && !canAdvance;
     }
 
     public void ShowProfileSelection(IReadOnlyList<PlayerProfileRecord> available, LobbyProfileSelectionState state)

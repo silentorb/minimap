@@ -32,7 +32,12 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
             var row = GetNode<HBoxContainer>("Margin/PanelRow");
             _panels = new LobbyPanel[LobbyStateMachine.SlotCount];
             for (var i = 0; i < LobbyStateMachine.SlotCount; i++)
+            {
+                var slot = i;
                 _panels[i] = row.GetChild<LobbyPanel>(i);
+                _panels[i].BackPressed += () => OnPanelBackPressed(slot);
+                _panels[i].ForwardPressed += () => OnPanelForwardPressed(slot);
+            }
 
             _boot.MarkPanelsBound();
             RefreshPanels();
@@ -313,6 +318,54 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         return false;
     }
 
+    private void OnPanelBackPressed(int slotIndex)
+    {
+        if (!_boot.TryAcceptInput())
+            return;
+        if (!TryGetBoundDevice(slotIndex, out var device))
+            return;
+        if (!_lobby.TryBack(device))
+            return;
+        RefreshPanels();
+    }
+
+    private void OnPanelForwardPressed(int slotIndex)
+    {
+        if (!_boot.TryAcceptInput())
+            return;
+        if (!TryGetBoundDevice(slotIndex, out var device))
+            return;
+
+        var mode = _lobby.GetMode(slotIndex);
+        if (mode == LobbySlotMode.SelectingProfile)
+        {
+            if (!_lobby.TryConfirmProfile(device))
+                return;
+            RefreshPanels();
+            return;
+        }
+
+        if (mode == LobbySlotMode.SelectingAccessories)
+        {
+            if (!_lobby.TryReady(device))
+                return;
+            RefreshPanels();
+            TryStartGame();
+        }
+    }
+
+    private bool TryGetBoundDevice(int slotIndex, out InputDeviceId device)
+    {
+        foreach (var bound in _lobby.GetDevices(slotIndex))
+        {
+            device = bound;
+            return true;
+        }
+
+        device = default;
+        return false;
+    }
+
     private void TryStartGame()
     {
         if (!_boot.TryAcceptInput() || !_lobby.CanStartGame || _playContext is null)
@@ -341,7 +394,9 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         {
             var mode = _lobby.GetMode(i);
             var profileName = ResolveProfileDisplayName(i);
-            _panels[i].ApplyMode(mode, i, profileName);
+            var canAdvance = mode != LobbySlotMode.SelectingProfile
+                || _lobby.GetAvailableProfilesForSlot(i).Count > 0;
+            _panels[i].ApplyMode(mode, i, profileName, canAdvance);
 
             if (mode == LobbySlotMode.SelectingProfile
                 && _lobby.GetProfileSelection(i) is { } profileState)

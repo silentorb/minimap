@@ -99,6 +99,25 @@ public class LobbyStateMachineTests
     }
 }
 
+public class LobbyStepNavigationTests
+{
+    [Theory]
+    [InlineData(LobbySlotMode.Available, false)]
+    [InlineData(LobbySlotMode.SelectingProfile, true)]
+    [InlineData(LobbySlotMode.SelectingAccessories, true)]
+    [InlineData(LobbySlotMode.Ready, true)]
+    public void CanGoBack_matches_wizard_position(LobbySlotMode mode, bool expected) =>
+        Assert.Equal(expected, LobbyStepNavigation.CanGoBack(mode));
+
+    [Theory]
+    [InlineData(LobbySlotMode.Available, false)]
+    [InlineData(LobbySlotMode.SelectingProfile, true)]
+    [InlineData(LobbySlotMode.SelectingAccessories, true)]
+    [InlineData(LobbySlotMode.Ready, false)]
+    public void CanGoForward_matches_wizard_position(LobbySlotMode mode, bool expected) =>
+        Assert.Equal(expected, LobbyStepNavigation.CanGoForward(mode));
+}
+
 public class LocalPlayRosterTests
 {
     [Fact]

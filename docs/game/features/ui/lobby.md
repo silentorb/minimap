@@ -12,6 +12,7 @@ Local multiplayer join screen before a match. Related: [local-input.md](../sessi
   2. **Selecting profile** — device has joined; **profile carousel** (select-only) is shown. Left/right cycle available [user profiles](../session/user-profiles.md); **Enter** / **Start** confirm and advance. Create/rename/delete are **not** in the lobby (use main menu **Profiles**). A profile may be chosen by at most one slot. If none are available, show that profiles are managed from the Profiles screen; cannot advance.
   3. **Selecting accessories** — **accessory selection panel** is shown and interactive.
   4. **Ready** — ready to play; customize area hidden but **chosen profile, accessories, and remaining points persist**.
+- Each panel shows **Back** / **Forward** buttons at the bottom when the current step can navigate earlier or later in the wizard (same transitions as Escape/B and Enter/Start). Available has neither; Ready has Back only; Forward is disabled when profile confirm is impossible.
 - Accessory selection UI (Selecting accessories only) fills the player panel’s customize area and scales to that parent (no clipping the main picker). A thin **points available** line sits above three equal-height child panels that share the remaining vertical space; each scrolls **vertically** when its content overflows:
   1. **Available** — icon grid of unowned selectable accessories.
   2. **Description** — name, cost, and body of the focused accessory.
