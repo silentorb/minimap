@@ -10,7 +10,7 @@
 - Sealed gameplay implementations (e.g. `ShootEffect`, `SwingEffect`, `SpawnEffect`)
 - Content JSON under `config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy): accessories, characters, actors, resources, domains
 - Integrator policy: default character **`generic`**, world spawner pool of **zombie spawners** (marker path for parked waves), intrinsic **`zombie_spawner`** actor for sandbox, player-selectable accessories via tag filter, resource catalog into `GameContent`
-- Effect factories: `shoot`, `swing`, `place_random_actor`, `modify_resource`, `grow`, `spawn`, `harvest`, `pickup_resource`, `death_drop`, `use_computer`
+- Effect factories: `shoot`, `swing`, `place_random_actor`, `modify_resource`, `grow`, `spawn`, `harvest`, `pickup_resource`, `death_drop`, `use_computer`, `drain_resource`, `drain_resource_by_distance`, `modify_resource_by_ratio_bands`, `modify_resource_on_use`
 
 ## What must not live here
 

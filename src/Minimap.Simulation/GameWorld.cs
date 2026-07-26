@@ -22,11 +22,10 @@ public sealed class GameWorld
     private ResourceContext? _resourceContext;
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _rivalFactionId = 2;
-    private int _nextCharacterId;
+    private int _nextActorId;
     private int _nextMissileId;
     private int _nextSwingArcId;
     private int _nextSpawnerId;
-    private int _nextActorId;
 
 
     public static GameWorld Create(
@@ -177,7 +176,7 @@ public sealed class GameWorld
     /// Places a cell-anchored actor on <paramref name="cell"/> if the cell is in the grid and empty.
     /// Returns false for expected rejection (missing cell / occupied); does not validate terrain.
     /// </summary>
-    public bool TryPlaceActor(HexAxial cell, ActorDefinition definition)
+    public bool TryPlaceActor(HexAxial cell, ActorDefinition definition, int factionId = 0)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (!Grid.Contains(cell) || _actorsByCell.ContainsKey(cell))
@@ -188,6 +187,7 @@ public sealed class GameWorld
                 "Resource context is required (call SetResourceContext or ApplyGameContent).");
         var actor = new Actor(_nextActorId++, definition, resources);
         actor.Cell = cell;
+        actor.FactionId = factionId;
         _actorsByCell[cell] = actor;
         return true;
     }
@@ -218,6 +218,8 @@ public sealed class GameWorld
                     grow.Tick(this, actor, dt);
                 else if (effect is ISpawnEffect spawn)
                     spawn.Tick(this, actor, dt);
+                else if (effect is IWorldPassiveEffect worldPassive)
+                    worldPassive.Tick(this, actor, dt);
                 else if (effect is IPassiveEffect passive)
                     passive.Tick(actor, dt);
             }
@@ -269,7 +271,7 @@ public sealed class GameWorld
         var resources = _resourceContext
             ?? throw new InvalidOperationException(
                 "Resource context is required (call SetResourceContext or ApplyGameContent).");
-        var c = new Character(_nextCharacterId++, factionId, position, def, resources, maxHealth, maxEnergy);
+        var c = new Character(_nextActorId++, factionId, position, def, resources, maxHealth, maxEnergy);
         _characters.Add(c);
         return c;
     }
@@ -688,6 +690,10 @@ public sealed class GameWorld
         {
             if (!actor.IsDestructible || !actor.IsAlive)
                 continue;
+            if (m.OwnerCharacterId is int oid && oid == actor.Id)
+                continue;
+            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, actor.FactionId))
+                continue;
 
             var center = HexWorldLayout.ToWorld(cell, HexSize);
             var delta = center - m.Position;
@@ -738,6 +744,10 @@ public sealed class GameWorld
         foreach (var (cell, actor) in _actorsByCell)
         {
             if (!actor.IsDestructible || !actor.IsAlive)
+                continue;
+            if (arc.OwnerCharacterId is int oid && oid == actor.Id)
+                continue;
+            if (!arc.FriendlyFire && !FactionRules.AreHostile(arc.OwnerFactionId, actor.FactionId))
                 continue;
 
             var center = HexWorldLayout.ToWorld(cell, HexSize);

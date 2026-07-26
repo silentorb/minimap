@@ -3,10 +3,7 @@ using Minimap.Simulation.Types;
 
 namespace CompuQuest.Minimap;
 
-/// <summary>
-/// Environment interact on a placed computer while Geek is selected.
-/// Gameplay beyond a successful interact is forthcoming.
-/// </summary>
+/// <summary>Environment interact on a placed computer while Geek is selected.</summary>
 public sealed class UseComputerEffect : AccessoryEffect, IInteractionEffect, IEffectUseCost
 {
     public const string ComputerActorId = "computer";

@@ -43,6 +43,8 @@ public static class PickupResourceEffectFactory
                     sourcePath));
         }
 
-        return new PickupResourceEffect(resource.Tag, amount);
+        var (costTag, costAmount) = EffectJson.ParseOptionalCost(
+            effectObject, index, sourcePath, registry);
+        return new PickupResourceEffect(resource.Tag, amount, costTag, costAmount);
     }
 }

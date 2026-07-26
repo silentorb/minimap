@@ -1,9 +1,10 @@
+using Minimap.Simulation;
 using Minimap.Simulation.Types;
 
 namespace CompuQuest.Minimap;
 
-/// <summary>Gun shoot parameters and per-instance fire cooldown.</summary>
-public sealed class ShootEffect : AccessoryEffect, IShootEffect, IEffectUseCost
+/// <summary>Gun shoot parameters and per-instance fire cooldown; auto-fires on cell actors.</summary>
+public sealed class ShootEffect : AccessoryEffect, IShootEffect, IEffectUseCost, IWorldPassiveEffect
 {
     public ShootEffect(
         float fireIntervalSeconds,
@@ -40,6 +41,15 @@ public sealed class ShootEffect : AccessoryEffect, IShootEffect, IEffectUseCost
 
     public TagId? CostResourceTag { get; }
     public int CostAmount { get; }
+
+    public void Tick(GameWorld world, Actor actor, float dt)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(actor);
+        if (actor.Cell is null)
+            return;
+        Shoot.TickCellActorAutoFire(world, actor, dt);
+    }
 
     public override AccessoryEffect Clone() =>
         new ShootEffect(

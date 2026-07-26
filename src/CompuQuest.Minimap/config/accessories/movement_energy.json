@@ -1,0 +1,15 @@
+{
+  "id": "movement_energy",
+  "displayName": "Movement Energy",
+  "description": "Hidden upkeep: drains energy from distance traveled.",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "drain_resource_by_distance",
+      "id": "energy",
+      "unitsPerAmount": 120
+    }
+  ]
+}

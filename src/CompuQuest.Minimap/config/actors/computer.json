@@ -1,6 +1,7 @@
 {
   "id": "computer",
   "displayName": "Computer",
+  "accessories": ["computer_gun"],
   "resources": [
     { "id": "max_health", "amount": 40 },
     { "id": "health", "amount": 40 }

@@ -32,8 +32,6 @@ public sealed class Character : Actor
         ApplyDefinitionAccessories();
     }
 
-    public int FactionId { get; }
-
     public new CharacterDefinition Definition => (CharacterDefinition)base.Definition;
 
     public SimVec2 Position { get; set; }

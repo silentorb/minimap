@@ -1,6 +1,6 @@
 {
   "id": "zombie_farmer",
-  "accessories": ["energy_upkeep", "eat", "swing", "farm"],
+  "accessories": ["energy_upkeep", "movement_energy", "eat", "swing", "farm"],
   "depiction": {
     "kind": "sprite_frames",
     "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",

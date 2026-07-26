@@ -34,6 +34,9 @@ public class DefinitionConfigTests
             DrainResourceEffectFactory.TypeId,
             DrainResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
+            DrainResourceByDistanceEffectFactory.TypeId,
+            DrainResourceByDistanceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
             ModifyResourceByRatioBandsEffectFactory.TypeId,
             ModifyResourceByRatioBandsEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
@@ -187,7 +190,9 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "geek");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_carrot");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "energy_upkeep");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "movement_energy");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "eat");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "computer_gun");
 
         var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
         Assert.Equal(1, gun.PointCost);
@@ -204,19 +209,29 @@ public class DefinitionConfigTests
             swing.EffectTemplates,
             e => e is SwingEffect s &&
                  s.Damage == 30 &&
-                 Math.Abs(s.FireIntervalSeconds - 0.8f) < 1e-5f);
+                 Math.Abs(s.FireIntervalSeconds - 0.8f) < 1e-5f &&
+                 s.CostAmount == 1 &&
+                 s.CostResourceTag == registry.Tags.GetOrCreate("energy"));
 
         var farm = registry.AccessoryDefinitions.Single(a => a.Id == "farm");
         Assert.Equal(AccessoryActivationKind.Modal, farm.Activation.Kind);
         Assert.True(farm.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.Contains(farm.EffectTemplates, e => e is PlaceRandomActorEffect);
-        Assert.Contains(farm.EffectTemplates, e => e is HarvestEffect);
+        Assert.Contains(
+            farm.EffectTemplates,
+            e => e is HarvestEffect h &&
+                 h.CostAmount == 1 &&
+                 h.CostResourceTag == registry.Tags.GetOrCreate("energy"));
 
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Equal(AccessoryActivationKind.Modal, geek.Activation.Kind);
         Assert.True(geek.HasTag(registry.Tags.GetOrCreate("computing")));
         Assert.Contains(geek.EffectTemplates, e => e is PlaceRandomActorEffect);
-        Assert.Contains(geek.EffectTemplates, e => e is UseComputerEffect);
+        Assert.Contains(
+            geek.EffectTemplates,
+            e => e is UseComputerEffect u &&
+                 u.CostAmount == 1 &&
+                 u.CostResourceTag == registry.Tags.GetOrCreate("energy"));
         Assert.Contains(
             geek.EffectTemplates,
             e => e is ModifyResourceEffect grant && grant.ResourceTag == registry.Tags.GetOrCreate("electronics"));
@@ -240,6 +255,22 @@ public class DefinitionConfigTests
         Assert.Equal(AccessoryActivationKind.None, upkeep.Activation.Kind);
         Assert.Contains(upkeep.EffectTemplates, e => e is DrainResourceEffect);
         Assert.Contains(upkeep.EffectTemplates, e => e is ModifyResourceByRatioBandsEffect);
+
+        var movement = registry.AccessoryDefinitions.Single(a => a.Id == "movement_energy");
+        Assert.Equal(AccessoryActivationKind.None, movement.Activation.Kind);
+        Assert.Contains(
+            movement.EffectTemplates,
+            e => e is DrainResourceByDistanceEffect d &&
+                 Math.Abs(d.UnitsPerAmount - 120f) < 1e-5f);
+
+        var computerGun = registry.AccessoryDefinitions.Single(a => a.Id == "computer_gun");
+        Assert.Equal(AccessoryActivationKind.None, computerGun.Activation.Kind);
+        Assert.Contains(
+            computerGun.EffectTemplates,
+            e => e is ModifyResourceEffect m &&
+                 m.ResourceTag == registry.Tags.GetOrCreate("ammo") &&
+                 m.Amount == 10);
+        Assert.Contains(computerGun.EffectTemplates, e => e is ShootEffect);
 
         Assert.Equal(7, registry.ActorDefinitions.Count);
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
@@ -275,6 +306,7 @@ public class DefinitionConfigTests
             r => r.Tag == registry.Tags.GetOrCreate("health") && r.Amount == 25);
 
         var computer = registry.ActorDefinitions.Single(a => a.Id == "computer");
+        Assert.Equal("computer_gun", Assert.Single(computer.Accessories).Id);
         Assert.Contains(
             computer.Resources,
             r => r.Tag == registry.Tags.GetOrCreate("max_health") && r.Amount == 40);
@@ -309,21 +341,23 @@ public class DefinitionConfigTests
 
         Assert.Equal(4, registry.CharacterDefinitions.Count);
         var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
-        Assert.Equal(["energy_upkeep", "eat"], generic.Accessories.Select(a => a.Id).ToArray());
+        Assert.Equal(
+            ["energy_upkeep", "movement_energy", "eat"],
+            generic.Accessories.Select(a => a.Id).ToArray());
 
         var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
         Assert.Equal(
-            ["energy_upkeep", "eat", "swing"],
+            ["energy_upkeep", "movement_energy", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
 
         var farmer = registry.CharacterDefinitions.Single(c => c.Id == "zombie_farmer");
         Assert.Equal(
-            ["energy_upkeep", "eat", "swing", "farm"],
+            ["energy_upkeep", "movement_energy", "eat", "swing", "farm"],
             farmer.Accessories.Select(a => a.Id).ToArray());
 
         var crazed = registry.CharacterDefinitions.Single(c => c.Id == "crazed_carrot");
         Assert.Equal(
-            ["energy_upkeep", "eat", "swing", "death_drop_loose_carrot"],
+            ["energy_upkeep", "movement_energy", "eat", "swing", "death_drop_loose_carrot"],
             crazed.Accessories.Select(a => a.Id).ToArray());
     }
 

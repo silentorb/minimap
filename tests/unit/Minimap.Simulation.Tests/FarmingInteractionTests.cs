@@ -48,7 +48,7 @@ public class FarmingInteractionTests
         var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         var farmAbility = new AccessoryDefinition(
             "farm",
-            [new TestHarvestEffect()],
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
         farmer.AddAccessory(farmAbility.CreateInstance());
         farmer.AbilityLoadout.SelectModal(0);
@@ -58,10 +58,40 @@ public class FarmingInteractionTests
         w.TickCellActors(0.01f);
 
         Assert.Equal(0, farmer.GetResource(TestContent.FoodResource.Tag));
+        var energyBefore = farmer.Energy;
         Assert.NotNull(EnvironmentInteraction.ResolveTarget(w, farmer));
         Assert.True(EnvironmentInteraction.TryInteract(w, farmer));
         Assert.Equal(3, farmer.GetResource(TestContent.FoodResource.Tag));
+        Assert.Equal(energyBefore - 1, farmer.Energy);
         Assert.False(w.IsCellOccupied(front));
+    }
+
+    [Fact]
+    public void Harvest_rejects_at_zero_energy()
+    {
+        var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+
+        var mature = new DepictionConfig(DepictionKinds.Texture, "res://mature.svg");
+        var growAccessory = new AccessoryDefinition(
+            "grow",
+            [new TestGrowEffect(0f, mature, TestContent.FoodResource.Tag, 3)]);
+        var actorDef = new ActorDefinition("melon", [growAccessory]);
+
+        var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        farmer.Energy = 0;
+        farmer.AddAccessory(new AccessoryDefinition(
+            "farm",
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
+            activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
+        farmer.AbilityLoadout.SelectModal(0);
+
+        var front = CellFacing.CellInFront(farmer, w.HexSize);
+        Assert.True(w.TryPlaceActor(front, actorDef));
+        w.TickCellActors(0.01f);
+        Assert.Null(EnvironmentInteraction.ResolveTarget(w, farmer));
+        Assert.False(EnvironmentInteraction.TryInteract(w, farmer));
+        Assert.True(w.IsCellOccupied(front));
     }
 
     [Fact]
@@ -79,7 +109,7 @@ public class FarmingInteractionTests
         var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         farmer.AddAccessory(new AccessoryDefinition(
             "farm",
-            [new TestHarvestEffect()],
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
         farmer.AbilityLoadout.SelectModal(0);
 
@@ -105,7 +135,7 @@ public class FarmingInteractionTests
         var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         farmer.AddAccessory(new AccessoryDefinition(
             "farm",
-            [new TestHarvestEffect()],
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
         farmer.AbilityLoadout.SelectModal(-1);
 

@@ -13,9 +13,9 @@ Implements [interaction.md](../../../game/features/gameplay/interaction.md). Rel
   3. If the selected modal has an `IInteractionEffect` with `CanInteract`, that effect **overrides** the default.
   4. Highlight and invoke the chosen effect (or none).
 - Client: rising-edge interact input; highlight the resolved target actor node; clear when invalid or ability changes.
-- CompuQuest **`harvest`** implements `IInteractionEffect` (ability-side) for mature food / crazed crops.
-- CompuQuest **`use_computer`** implements `IInteractionEffect` for actors whose definition id is **`computer`**.
-- CompuQuest **`pickup_resource`** implements `IDefaultInteractionEffect` on free-loot actors (e.g. loose carrot → food ×1).
+- CompuQuest **`harvest`** implements `IInteractionEffect` (ability-side) for mature food / crazed crops; shipped use cost **1 energy**.
+- CompuQuest **`use_computer`** implements `IInteractionEffect` for actors whose definition id is **`computer`**; shipped use cost **1 energy**.
+- CompuQuest **`pickup_resource`** implements `IDefaultInteractionEffect` + **`IEffectUseCost`** on free-loot actors (e.g. loose carrot → food ×1; shipped use cost **1 energy**).
 
 ## Non-goals (for now)
 

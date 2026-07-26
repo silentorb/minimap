@@ -86,7 +86,10 @@ internal static class TestContent
                 CombatTuning.SwingDamage,
                 HexWorldLayout.DefaultHexSize,
                 CombatTuning.SwingArcDegrees,
-                CombatTuning.SwingVisualDurationSeconds),
+                CombatTuning.SwingVisualDurationSeconds,
+                friendlyFire: true,
+                EnergyResource.Tag,
+                costAmount: 1),
         ],
         activation: new AccessoryActivation(
             AccessoryActivationKind.Dedicated,
@@ -101,7 +104,7 @@ internal static class TestContent
 
     public static AccessoryDefinition Farm { get; } = new(
         AiTuning.FarmAccessoryId,
-        [new TestHarvestEffect()],
+        [new TestHarvestEffect(EnergyResource.Tag, 1)],
         activation: new AccessoryActivation(AccessoryActivationKind.Modal));
 
     public static AccessoryDefinition Eat { get; } = new(

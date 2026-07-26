@@ -61,7 +61,7 @@ public sealed class PlaceRandomActorEffect : AccessoryEffect, ICellPlacementEffe
         if (!world.TryGetActorDefinition(id, out var definition) || definition is null)
             return false;
 
-        if (!world.TryPlaceActor(cell, definition))
+        if (!world.TryPlaceActor(cell, definition, placer.FactionId))
             return false;
 
         EffectUseCosts.TryConsume(placer, this);

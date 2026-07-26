@@ -8,7 +8,8 @@
     {
       "type": "pickup_resource",
       "id": "food",
-      "amount": 1
+      "amount": 1,
+      "cost": { "id": "energy", "amount": 1 }
     }
   ]
 }

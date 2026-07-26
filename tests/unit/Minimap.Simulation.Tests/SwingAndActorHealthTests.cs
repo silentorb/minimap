@@ -155,8 +155,24 @@ public class SwingAndActorHealthTests
         var effect = Swing.FindSwingEffect(swinger)!;
         effect.CooldownRemaining = 0f;
 
+        var energyBefore = swinger.Energy;
         w.Tick(0.016f);
         Assert.NotEmpty(w.SwingArcs);
+        Assert.Equal(energyBefore - 1, swinger.Energy);
+    }
+
+    [Fact]
+    public void Swing_rejects_at_zero_energy()
+    {
+        var (w, driver, player) = TestWorldHelpers.CreateDriven(
+            3, 3, 1, new AllGrassGenerator(),
+            definition: new CharacterDefinition("swinger", [TestContent.Swing]));
+        player.Energy = 0;
+        w.AddCharacter(99, player.Position + new SimVec2(12f, 0f));
+        driver.SetAimInput(new SimVec2(1f, 0f));
+        driver.SetSecondaryFireHeld(true);
+        w.Tick(0.016f);
+        Assert.Empty(w.SwingArcs);
     }
 
     [Fact]

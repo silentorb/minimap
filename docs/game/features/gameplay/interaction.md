@@ -12,7 +12,8 @@ Player characters interacting with actors in the map. Related: [actors.md](actor
 - Modal activate (`X` / Space) remains ability-tied and is separate from environment interact. Interact (E / A) can succeed with **no** modal equipped when a default exists (e.g. free-loot carrot pickup).
 - When a valid interact target exists, that actor is **highlighted** so the player knows interact is available.
 - Interact invoke: gamepad **`JoyButton.A`** / keyboard **E**.
-- Examples: Farm **harvest** overrides on mature crops; Geek **use computer** when Geek is selected; free-loot carrots use a **default** pickup (+1 food) with no ability required.
+- Interaction use costs: Farm **harvest** and Geek **use computer** cost **1 energy**; free-loot carrot **pickup** costs **1 energy** and grants **+1 food** (no ability required).
+- Examples: Farm **harvest** overrides on mature crops; Geek **use computer** when Geek is selected; free-loot carrots use a **default** pickup.
 
 ## Non-goals (for now)
 

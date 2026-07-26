@@ -2,20 +2,24 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller (docs/game/features/gameplay/combat.md).</summary>
+/// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller or auto-aim (docs/game/features/gameplay/combat.md).</summary>
 public static class Shoot
 {
-    public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters)
+    public static Character? FindNearestHostile(
+        int ownerFactionId,
+        SimVec2 origin,
+        int ownerActorId,
+        IReadOnlyList<Character> characters)
     {
         Character? best = null;
         var bestDistSq = float.MaxValue;
         foreach (var other in characters)
         {
-            if (other.Id == shooter.Id || !other.IsAlive)
+            if (other.Id == ownerActorId || !other.IsAlive)
                 continue;
-            if (!FactionRules.AreHostile(shooter.FactionId, other.FactionId))
+            if (!FactionRules.AreHostile(ownerFactionId, other.FactionId))
                 continue;
-            var d = other.Position - shooter.Position;
+            var d = other.Position - origin;
             var distSq = d.LengthSquared;
             if (distSq < bestDistSq)
             {
@@ -27,8 +31,12 @@ public static class Shoot
         return best;
     }
 
-    public static AccessoryEffect? FindShootEffectInstance(Character shooter)
+    public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters) =>
+        FindNearestHostile(shooter.FactionId, shooter.Position, shooter.Id, characters);
+
+    public static AccessoryEffect? FindShootEffectInstance(Actor shooter)
     {
+        ArgumentNullException.ThrowIfNull(shooter);
         foreach (var effect in shooter.Effects)
         {
             if (effect is IShootEffect)
@@ -38,21 +46,25 @@ public static class Shoot
         return null;
     }
 
-    public static IShootEffect? FindShootEffect(Character shooter) =>
+    public static IShootEffect? FindShootEffect(Actor shooter) =>
         FindShootEffectInstance(shooter) as IShootEffect;
 
     /// <summary>
-    /// Decrements cooldown on the character's <see cref="IShootEffect"/>; when ready,
+    /// Decrements cooldown on the actor's <see cref="IShootEffect"/>; when ready,
     /// <paramref name="wantsFire"/> is true, and a fire direction is available
-    /// (aim, else facing), spawns a missile.
+    /// (aim, else facing), spawns a missile from <paramref name="origin"/>.
     /// </summary>
     public static void Tick(
         GameWorld world,
-        Character shooter,
+        Actor shooter,
+        SimVec2 origin,
         float dt,
         SimVec2 aimDirection,
         bool wantsFire)
     {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(shooter);
+
         var effectInstance = FindShootEffectInstance(shooter);
         if (effectInstance is not IShootEffect effect)
             return;
@@ -75,7 +87,7 @@ public static class Shoot
 
         var dir = fireDirection.Normalized();
         world.SpawnMissile(
-            shooter.Position,
+            origin,
             dir * effect.MissileSpeed,
             effect.MissileDamage,
             shooter.FactionId,
@@ -84,5 +96,40 @@ public static class Shoot
         effect.CooldownRemaining = effect.FireIntervalSeconds;
 
         EffectUseCosts.TryConsume(shooter, effectInstance);
+    }
+
+    /// <summary>Character convenience overload: fires from <see cref="Character.Position"/>.</summary>
+    public static void Tick(
+        GameWorld world,
+        Character shooter,
+        float dt,
+        SimVec2 aimDirection,
+        bool wantsFire) =>
+        Tick(world, shooter, shooter.Position, dt, aimDirection, wantsFire);
+
+    /// <summary>
+    /// Cell-actor auto-fire: aim at nearest hostile from the cell center; fire when a target exists.
+    /// </summary>
+    public static void TickCellActorAutoFire(GameWorld world, Actor shooter, float dt)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(shooter);
+        if (shooter.Cell is not HexAxial cell || !shooter.IsAlive)
+            return;
+        if (FindShootEffectInstance(shooter) is null)
+            return;
+
+        var origin = HexWorldLayout.ToWorld(cell, world.HexSize);
+        var target = FindNearestHostile(shooter.FactionId, origin, shooter.Id, world.Characters);
+        if (target is null)
+        {
+            Tick(world, shooter, origin, dt, SimVec2.Zero, wantsFire: false);
+            return;
+        }
+
+        var aim = target.Position - origin;
+        if (aim.LengthSquared >= 1e-10f)
+            shooter.Facing = aim.Normalized();
+        Tick(world, shooter, origin, dt, aim, wantsFire: true);
     }
 }

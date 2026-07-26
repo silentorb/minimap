@@ -4,10 +4,11 @@ Simulation character model and faction APIs. Implements [factions.md](../../../g
 
 ## Requirements
 
+- **`Actor`** carries **`FactionId`** (`int`, default **0**). Placeables receive it from `TryPlaceActor` (Geek placement passes the placer’s faction).
 - **`Character`** (pawn) fields:
   - Stable `Id` (from **`Actor`**)
   - `Position` (`SimVec2`)
-  - `FactionId` (`int`)
+  - `FactionId` (set on **`Actor`** in the constructor)
   - Tag-keyed **resources** on **`Actor`** (see [resources.md](resources.md)); health / max health helpers live on **`Actor`**
   - `CharacterDefinition Definition`
   - Accessories and flat **`Effects`** cache (see [accessories.md](accessories.md))

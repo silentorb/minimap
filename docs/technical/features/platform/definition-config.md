@@ -97,19 +97,20 @@ No accessory-level `resource` block. Grants and costs live on effects:
 - `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`modify_resource`** — on acquire: add `amount` of resource `id` (amount may be negative).
-  - **`shoot`** → `ShootEffect` (`IShootEffect`) — fire params + optional `cost`.
+  - **`shoot`** → `ShootEffect` (`IShootEffect` + `IWorldPassiveEffect` for cell-actor auto-fire) — fire params + optional `cost`.
   - **`swing`** → `SwingEffect` (`ISwingEffect`) — melee Swing params (damage, interval, radius, arc, visual duration, friendly fire) + optional `cost`.
   - **`place_random_actor`** → `PlaceRandomActorEffect` (`ICellPlacementEffect`) — weighted `pool` of `{ "id", "weight" }` actor definition ids + optional `cost`.
 
   - **`grow`** — duration, mature depiction, optional `harvestYield`, optional `emergeCharacterId` + `emergeAfterMatureSeconds` (passive; on vegetable actors).
-  - **`harvest`** → `IInteractionEffect` — harvest mature food actors (or emerge ambush crops).
-  - **`pickup_resource`** → `IDefaultInteractionEffect` — object-side free pickup (resource `id` + `amount`).
+  - **`harvest`** → `IInteractionEffect` — harvest mature food actors (or emerge ambush crops) + optional `cost`.
+  - **`pickup_resource`** → `IDefaultInteractionEffect` — object-side pickup (resource `id` + `amount`) + optional `cost`.
   - **`death_drop`** → `IDeathDropEffect` — on character death, place actor definition `id` if the corpse hex is free.
 
   - **`drain_resource`** → `IPassiveEffect` — drain resource `id` at `amountPerSecond` (default **1**).
+  - **`drain_resource_by_distance`** → `IPassiveEffect` — drain resource `id` by traveled distance (`unitsPerAmount` world units per **1** resource).
   - **`modify_resource_by_ratio_bands`** → `IPassiveEffect` — every `periodSeconds`, read source/max ratio and apply a banded delta to a target resource (vitality).
   - **`modify_resource_on_use`** → `IInstantUseEffect` — on activate: add `amount` of resource `id` + optional `cost`.
-- CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`** and **`eat`** (see [hunger.md](../gameplay/hunger.md)); they use the same schema.
+- CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`**, **`movement_energy`**, **`eat`**, and **`computer_gun`** (see [hunger.md](../gameplay/hunger.md) / combat docs); they use the same schema.
 
 ### Actor schema
 

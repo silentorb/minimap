@@ -2,8 +2,8 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation.Tests;
 
-/// <summary>Test double for IShootEffect with optional use cost.</summary>
-internal sealed class TestShootEffect : AccessoryEffect, IShootEffect, IEffectUseCost
+/// <summary>Test double for IShootEffect with optional use cost; auto-fires on cell actors.</summary>
+internal sealed class TestShootEffect : AccessoryEffect, IShootEffect, IEffectUseCost, IWorldPassiveEffect
 {
     public TestShootEffect(
         float fireIntervalSeconds,
@@ -28,6 +28,13 @@ internal sealed class TestShootEffect : AccessoryEffect, IShootEffect, IEffectUs
     public float CooldownRemaining { get; set; }
     public TagId? CostResourceTag { get; }
     public int CostAmount { get; }
+
+    public void Tick(GameWorld world, Actor actor, float dt)
+    {
+        if (actor.Cell is null)
+            return;
+        Shoot.TickCellActorAutoFire(world, actor, dt);
+    }
 
     public override AccessoryEffect Clone() =>
         new TestShootEffect(

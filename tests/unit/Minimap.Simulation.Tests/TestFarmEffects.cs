@@ -80,10 +80,22 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
             EmergeAfterMatureSeconds);
 }
 
-internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect
+internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect, IEffectUseCost
 {
+    public TestHarvestEffect(TagId? costResourceTag = null, int costAmount = 0)
+    {
+        CostResourceTag = costResourceTag;
+        CostAmount = costAmount;
+    }
+
+    public TagId? CostResourceTag { get; }
+    public int CostAmount { get; }
+
     public bool CanInteract(GameWorld world, Actor actor, Actor target)
     {
+        if (!EffectUseCosts.CanAfford(actor, this))
+            return false;
+
         foreach (var effect in target.Effects)
         {
             if (effect is IGrowEffect grow && grow.IsMature)
@@ -112,31 +124,46 @@ internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect
             return false;
 
         if (!string.IsNullOrWhiteSpace(grow.EmergeCharacterId))
-            return grow.TryEmerge(world, target);
+        {
+            if (!grow.TryEmerge(world, target))
+                return false;
+            EffectUseCosts.TryConsume(actor, this);
+            return true;
+        }
 
         if (!world.TryRemoveActorAt(cell, out _))
             return false;
         if (grow.YieldResourceTag is { } tag && grow.YieldAmount > 0)
             actor.AddResource(tag, grow.YieldAmount);
+        EffectUseCosts.TryConsume(actor, this);
         return true;
     }
 
-    public override AccessoryEffect Clone() => new TestHarvestEffect();
+    public override AccessoryEffect Clone() => new TestHarvestEffect(CostResourceTag, CostAmount);
 }
 
-internal sealed class TestPickupEffect : AccessoryEffect, IDefaultInteractionEffect
+internal sealed class TestPickupEffect : AccessoryEffect, IDefaultInteractionEffect, IEffectUseCost
 {
     private readonly TagId _resourceTag;
     private readonly int _amount;
 
-    public TestPickupEffect(TagId resourceTag, int amount)
+    public TestPickupEffect(
+        TagId resourceTag,
+        int amount,
+        TagId? costResourceTag = null,
+        int costAmount = 0)
     {
         _resourceTag = resourceTag;
         _amount = amount;
+        CostResourceTag = costResourceTag;
+        CostAmount = costAmount;
     }
 
+    public TagId? CostResourceTag { get; }
+    public int CostAmount { get; }
+
     public bool CanInteract(GameWorld world, Actor actor, Actor target) =>
-        target.Cell is not null;
+        target.Cell is not null && EffectUseCosts.CanAfford(actor, this);
 
     public bool TryInteract(GameWorld world, Actor actor, Actor target)
     {
@@ -145,10 +172,12 @@ internal sealed class TestPickupEffect : AccessoryEffect, IDefaultInteractionEff
         if (!world.TryRemoveActorAt(cell, out _))
             return false;
         actor.AddResource(_resourceTag, _amount);
+        EffectUseCosts.TryConsume(actor, this);
         return true;
     }
 
-    public override AccessoryEffect Clone() => new TestPickupEffect(_resourceTag, _amount);
+    public override AccessoryEffect Clone() =>
+        new TestPickupEffect(_resourceTag, _amount, CostResourceTag, CostAmount);
 }
 
 internal sealed class TestDeathDropEffect : AccessoryEffect, IDeathDropEffect

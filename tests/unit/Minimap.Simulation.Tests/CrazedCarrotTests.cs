@@ -13,23 +13,48 @@ public class CrazedCarrotTests
 
         var pickup = new AccessoryDefinition(
             "pickup",
-            [new TestPickupEffect(TestContent.FoodResource.Tag, 1)]);
+            [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
         var lootDef = new ActorDefinition("loose_carrot", [pickup]);
         w.SetActorDefinitions([lootDef]);
 
         var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         picker.AddAccessory(new AccessoryDefinition(
             "farm",
-            [new TestHarvestEffect()],
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
         picker.AbilityLoadout.SelectModal(-1);
 
         var front = CellFacing.CellInFront(picker, w.HexSize);
         Assert.True(w.TryPlaceActor(front, lootDef));
+        var energyBefore = picker.Energy;
         Assert.NotNull(EnvironmentInteraction.ResolveTarget(w, picker));
         Assert.True(EnvironmentInteraction.TryInteract(w, picker));
         Assert.Equal(1, picker.GetResource(TestContent.FoodResource.Tag));
+        Assert.Equal(energyBefore - 1, picker.Energy);
         Assert.False(w.IsCellOccupied(front));
+    }
+
+    [Fact]
+    public void Free_loot_pickup_rejects_at_zero_energy()
+    {
+        var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+
+        var pickup = new AccessoryDefinition(
+            "pickup",
+            [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
+        var lootDef = new ActorDefinition("loose_carrot", [pickup]);
+        w.SetActorDefinitions([lootDef]);
+
+        var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        picker.Energy = 0;
+        picker.AbilityLoadout.SelectModal(-1);
+
+        var front = CellFacing.CellInFront(picker, w.HexSize);
+        Assert.True(w.TryPlaceActor(front, lootDef));
+        Assert.Null(EnvironmentInteraction.ResolveTarget(w, picker));
+        Assert.False(EnvironmentInteraction.TryInteract(w, picker));
+        Assert.True(w.IsCellOccupied(front));
     }
 
     [Fact]
@@ -53,7 +78,7 @@ public class CrazedCarrotTests
         var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         farmer.AddAccessory(new AccessoryDefinition(
             "farm",
-            [new TestHarvestEffect()],
+            [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal)).CreateInstance());
         farmer.AbilityLoadout.SelectModal(0);
 
@@ -133,7 +158,7 @@ public class CrazedCarrotTests
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         var pickup = new AccessoryDefinition(
             "pickup",
-            [new TestPickupEffect(TestContent.FoodResource.Tag, 1)]);
+            [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
         var lootDef = new ActorDefinition("loose_carrot", [pickup]);
         w.ApplyGameContent(new GameContent(
             TestContent.Generic,
@@ -155,15 +180,16 @@ public class CrazedCarrotTests
         Assert.Equal("loose_carrot", w.CellActors[cell].Definition.Id);
 
         var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize), TestContent.Bare);
-        picker.Facing = (HexWorldLayout.ToWorld(cell, w.HexSize) - picker.Position);
         // Face toward loot cell.
         var lootWorld = HexWorldLayout.ToWorld(cell, w.HexSize);
         picker.Position = lootWorld - new SimVec2(w.HexSize, 0f);
         picker.Facing = new SimVec2(1f, 0f);
 
+        var energyBefore = picker.Energy;
         Assert.NotNull(EnvironmentInteraction.ResolveTarget(w, picker));
         Assert.True(EnvironmentInteraction.TryInteract(w, picker));
         Assert.Equal(1, picker.GetResource(TestContent.FoodResource.Tag));
+        Assert.Equal(energyBefore - 1, picker.Energy);
     }
 
     private sealed class AllGrassGenerator : IWorldGenerator

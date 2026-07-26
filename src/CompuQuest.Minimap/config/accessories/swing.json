@@ -16,7 +16,8 @@
       "radius": 26,
       "arcDegrees": 180,
       "visualDurationSeconds": 0.15,
-      "friendlyFire": true
+      "friendlyFire": true,
+      "cost": { "id": "energy", "amount": 1 }
     }
   ],
   "icon": {

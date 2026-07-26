@@ -25,6 +25,7 @@ public class Actor
         Definition = definition;
         _resourceContext = resourceContext;
         Facing = new SimVec2(1f, 0f);
+        FactionId = 0;
 
         ApplyDefinitionStartingResources();
         if (applyDefinitionAccessories)
@@ -34,6 +35,9 @@ public class Actor
     public int Id { get; }
 
     public ActorDefinition Definition { get; }
+
+    /// <summary>Faction for hostility / ownership (default 0 for unowned placeables).</summary>
+    public int FactionId { get; set; }
 
     /// <summary>Cell occupancy when this actor is cell-anchored; null for free-moving characters.</summary>
     public HexAxial? Cell { get; set; }

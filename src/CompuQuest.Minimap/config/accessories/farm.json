@@ -24,7 +24,8 @@
       "cost": { "id": "seeds", "amount": 1 }
     },
     {
-      "type": "harvest"
+      "type": "harvest",
+      "cost": { "id": "energy", "amount": 1 }
     }
   ],
   "icon": {

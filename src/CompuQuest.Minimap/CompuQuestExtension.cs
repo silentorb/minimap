@@ -37,6 +37,9 @@ public sealed class CompuQuestExtension : IExtension
             DrainResourceEffectFactory.TypeId,
             DrainResourceEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
+            DrainResourceByDistanceEffectFactory.TypeId,
+            DrainResourceByDistanceEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(
             ModifyResourceByRatioBandsEffectFactory.TypeId,
             ModifyResourceByRatioBandsEffectFactory.Create);
         registry.AddAccessoryEffectFactory(

@@ -1,7 +1,7 @@
 {
   "id": "geek",
   "displayName": "Geek",
-  "description": "Place a computer on the grass cell in front of you, and interact with computers while Geek is selected. Further computer behavior forthcoming.",
+  "description": "Place a computer turret on the grass cell in front of you, and interact with computers while Geek is selected.",
   "pointCost": 1,
   "tags": ["player_selectable", "computing"],
   "activation": {
@@ -21,7 +21,8 @@
       "cost": { "id": "electronics", "amount": 1 }
     },
     {
-      "type": "use_computer"
+      "type": "use_computer",
+      "cost": { "id": "energy", "amount": 1 }
     }
   ],
   "icon": {

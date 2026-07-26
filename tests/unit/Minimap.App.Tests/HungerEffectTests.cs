@@ -88,4 +88,33 @@ public class HungerEffectTests
         effect.Tick(character, 1f);
         Assert.Equal(CombatTuning.DefaultMaxEnergy - 1, character.Energy);
     }
+
+    [Fact]
+    public void DrainResourceByDistanceEffect_drains_after_unitsPerAmount()
+    {
+        var tags = new TagRegistry();
+        var maxEnergy = new ResourceDefinition(
+            WellKnownResourceIds.MaxEnergy, tags.GetOrCreate(WellKnownResourceIds.MaxEnergy), visible: false);
+        var energy = new ResourceDefinition(
+            WellKnownResourceIds.Energy, tags.GetOrCreate(WellKnownResourceIds.Energy),
+            limitTag: maxEnergy.Tag);
+        var maxHealth = new ResourceDefinition(
+            WellKnownResourceIds.MaxHealth, tags.GetOrCreate(WellKnownResourceIds.MaxHealth), visible: false);
+        var health = new ResourceDefinition(
+            WellKnownResourceIds.Health, tags.GetOrCreate(WellKnownResourceIds.Health),
+            limitTag: maxHealth.Tag);
+        var context = new ResourceContext(
+            [health, maxHealth, energy, maxEnergy],
+            health.Tag, maxHealth.Tag, energy.Tag, maxEnergy.Tag);
+        var character = new Character(
+            0, 1, SimVec2.Zero,
+            new CharacterDefinition("bare", Array.Empty<AccessoryDefinition>()),
+            context);
+        var effect = new DrainResourceByDistanceEffect(energy.Tag, 120f);
+        effect.Tick(character, 0.016f);
+        Assert.Equal(CombatTuning.DefaultMaxEnergy, character.Energy);
+        character.Position = new SimVec2(120f, 0f);
+        effect.Tick(character, 0.016f);
+        Assert.Equal(CombatTuning.DefaultMaxEnergy - 1, character.Energy);
+    }
 }

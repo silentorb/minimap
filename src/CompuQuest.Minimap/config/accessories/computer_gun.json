@@ -1,0 +1,23 @@
+{
+  "id": "computer_gun",
+  "displayName": "Computer Gun",
+  "description": "Hidden turret gun: grants ammo and auto-fires at hostiles.",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "modify_resource",
+      "id": "ammo",
+      "amount": 10
+    },
+    {
+      "type": "shoot",
+      "fireIntervalSeconds": 1.25,
+      "missileSpeed": 200,
+      "missileDamage": 25,
+      "friendlyFire": true,
+      "cost": { "id": "ammo", "amount": 1 }
+    }
+  ]
+}
