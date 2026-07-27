@@ -13,7 +13,7 @@ JSON configuration for accessory, actor, resource, and domain definitions. Loade
   2. Register domain definitions from `{dllDir}/{assemblyName}/domains/` (id → `TagRegistry.GetOrCreate`; required `#RRGGBB` color)
   3. Register accessory definitions from `{dllDir}/{assemblyName}/accessories/` (effect `cost` / `modify_resource` ids must resolve to registered resource types)
   4. Register actor definitions from `{dllDir}/{assemblyName}/actors/` (accessory ids resolve against the registry)
-- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_actor"`, `"modify_resource"`, `"grow"`, `"spawn"`, `"harvest"`, `"use_computer"`, `"drain_resource"`, `"modify_resource_by_ratio_bands"`, `"modify_resource_on_use"`). The host does **not** hardcode concrete effect classes.
+- Effect JSON `type` values resolve via **`IExtensionRegistry` accessory effect factories** registered by the extension (e.g. CompuQuest registers `"shoot"`, `"place_random_actor"`, `"modify_resource"`, `"grow"`, `"spawn"`, `"harvest"`, `"use_computer"`, `"heal"`, `"drain_resource"`, `"modify_resource_by_ratio_bands"`, `"modify_resource_on_use"`). The host does **not** hardcode concrete effect classes.
 - Simulation and Client do not perform file I/O for definitions. Extensions may still register definitions in C#; shipped CompuQuest content is JSON.
 - Invalid JSON, missing required fields, unknown effect `type`, unresolved accessory / resource / actor ids, malformed `depiction` / `icon` / domain `color`, duplicate ids, or invalid resource limit graphs fail fast (same boot/preflight boundary as extensions).
 - Optional **`depiction`** / **`icon`** on accessory and actor JSON map to **`DepictionConfig`** / **`IconConfig`**. App does not validate that Godot resources exist at load time.
@@ -111,6 +111,7 @@ No accessory-level `resource` block. Grants and costs live on effects:
   - **`drain_resource_by_distance`** → `IPassiveEffect` — drain resource `id` by traveled distance (`unitsPerAmount` world units per **1** resource).
   - **`modify_resource_by_ratio_bands`** → `IPassiveEffect` — every `periodSeconds`, read source/max ratio and apply a banded delta to a target resource (vitality).
   - **`modify_resource_on_use`** → `IInstantUseEffect` — on activate: add `amount` of resource `id` + optional `cost`.
+  - **`heal`** → `IInstantUseEffect` + `IInteractionEffect` — restore target to max health when injured and tagged `human` or `animal` + optional `cost` (see [medical.md](../gameplay/medical.md)).
   - **`spawn_nearby_ally`** → `IWorldActorPassiveEffect` — one-shot spawn of actor `actorId` on the owner’s faction near the owner (optional `aggression`; see [animal-companions.md](../gameplay/animal-companions.md)).
   - **`move`** → `IMoveEffect` — locomotion enable + `speed` (world units/sec); see [movement.md](../../game/features/gameplay/movement.md).
 - CompuQuest also ships generic (non–lobby-selectable) accessories such as **`energy_upkeep`**, **`movement_energy`**, **`eat`**, and **`computer_gun`** (see [hunger.md](../gameplay/hunger.md) / combat docs); they use the same schema. Lobby-selectable animal companions (`fox`, `squid`, `monkey`, `penguin`, `poison_dart_frog`) use `spawn_nearby_ally`.
@@ -119,21 +120,22 @@ No accessory-level `resource` block. Grants and costs live on effects:
 
 ```json
 {
-  "id": "carrot_growing",
-  "displayName": "Carrot",
-  "accessories": ["grow_carrot"],
+  "id": "generic",
+  "displayName": "Human",
+  "tags": ["human"],
+  "accessories": ["move", "energy_upkeep", "movement_energy", "eat"],
   "resources": [
-    { "id": "max_health", "amount": 25 },
-    { "id": "health", "amount": 25 }
+    { "id": "max_health", "amount": 100 },
+    { "id": "health", "amount": 100 }
   ],
   "depiction": {
     "kind": "texture",
-    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+    "path": "res://assets/compuquest/kenney-1bit/…"
   }
 }
 ```
 
-- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional. Optional **`size`** (`> 0`): base collision radius for projectile actors (see [combat.md](../../game/features/gameplay/combat.md)); omit for non-projectiles. Optional **`resources`**: array of `{ "id", "amount" }` starting amounts (`amount` ≥ **0**); applied in order at actor construction (set `max_health` before `health`).
+- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional. Optional **`tags`**: array of strings resolved via `TagRegistry` (same as accessory tags; e.g. `human`, `animal`). Optional **`size`** (`> 0`): base collision radius for projectile actors (see [combat.md](../../game/features/gameplay/combat.md)); omit for non-projectiles. Optional **`resources`**: array of `{ "id", "amount" }` starting amounts (`amount` ≥ **0**); applied in order at actor construction (set `max_health` before `health`).
 - Mobile pawns (e.g. **`generic`**, **`zombie`**) live in the same catalog and typically include **`move`**, hunger accessories, and starting health/energy resources. Lobby-selectable abilities are still chosen in the lobby. Shipped **`missile`** is a projectile actor with `size` and no accessories/resources.
 
 

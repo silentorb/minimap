@@ -1,6 +1,6 @@
 # Resources (technical)
 
-Tag-keyed actor amounts and extension-registered resource types. Implements [resources.md](../../../game/features/gameplay/resources.md). Related: [tags.md](tags.md), [definition-config.md](../platform/definition-config.md), [extensions.md](../platform/extensions.md), [actors.md](actors.md), [characters-and-factions.md](characters-and-factions.md), [player-hud.md](../ui/player-hud.md), [accessories.md](accessories.md), [hunger.md](hunger.md).
+Tag-keyed actor amounts and extension-registered resource types. Implements [resources.md](../../../game/features/gameplay/resources.md). Related: [tags.md](tags.md), [definition-config.md](../platform/definition-config.md), [extensions.md](../platform/extensions.md), [actors.md](actors.md), [characters-and-factions.md](characters-and-factions.md), [player-hud.md](../ui/player-hud.md), [accessories.md](accessories.md), [hunger.md](hunger.md), [medical.md](medical.md).
 
 ## Requirements
 

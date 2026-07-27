@@ -12,6 +12,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [../game-design.md](../game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [gameplay/resources.md](gameplay/resources.md) | Changing **actor/character resources**, resource types, limits, HUD resource lists, or effect resource cost/grant. |
 | [gameplay/health.md](gameplay/health.md) | Changing **hit points**, max health, **indestructible** actors, or **death / removal** on zero health. |
+| [gameplay/medical.md](gameplay/medical.md) | Changing **Heal**, **medkits**, medical domain, or human/animal heal gates. |
 | [gameplay/hunger.md](gameplay/hunger.md) | Changing **energy** / max energy, energy drain, vitality bands, **Eat**, or food-gated ability enable. |
 | [gameplay/movement.md](gameplay/movement.md) | Changing **realtime cartesian movement**, screen-axis move input, or wall/character **slide** collision. |
 | [gameplay/damage.md](gameplay/damage.md) | Changing how **damage** applies, missile / Swing damage amounts, placeable hits, or friendly-fire rules. |
@@ -26,7 +27,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/farming.md](gameplay/farming.md) | Changing **Farm**, grow/harvest, seedlings, food yields, or vegetable actors. |
 | [gameplay/cell-placement.md](gameplay/cell-placement.md) | Changing **cell occupancy**, placing actors on cells, placement preview, or Farm/Geek place rules. |
 | [gameplay/tags.md](gameplay/tags.md) | Changing **tags** on definitions (e.g. `player_selectable`), resource type ids as tags, or tag naming policy. |
-| [gameplay/domains.md](gameplay/domains.md) | Changing **domains** (gardening / computing themes), domain tags on accessories, or domain-colored icon swatches. |
+| [gameplay/domains.md](gameplay/domains.md) | Changing **domains** (gardening / computing / medical themes), domain tags on accessories, or domain-colored icon swatches. |
 | [session/players.md](session/players.md) | Changing **player** records, accessory points, or lobby→spawn accessory choices. |
 | [session/user-profiles.md](session/user-profiles.md) | Changing **user profiles**, Profiles screen, lobby profile selection, or persistent death counts. |
 | [session/achievements.md](session/achievements.md) | Changing **achievements**, Survive 5 minutes, Achievements screen, or per-profile unlocks. |

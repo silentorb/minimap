@@ -11,7 +11,7 @@ Tagged theme records and domain-colored UI icons. Implements [domains.md](../../
 - Load order inside `DefinitionConfig.RegisterFromConfigDirectory`: **resources → domains → accessories → actors → characters**.
 - **`ExtensionLoadResult`** includes `IReadOnlyList<DomainDefinition> Domains` so lobby and world Client code can resolve colors without a second catalog.
 - Client **`DomainIconView`**: draws domain color swatch (solid / diagonal two-triangle / vertical stripes) under a glyph texture derived from game-icons SVGs (near-black pixels made transparent; light pixels kept as the white glyph). Used by lobby accessory selection and the player HUD ability row.
-- Shipped CompuQuest: `gardening`, `computing` under `src/CompuQuest.Minimap/config/domains/`.
+- Shipped CompuQuest: `gardening`, `computing`, `medical` under `src/CompuQuest.Minimap/config/domains/`.
 
 ## Non-goals (for now)
 

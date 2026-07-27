@@ -14,6 +14,7 @@ Thematic tags that group accessories (and later other content) into strong visua
 - Shipped CompuQuest domains:
   - **`gardening`** — green (`#3A8F4B`). Tagged on **Farm** and vegetable **grow_*** accessories.
   - **`computing`** — light gray with a hint of blue (`#B4BEC8`). Tagged on **Geek**.
+  - **`medical`** — crimson (`#C44B5A`). Tagged on **Heal**.
 - Domain tag **`computing`** is distinct from the **`electronics`** resource and from the **computer** actor.
 - When an accessory has domain tags, its **UI icon** uses those domain colors as the icon background (game-icons white glyph on a colored swatch):
   - one domain → solid color square

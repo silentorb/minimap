@@ -6,15 +6,16 @@ Implements [interaction.md](../../../game/features/gameplay/interaction.md). Rel
 
 - Simulation contract **`IInteractionEffect`**: `CanInteract(world, actor, target)` / `TryInteract(...)`. Expected rejection returns `false`.
 - Simulation contract **`IDefaultInteractionEffect`**: same shape as `IInteractionEffect`; lives on the **object** (target) actor’s effects. Used when no overriding ability interaction applies.
-- Target resolution: actor occupying the cell from `CellFacing.CellInFront` (same facing/proximity model as placement).
+- Target resolution: front hex from `CellFacing.CellInFront` (same facing/proximity model as placement). Candidates are the cell-anchored occupant (if any) plus living non-projectile **free** actors whose axial cell equals that hex (excluding the interactor).
 - Validity / invoke (`EnvironmentInteraction`):
-  1. Resolve front-cell target.
-  2. Find **default** via first `IDefaultInteractionEffect` on the target with `CanInteract`.
-  3. If the selected modal has an `IInteractionEffect` with `CanInteract`, that effect **overrides** the default.
+  1. Collect front-cell candidates.
+  2. If the selected modal has an `IInteractionEffect`, try `CanInteract` on each candidate; first match **overrides** defaults.
+  3. Else find **default** via first `IDefaultInteractionEffect` on a candidate with `CanInteract`.
   4. Highlight and invoke the chosen effect (or none).
-- Client: rising-edge interact input; highlight the resolved target actor node; clear when invalid or ability changes.
+- Client: rising-edge interact input; highlight the resolved target actor node (cell actors **and** character/free-actor nodes); clear when invalid or ability changes.
 - CompuQuest **`harvest`** implements `IInteractionEffect` (ability-side) for mature food / crazed crops; shipped use cost **1 energy**.
 - CompuQuest **`use_computer`** implements `IInteractionEffect` for actors whose definition id is **`computer`**; shipped use cost **1 energy**.
+- CompuQuest **`heal`** implements `IInteractionEffect` + `IInstantUseEffect` for injured `human` / `animal` targets; shipped use cost **1 medkit** (see [medical.md](medical.md)).
 - CompuQuest **`pickup_resource`** implements `IDefaultInteractionEffect` + **`IEffectUseCost`** on free-loot actors (e.g. loose carrot → food ×1; shipped use cost **1 energy**).
 
 ## Non-goals (for now)

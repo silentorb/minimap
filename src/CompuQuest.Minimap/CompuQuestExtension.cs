@@ -12,6 +12,9 @@ public sealed class CompuQuestExtension : IExtension
             CompuQuestIntegrator.PlayerSelectableTag,
             "gardening",
             "computing",
+            "medical",
+            HealEffect.HumanTagName,
+            HealEffect.AnimalTagName,
         ]);
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddAccessoryEffectFactory(SwingEffectFactory.TypeId, SwingEffectFactory.Create);
@@ -37,6 +40,7 @@ public sealed class CompuQuestExtension : IExtension
         registry.AddAccessoryEffectFactory(
             UseComputerEffectFactory.TypeId,
             UseComputerEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(HealEffectFactory.TypeId, HealEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             DrainResourceEffectFactory.TypeId,
             DrainResourceEffectFactory.Create);

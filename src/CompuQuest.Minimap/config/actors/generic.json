@@ -1,5 +1,6 @@
 {
   "id": "generic",
+  "tags": ["human"],
   "accessories": [
     "move",
     "energy_upkeep",

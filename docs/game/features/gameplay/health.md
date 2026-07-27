@@ -12,6 +12,7 @@ Actor hit points as resources. Related: [resources.md](resources.md), [damage.md
 - Death **quietly removes** the actor from the map: no death animation, VFX, or UI for now. Characters (and their controllers) are gone on the next simulation update; cell-anchored actors are removed from occupancy the same way. When a human player’s character dies and that player has a [user profile](../session/user-profiles.md), the profile’s death count increments (disconnect drop does not).
 - Some actors declare a **death drop** (`death_drop` effect): before removal, if the hex under the corpse is empty, place that cell actor (e.g. crazed carrot → picked carrot). See [farming.md](farming.md).
 - **Level transition** (after all waves in a level, when the parked wave runner is enabled): all human players are **healed to max health** and **resurrected** if they had died during the level. Inactive in normal sandbox play (see [scenarios.md](../session/scenarios.md)).
+- **Heal ability** (lobby-selectable): restores full health by spending **medkits** — self on activate, or a front-cell injured human/animal on interact. See [medical.md](medical.md). Distinct from the automatic level-transition heal above.
 - **Game over** (all human players dead): see [game-over.md](../ui/game-over.md) for the pause overlay exception.
 
 ## Non-goals (for now)

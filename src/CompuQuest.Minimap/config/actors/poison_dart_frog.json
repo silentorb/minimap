@@ -1,6 +1,7 @@
 {
   "id": "poison_dart_frog",
   "displayName": "Poison dart frog",
+  "tags": ["animal"],
   "accessories": [
     "move",
     "energy_upkeep",

@@ -20,6 +20,7 @@ public class ActorDefinition
 {
     private readonly List<AccessoryDefinition> _accessories;
     private readonly List<ActorResourceAmount> _resources;
+    private readonly List<TagId> _tags;
 
     public ActorDefinition(
         string id,
@@ -28,7 +29,8 @@ public class ActorDefinition
         IconConfig? iconConfig = null,
         string? displayName = null,
         IEnumerable<ActorResourceAmount>? resources = null,
-        float? size = null)
+        float? size = null,
+        IEnumerable<TagId>? tags = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Actor definition id must be non-empty.", nameof(id));
@@ -42,6 +44,7 @@ public class ActorDefinition
         DisplayName = displayName;
         _resources = resources?.ToList() ?? new List<ActorResourceAmount>();
         Size = size;
+        _tags = tags?.ToList() ?? new List<TagId>();
     }
 
     public string Id { get; }
@@ -58,4 +61,8 @@ public class ActorDefinition
 
     /// <summary>Optional base collision radius (projectile actors).</summary>
     public float? Size { get; }
+
+    public IReadOnlyList<TagId> Tags => _tags;
+
+    public bool HasTag(TagId tag) => _tags.Contains(tag);
 }

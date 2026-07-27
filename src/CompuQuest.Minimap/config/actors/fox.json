@@ -1,6 +1,7 @@
 {
   "id": "fox",
   "displayName": "Fox",
+  "tags": ["animal"],
   "accessories": [
     "move",
     "energy_upkeep",

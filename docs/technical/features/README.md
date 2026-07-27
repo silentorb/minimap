@@ -19,6 +19,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/characters.md](gameplay/characters.md) | Historical redirect only — see [actors.md](gameplay/actors.md) / [characters-and-factions.md](gameplay/characters-and-factions.md). |
 | [gameplay/resources.md](gameplay/resources.md) | Working on **ResourceDefinition**, actor resource bags, limits, or effect use cost / acquire grant. |
 | [gameplay/hunger.md](gameplay/hunger.md) | Working on **energy** / max_energy, `energy_upkeep`, Eat enable gate, drain/vitality passives, or instant-use Eat. |
+| [gameplay/medical.md](gameplay/medical.md) | Working on **Heal** / `heal` effect, **medkits**, medical domain, or injured human/animal heal gates. |
 | [gameplay/accessories.md](gameplay/accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Farm, Geek, or actor effect cache add/remove. |
 | [gameplay/animal-companions.md](gameplay/animal-companions.md) | Working on **`spawn_nearby_ally`**, **`IWorldCharacterPassiveEffect`**, or companion character spawn helpers. |
 | [gameplay/active-abilities.md](gameplay/active-abilities.md) | Working on **AbilityLoadout**, dedicated/modal activation, or PlayerController ability intents. |
@@ -26,7 +27,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/farming.md](gameplay/farming.md) | Working on Farm / grow / harvest effects, vegetable actors, or food yields. |
 | [gameplay/cell-placement.md](gameplay/cell-placement.md) | Working on cell-anchored actors, occupancy, `ICellPlacementEffect`, or placement preview. |
 | [gameplay/tags.md](gameplay/tags.md) | Working on **TagId**, `TagRegistry`, extension `RegisterTags`, definition tag strings, or resource type tags. |
-| [gameplay/domains.md](gameplay/domains.md) | Working on **DomainDefinition**, domain JSON, domain color resolver, or domain-colored accessory icons. |
+| [gameplay/domains.md](gameplay/domains.md) | Working on **DomainDefinition**, domain JSON, domain color resolver, or domain-colored accessory icons (gardening / computing / medical). |
 | [session/players.md](session/players.md) | Working on Simulation **`Player`**, accessory points, or controller↔player association. |
 | [session/user-profiles.md](session/user-profiles.md) | Working on **player profiles** store, Profiles screen, lobby profile carousel, or death→profile counters. |
 | [session/achievements.md](session/achievements.md) | Working on **achievement** catalog, unlock persistence, Survive 5 minutes tracking, or Achievements scene. |

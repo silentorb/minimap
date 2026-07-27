@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Minimap.App.Tests;
 
+[Collection(ExtensionDeployCollection.Name)]
 public class ExtensionContentMirrorTests
 {
     [Fact]
@@ -46,7 +47,7 @@ public class ExtensionContentMirrorTests
     }
 
     [Fact]
-    public void DeployedCompuQuestContent_SelectableAccessories_AreGunFarmGeekOnly()
+    public void DeployedCompuQuestContent_SelectableAccessories_IncludeHeal()
     {
         var repoRoot = FindRepoRoot();
         var sourceConfig = Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config");
@@ -70,6 +71,7 @@ public class ExtensionContentMirrorTests
                 "swing",
                 "farm",
                 "geek",
+                "heal",
                 "fox",
                 "squid",
                 "monkey",
@@ -80,6 +82,8 @@ public class ExtensionContentMirrorTests
 
         var geek = registry.AccessoryDefinitions.Single(a => a.Id == "geek");
         Assert.Contains(geek.EffectTemplates, e => e is UseComputerEffect);
+        var heal = registry.AccessoryDefinitions.Single(a => a.Id == "heal");
+        Assert.Contains(heal.EffectTemplates, e => e is HealEffect);
     }
 
     private static string FindRepoRoot()

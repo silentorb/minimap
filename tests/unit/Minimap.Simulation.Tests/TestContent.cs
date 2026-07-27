@@ -51,6 +51,17 @@ internal static class TestContent
         visible: true,
         uiPriority: 70);
 
+    public static ResourceDefinition MedkitsResource { get; } = new(
+        "medkits",
+        Tags.GetOrCreate("medkits"),
+        displayName: "Medkits",
+        visible: true,
+        uiPriority: 85);
+
+    public static TagId HumanTag { get; } = Tags.GetOrCreate("human");
+
+    public static TagId AnimalTag { get; } = Tags.GetOrCreate("animal");
+
     public static IReadOnlyList<ResourceDefinition> Resources { get; } =
     [
         HealthResource,
@@ -59,6 +70,7 @@ internal static class TestContent
         MaxEnergyResource,
         AmmoResource,
         FoodResource,
+        MedkitsResource,
     ];
 
     public static ResourceContext ResourceContext { get; } = new(

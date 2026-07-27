@@ -1,0 +1,9 @@
+{
+  "id": "medkits",
+  "displayName": "Medkits",
+  "visible": true,
+  "uiPriority": 85,
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/sbed/medical-pack.svg"
+  }
+}

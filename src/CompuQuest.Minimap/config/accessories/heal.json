@@ -1,0 +1,28 @@
+{
+  "id": "heal",
+  "displayName": "Heal",
+  "description": "Restore yourself or an injured human/animal in front of you to full health.",
+  "pointCost": 1,
+  "tags": ["player_selectable", "medical"],
+  "activation": {
+    "kind": "modal"
+  },
+  "enabledWhen": {
+    "id": "medkits",
+    "atLeast": 1
+  },
+  "effects": [
+    {
+      "type": "modify_resource",
+      "id": "medkits",
+      "amount": 3
+    },
+    {
+      "type": "heal",
+      "cost": { "id": "medkits", "amount": 1 }
+    }
+  ],
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/healing.svg"
+  }
+}

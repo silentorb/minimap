@@ -17,7 +17,7 @@
       "arcDegrees": 180,
       "visualDurationSeconds": 0.15,
       "friendlyFire": true,
-      "cost": { "id": "energy", "amount": 1 }
+      "cost": { "id": "energy", "amount": 2 }
     }
   ],
   "icon": {

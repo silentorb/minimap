@@ -450,7 +450,9 @@ public static class DefinitionConfig
             size = sizeValue;
         }
 
-        return new ActorDefinition(id, accessories, depiction, icon, displayName, startingResources, size);
+        var actorTags = ParseTagsProperty(root, tags, sourcePath, recordKind: "Actor");
+        return new ActorDefinition(
+            id, accessories, depiction, icon, displayName, startingResources, size, actorTags);
     }
 
     private static List<ActorResourceAmount> ParseActorResourcesProperty(
@@ -610,7 +612,8 @@ public static class DefinitionConfig
     private static IReadOnlyList<TagId> ParseTagsProperty(
         JsonElement root,
         TagRegistry tags,
-        string? sourcePath)
+        string? sourcePath,
+        string recordKind = "Accessory")
     {
         if (!root.TryGetProperty("tags", out var tagsElement))
             return Array.Empty<TagId>();
@@ -621,7 +624,7 @@ public static class DefinitionConfig
         if (tagsElement.ValueKind != JsonValueKind.Array)
         {
             throw new InvalidOperationException(
-                AppendSource("Accessory tags must be a JSON array of strings.", sourcePath));
+                AppendSource($"{recordKind} tags must be a JSON array of strings.", sourcePath));
         }
 
         var result = new List<TagId>();
@@ -633,7 +636,7 @@ public static class DefinitionConfig
             {
                 throw new InvalidOperationException(
                     AppendSource(
-                        $"Accessory tags[{index}] must be a non-empty string.",
+                        $"{recordKind} tags[{index}] must be a non-empty string.",
                         sourcePath));
             }
 

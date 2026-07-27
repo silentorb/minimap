@@ -25,23 +25,42 @@ public static class EnvironmentInteraction
 
     /// <summary>
     /// Ability interaction overrides default when it can interact; otherwise default on the object.
+    /// Scans front-cell candidates (free actors, then cell placeable).
     /// </summary>
     public static IInteractionEffect? Resolve(
         GameWorld world,
         Actor actor,
         out Actor? target)
     {
-        target = GetFrontActor(world, actor);
-        if (target is null)
+        target = null;
+        var candidates = GetFrontCandidates(world, actor);
+        if (candidates.Count == 0)
             return null;
 
         var ability = AbilityLoadout.FindInteractionEffect(actor.AbilityLoadout.SelectedModal);
-        if (ability is not null && ability.CanInteract(world, actor, target))
-            return ability;
+        if (ability is not null)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (!ability.CanInteract(world, actor, candidate))
+                    continue;
+                target = candidate;
+                return ability;
+            }
+        }
 
-        var defaultInteraction = FindDefaultInteraction(target);
-        if (defaultInteraction is not null && defaultInteraction.CanInteract(world, actor, target))
+        foreach (var candidate in candidates)
+        {
+            var defaultInteraction = FindDefaultInteraction(candidate);
+            if (defaultInteraction is null ||
+                !defaultInteraction.CanInteract(world, actor, candidate))
+            {
+                continue;
+            }
+
+            target = candidate;
             return new DefaultInteractionAdapter(defaultInteraction);
+        }
 
         return null;
     }
@@ -58,12 +77,30 @@ public static class EnvironmentInteraction
         return null;
     }
 
-    private static Actor? GetFrontActor(GameWorld world, Actor actor)
+    /// <summary>
+    /// Front-hex candidates: living free actors on that cell (stable by id), then cell placeable.
+    /// </summary>
+    internal static List<Actor> GetFrontCandidates(GameWorld world, Actor actor)
     {
         var cell = CellFacing.CellInFront(actor, world.HexSize);
-        if (!world.TryGetActorAt(cell, out var target) || target is null)
-            return null;
-        return target;
+        var free = new List<Actor>();
+        foreach (var other in world.Actors)
+        {
+            if (!other.IsAlive || other.IsProjectile || other.Cell is not null || other.Id == actor.Id)
+                continue;
+            if (HexWorldLayout.WorldToAxial(other.Position, world.HexSize) != cell)
+                continue;
+            free.Add(other);
+        }
+
+        free.Sort(static (a, b) => a.Id.CompareTo(b.Id));
+
+        var candidates = new List<Actor>(free.Count + 1);
+        candidates.AddRange(free);
+        if (world.TryGetActorAt(cell, out var placeable) && placeable is not null)
+            candidates.Add(placeable);
+
+        return candidates;
     }
 
     /// <summary>Adapts <see cref="IDefaultInteractionEffect"/> to the ability interaction invoke path.</summary>

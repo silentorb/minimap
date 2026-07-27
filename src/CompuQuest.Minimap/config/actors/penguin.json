@@ -1,6 +1,7 @@
 {
   "id": "penguin",
   "displayName": "Penguin",
+  "tags": ["animal"],
   "accessories": [
     "move",
     "energy_upkeep",

@@ -114,7 +114,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
 
     public void SyncFrame(IReadOnlyList<PlayerController>? localPlayers = null)
     {
-        SyncCharacters();
+        SyncCharacters(localPlayers);
         SyncMissiles();
         SyncSwingArcs();
         SyncSpawners();
@@ -148,7 +148,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         SyncHexes();
         SyncSpawners();
         SyncCellActors(null);
-        SyncCharacters();
+        SyncCharacters(null);
         SyncMissiles();
         SyncSwingArcs();
     }
@@ -225,15 +225,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         if (_world is null || _placedLayer is null)
             return;
 
-        var highlightIds = new HashSet<int>();
-        if (localPlayers is not null)
-        {
-            foreach (var player in localPlayers)
-            {
-                if (player.InteractTargetActorId is int id)
-                    highlightIds.Add(id);
-            }
-        }
+        var highlightIds = CollectInteractHighlightIds(localPlayers);
 
         var live = new HashSet<int>();
         foreach (var actor in _world.CellActors.Values)
@@ -420,10 +412,12 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         }
     }
 
-    private void SyncCharacters()
+    private void SyncCharacters(IReadOnlyList<PlayerController>? localPlayers)
     {
         if (_world is null || _playerLayer is null || _playerScene is null)
             return;
+
+        var highlightIds = CollectInteractHighlightIds(localPlayers);
 
         var live = new HashSet<int>();
         foreach (var actor in _world.Actors)
@@ -445,6 +439,9 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             node.Position = new Vector2(p.X, p.Y);
             node.Visible = true;
             node.ZIndex = 2;
+            node.Modulate = highlightIds.Contains(actor.Id)
+                ? new Color(1.35f, 1.35f, 0.75f)
+                : Colors.White;
         }
 
         foreach (var id in _characterNodes.Keys.ToList())
@@ -454,6 +451,22 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             _characterNodes[id].QueueFree();
             _characterNodes.Remove(id);
         }
+    }
+
+    private static HashSet<int> CollectInteractHighlightIds(
+        IReadOnlyList<PlayerController>? localPlayers)
+    {
+        var highlightIds = new HashSet<int>();
+        if (localPlayers is null)
+            return highlightIds;
+
+        foreach (var player in localPlayers)
+        {
+            if (player.InteractTargetActorId is int id)
+                highlightIds.Add(id);
+        }
+
+        return highlightIds;
     }
 
     private void SyncMissiles()

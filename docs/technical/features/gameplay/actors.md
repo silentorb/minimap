@@ -4,7 +4,7 @@ Actor definition vs instance contracts. Implements [actors.md](../../../game/fea
 
 ## Requirements
 
-- **`ActorDefinition`** (Types): `Id`, ordered accessory definitions, optional `DepictionConfig` / `IconConfig` / `DisplayName`, optional **`Size`** (base projectile radius), optional starting **`Resources`** (`TagId` → amount) applied when the actor is constructed.
+- **`ActorDefinition`** (Types): `Id`, ordered accessory definitions, optional `DepictionConfig` / `IconConfig` / `DisplayName`, optional **`Tags`** / **`HasTag`**, optional **`Size`** (base projectile radius), optional starting **`Resources`** (`TagId` → amount) applied when the actor is constructed.
 - **`Actor`** (Simulation): stable **`Id`** from a shared world allocator, accessories, flat `Effects` cache, resource bag, facing, **`FactionId`** (default **0**), optional `Cell`, **`Position`**, **`MoveIntent`**, **`AbilityLoadout`**, optional `DepictionOverride`, optional **`Projectile`** flight state (`IsProjectile`), definition ref, health helpers (`Health` / `MaxHealth` / `IsDestructible` / `IsAlive`), energy helpers. `AddAccessory` / `RemoveAccessory` sync effects, enablement, and loadout; run on-acquire effects.
 - **`GameWorld`**: one **`Actors`** list for all live actors; **`CellActors`** occupancy map is a subset (every mapped actor is also in `Actors`). `TryPlaceActor` adds to both; free spawn (`AddActor`) adds to the list only; remove/death clears list and occupancy when `Cell` was set.
 - **`IMoveEffect`** on accessories gates `ApplyMovement` (speed from the effect). Actors without a move effect ignore move intent.

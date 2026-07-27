@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Minimap.App.Tests;
 
+[Collection(ExtensionDeployCollection.Name)]
 public class ExtensionLoaderTests
 {
     [Fact]
@@ -45,6 +46,9 @@ public class ExtensionLoaderTests
             Directory.Exists(contentDir),
             $"Expected extension content at {contentDir}. Build CompuQuest.Minimap first.");
 
+        var sourceConfig = Path.Combine(repoRoot, "src", "CompuQuest.Minimap", "config");
+        ExtensionContentMirror.MirrorJsonTree(sourceConfig, contentDir);
+
         var settings = new ExtensionsSettings
         {
             SearchPaths = new List<string> { "extensions" },
@@ -64,8 +68,9 @@ public class ExtensionLoaderTests
         Assert.Contains(result.Registry.ActorDefinitions, d => d.Id == "zombie");
         Assert.True(result.Registry.Tags.TryGet("player_selectable", out _));
         var selectable = result.Integrator.GetPlayerSelectableAccessories(result.Registry);
-        Assert.Equal(9, selectable.Count);
+        Assert.Equal(10, selectable.Count);
         Assert.Contains(selectable, a => a.Id == "swing");
+        Assert.Contains(selectable, a => a.Id == "heal");
         Assert.Contains(selectable, a => a.Id == "fox");
     }
 

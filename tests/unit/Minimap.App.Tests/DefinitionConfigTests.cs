@@ -46,6 +46,7 @@ public class DefinitionConfigTests
         registry.AddAccessoryEffectFactory(
             ModifyResourceOnUseEffectFactory.TypeId,
             ModifyResourceOnUseEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(HealEffectFactory.TypeId, HealEffectFactory.Create);
         return registry;
     }
 
@@ -206,6 +207,7 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "movement_energy");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "eat");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "computer_gun");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "heal");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "fox");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "squid");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "monkey");
@@ -213,6 +215,8 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "poison_dart_frog");
         Assert.Contains(registry.ActorDefinitions, c => c.Id == "fox");
         Assert.Contains(registry.ActorDefinitions, c => c.Id == "poison_dart_frog");
+        Assert.Contains(registry.ResourceDefinitions, r => r.Id == "medkits");
+        Assert.Contains(registry.DomainDefinitions, d => d.Id == "medical");
 
         var fox = registry.AccessoryDefinitions.Single(a => a.Id == "fox");
         Assert.Equal(1, fox.PointCost);
@@ -245,7 +249,7 @@ public class DefinitionConfigTests
             e => e is SwingEffect s &&
                  s.Damage == 30 &&
                  Math.Abs(s.FireIntervalSeconds - 0.8f) < 1e-5f &&
-                 s.CostAmount == 1 &&
+                 s.CostAmount == 2 &&
                  s.CostResourceTag == registry.Tags.GetOrCreate("energy"));
 
         var farm = registry.AccessoryDefinitions.Single(a => a.Id == "farm");
@@ -274,6 +278,20 @@ public class DefinitionConfigTests
             geek.EffectTemplates,
             e => e is PlaceRandomActorEffect place && place.CostResourceTag == registry.Tags.GetOrCreate("electronics"));
 
+        var heal = registry.AccessoryDefinitions.Single(a => a.Id == "heal");
+        Assert.Equal(AccessoryActivationKind.Modal, heal.Activation.Kind);
+        Assert.True(heal.HasTag(registry.Tags.GetOrCreate("medical")));
+        Assert.True(heal.HasTag(registry.Tags.GetOrCreate("player_selectable")));
+        Assert.NotNull(heal.EnabledWhen);
+        Assert.Contains(
+            heal.EffectTemplates,
+            e => e is HealEffect h &&
+                 h.CostAmount == 1 &&
+                 h.CostResourceTag == registry.Tags.GetOrCreate("medkits"));
+        Assert.Contains(
+            heal.EffectTemplates,
+            e => e is ModifyResourceEffect grant && grant.ResourceTag == registry.Tags.GetOrCreate("medkits"));
+
         var selectable = new CompuQuestIntegrator().GetPlayerSelectableAccessories(registry);
         Assert.Equal(
             new HashSet<string>(StringComparer.Ordinal)
@@ -282,6 +300,7 @@ public class DefinitionConfigTests
                 "swing",
                 "farm",
                 "geek",
+                "heal",
                 "fox",
                 "squid",
                 "monkey",
@@ -357,7 +376,7 @@ public class DefinitionConfigTests
             computer.Resources,
             r => r.Tag == registry.Tags.GetOrCreate("max_health") && r.Amount == 40);
 
-        Assert.Equal(8, registry.ResourceDefinitions.Count);
+        Assert.Equal(9, registry.ResourceDefinitions.Count);
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "food");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "seeds");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "electronics");
@@ -365,7 +384,7 @@ public class DefinitionConfigTests
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "energy");
         Assert.Contains(registry.ResourceDefinitions, r => r.Id == "max_energy");
 
-        Assert.Equal(2, registry.DomainDefinitions.Count);
+        Assert.Equal(3, registry.DomainDefinitions.Count);
         var gardening = registry.DomainDefinitions.Single(d => d.Id == "gardening");
         Assert.Equal("Gardening", gardening.DisplayName);
         Assert.True(ColorRgb.TryParseHex("#3A8F4B", out var gardeningColor));
@@ -374,6 +393,10 @@ public class DefinitionConfigTests
         Assert.Equal("Computing", computing.DisplayName);
         Assert.True(ColorRgb.TryParseHex("#B4BEC8", out var computingColor));
         Assert.Equal(computingColor, computing.Color);
+        var medical = registry.DomainDefinitions.Single(d => d.Id == "medical");
+        Assert.Equal("Medical", medical.DisplayName);
+        Assert.True(ColorRgb.TryParseHex("#C44B5A", out var medicalColor));
+        Assert.Equal(medicalColor, medical.Color);
 
         foreach (var growId in new[] { "grow_carrot", "grow_corn", "grow_melon", "grow_crazed_carrot" })
         {
@@ -390,6 +413,7 @@ public class DefinitionConfigTests
         var missile = registry.ActorDefinitions.Single(a => a.Id == "missile");
         Assert.Equal(12.285f, missile.Size!.Value, precision: 3);
         var generic = registry.ActorDefinitions.Single(c => c.Id == "generic");
+        Assert.True(generic.HasTag(registry.Tags.GetOrCreate("human")));
         Assert.Equal(
             ["move", "energy_upkeep", "movement_energy", "eat"],
             generic.Accessories.Select(a => a.Id).ToArray());
@@ -400,6 +424,7 @@ public class DefinitionConfigTests
             zombie.Accessories.Select(a => a.Id).ToArray());
 
         var foxCharacter = registry.ActorDefinitions.Single(c => c.Id == "fox");
+        Assert.True(foxCharacter.HasTag(registry.Tags.GetOrCreate("animal")));
         Assert.Equal(
             ["move", "energy_upkeep", "movement_energy", "eat", "swing"],
             foxCharacter.Accessories.Select(a => a.Id).ToArray());
