@@ -47,7 +47,7 @@ public class CharacterAccessoryTests
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetFireHeld(true);
         w.Tick(0.016f);
-        Assert.Empty(w.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class CharacterAccessoryTests
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetFireHeld(true);
         w.Tick(0.016f);
-        Assert.True(w.Missiles.Count >= 1);
+        Assert.NotEmpty(TestWorldHelpers.Projectiles(w));
         Assert.Equal(effect.FireIntervalSeconds, effect.CooldownRemaining);
     }
 

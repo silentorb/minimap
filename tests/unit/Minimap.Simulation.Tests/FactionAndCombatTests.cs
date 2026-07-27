@@ -1,3 +1,4 @@
+using Minimap.Simulation.Types;
 using Xunit;
 
 namespace Minimap.Simulation.Tests;
@@ -34,14 +35,14 @@ public class FactionAndCombatTests
         var enemy = w.AddActor(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage; // one hit kills
 
-        w.SpawnMissile(
+        TestWorldHelpers.SpawnProjectile(
+            w,
             player.Position,
             new SimVec2(CombatTuning.MissileSpeed, 0f),
             CombatTuning.MissileDamage,
             player.FactionId,
             player.Id);
 
-        // Step until missile overlaps enemy
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
@@ -56,7 +57,8 @@ public class FactionAndCombatTests
         var ally = w.AddActor(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
 
-        w.SpawnMissile(
+        TestWorldHelpers.SpawnProjectile(
+            w,
             player.Position,
             new SimVec2(CombatTuning.MissileSpeed, 0f),
             CombatTuning.MissileDamage,
@@ -81,7 +83,8 @@ public class FactionAndCombatTests
         var ally = w.AddActor(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
 
-        w.SpawnMissile(
+        TestWorldHelpers.SpawnProjectile(
+            w,
             player.Position,
             new SimVec2(CombatTuning.MissileSpeed, 0f),
             CombatTuning.MissileDamage,
@@ -104,17 +107,17 @@ public class FactionAndCombatTests
     {
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        // Closer hostile to the left — aim right must not auto-aim at them.
         w.AddActor(2, player.Position + new SimVec2(-20f, 0f));
 
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetFireHeld(true);
         w.Tick(0.016f);
-        Assert.True(w.Missiles.Count >= 1);
-        var m = w.Missiles[0];
-        Assert.True(m.Velocity.X > 0f);
-        Assert.Equal(CombatTuning.MissileDamage, m.Damage);
-        Assert.Equal(CombatTuning.MissileSpeed, m.Velocity.Length, precision: 1);
+        var m = Assert.Single(TestWorldHelpers.Projectiles(w));
+        Assert.True(m.Projectile!.Velocity.X > 0f);
+        Assert.Equal(CombatTuning.MissileDamage, m.Projectile.Damage);
+        Assert.Equal(CombatTuning.MissileSpeed, m.Projectile.Velocity.Length, precision: 1);
+        Assert.Equal(TestContent.Missile.Id, m.Definition.Id);
+        Assert.Equal(CombatTuning.MissileSize, m.Projectile.Size, precision: 3);
     }
 
     [Fact]
@@ -127,7 +130,7 @@ public class FactionAndCombatTests
         driver.SetAimInput(SimVec2.Zero);
         driver.SetFireHeld(false);
         w.Tick(0.016f);
-        Assert.Empty(w.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
     }
 
     [Fact]
@@ -139,8 +142,8 @@ public class FactionAndCombatTests
         driver.SetAimInput(SimVec2.Zero);
         driver.SetFireHeld(true);
         w.Tick(0.016f);
-        Assert.True(w.Missiles.Count >= 1);
-        Assert.True(w.Missiles[0].Velocity.Y > 0f);
+        var m = Assert.Single(TestWorldHelpers.Projectiles(w));
+        Assert.True(m.Projectile!.Velocity.Y > 0f);
     }
 
     [Fact]
@@ -157,8 +160,78 @@ public class FactionAndCombatTests
         effect.CooldownRemaining = 0f;
 
         w.Tick(0.016f);
-        Assert.True(w.Missiles.Count >= 1);
-        Assert.True(w.Missiles[0].Velocity.X > 0f);
+        var m = Assert.Single(TestWorldHelpers.Projectiles(w));
+        Assert.True(m.Projectile!.Velocity.X > 0f);
+    }
+
+    [Fact]
+    public void Projectile_despawns_at_max_distance_independent_of_speed()
+    {
+        var gen = new AllGrassGenerator();
+        var (w, _, player) = TestWorldHelpers.CreateDriven(8, 8, 1, gen);
+        player.Position = SimVec2.Zero;
+        const float range = 50f;
+
+        TestWorldHelpers.SpawnProjectile(
+            w,
+            player.Position,
+            new SimVec2(400f, 0f),
+            CombatTuning.MissileDamage,
+            player.FactionId,
+            player.Id,
+            range: range);
+        TestWorldHelpers.SpawnProjectile(
+            w,
+            player.Position,
+            new SimVec2(100f, 0f),
+            CombatTuning.MissileDamage,
+            player.FactionId,
+            player.Id,
+            range: range);
+
+        Assert.Equal(2, TestWorldHelpers.Projectiles(w).Count());
+
+        // Fast: ~0.125s to range; slow: 0.5s. After ~0.2s only the slow missile remains.
+        for (var i = 0; i < 13; i++)
+            w.Tick(0.016f);
+
+        var remaining = TestWorldHelpers.Projectiles(w).ToList();
+        Assert.Single(remaining);
+        Assert.Equal(100f, remaining[0].Projectile!.Velocity.Length, precision: 1);
+        Assert.True(remaining[0].Projectile!.DistanceTraveled < range);
+
+        for (var i = 0; i < 40; i++)
+            w.Tick(0.016f);
+
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
+    }
+
+    [Fact]
+    public void Shoot_applies_optional_missile_size_scale()
+    {
+        var gen = new AllGrassGenerator();
+        var w = GameWorld.Create(3, 3, 1, gen);
+        w.ApplyGameContent(TestContent.Content);
+
+        var gun = new AccessoryDefinition(
+            "scaled_gun",
+            [
+                new TestShootEffect(
+                    CombatTuning.FireIntervalSeconds,
+                    CombatTuning.MissileSpeed,
+                    CombatTuning.MissileDamage,
+                    missileSizeScale: 2f),
+            ],
+            activation: new AccessoryActivation(
+                AccessoryActivationKind.Dedicated,
+                AccessoryActivationBinds.PrimaryFire));
+        var def = new ActorDefinition("scaled_shooter", [gun]);
+        var shooter = w.AddActor(1, SimVec2.Zero, def);
+
+        Shoot.Tick(w, shooter, 0.016f, new SimVec2(1f, 0f), wantsFire: true);
+
+        var m = Assert.Single(TestWorldHelpers.Projectiles(w));
+        Assert.Equal(CombatTuning.MissileSize * 2f, m.Projectile!.Size, precision: 3);
     }
 
     [Fact]

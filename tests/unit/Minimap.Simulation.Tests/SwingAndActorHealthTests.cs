@@ -58,17 +58,18 @@ public class SwingAndActorHealthTests
         Assert.True(w.TryGetActorAt(cell, out var actor));
         var before = actor!.Health;
 
-        w.SpawnMissile(
+        TestWorldHelpers.SpawnProjectile(
+            w,
             center,
             SimVec2.Zero,
             CombatTuning.MissileDamage,
             ownerFactionId: 1,
-            ownerCharacterId: null);
+            ownerActorId: null);
 
         w.Tick(0.016f);
         Assert.True(w.TryGetActorAt(cell, out actor));
         Assert.Equal(before - CombatTuning.MissileDamage, actor!.Health);
-        Assert.Empty(w.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
     }
 
     [Fact]

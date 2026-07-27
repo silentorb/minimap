@@ -15,11 +15,17 @@ public class ComputerTurretTests
             "computer_gun",
             [
                 new TestGrantResourceEffect(TestContent.AmmoResource.Tag, 10),
-                new TestShootEffect(1.25f, 200f, 25, true, TestContent.AmmoResource.Tag, 1),
+                new TestShootEffect(
+                    CombatTuning.FireIntervalSeconds,
+                    CombatTuning.MissileSpeed,
+                    CombatTuning.MissileDamage,
+                    true,
+                    TestContent.AmmoResource.Tag,
+                    1),
             ],
             activation: AccessoryActivation.None);
         var computerDef = new ActorDefinition("computer", [gun]);
-        w.SetActorDefinitions([computerDef]);
+        w.SetActorDefinitions([computerDef, TestContent.Missile]);
 
         var cell = new HexAxial(0, 0);
         Assert.True(w.TryPlaceActor(cell, computerDef, factionId: 1));
@@ -35,10 +41,10 @@ public class ComputerTurretTests
         Assert.NotEqual(turret.Id, hostile.Id);
 
         w.TickActorPassives(0.016f);
-        Assert.Single(w.Missiles);
+        var missile = Assert.Single(TestWorldHelpers.Projectiles(w));
         Assert.Equal(9, turret.GetResource(TestContent.AmmoResource.Tag));
-        Assert.Equal(1, w.Missiles[0].OwnerFactionId);
-        Assert.Equal(turret.Id, w.Missiles[0].OwnerCharacterId);
+        Assert.Equal(1, missile.FactionId);
+        Assert.Equal(turret.Id, missile.Projectile!.OwnerActorId);
         Assert.True(hostile.IsAlive);
     }
 
@@ -52,15 +58,22 @@ public class ComputerTurretTests
             "computer_gun",
             [
                 new TestGrantResourceEffect(TestContent.AmmoResource.Tag, 10),
-                new TestShootEffect(1.25f, 200f, 25, true, TestContent.AmmoResource.Tag, 1),
+                new TestShootEffect(
+                    CombatTuning.FireIntervalSeconds,
+                    CombatTuning.MissileSpeed,
+                    CombatTuning.MissileDamage,
+                    true,
+                    TestContent.AmmoResource.Tag,
+                    1),
             ],
             activation: AccessoryActivation.None);
         var computerDef = new ActorDefinition("computer", [gun]);
+        w.SetActorDefinitions([computerDef, TestContent.Missile]);
 
         var cell = new HexAxial(0, 0);
         Assert.True(w.TryPlaceActor(cell, computerDef, factionId: 1));
         w.TickActorPassives(0.016f);
-        Assert.Empty(w.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
         Assert.Equal(10, w.CellActors[cell].GetResource(TestContent.AmmoResource.Tag));
     }
 
@@ -74,17 +87,24 @@ public class ComputerTurretTests
             "computer_gun",
             [
                 new TestGrantResourceEffect(TestContent.AmmoResource.Tag, 10),
-                new TestShootEffect(1.25f, 200f, 25, true, TestContent.AmmoResource.Tag, 1),
+                new TestShootEffect(
+                    CombatTuning.FireIntervalSeconds,
+                    CombatTuning.MissileSpeed,
+                    CombatTuning.MissileDamage,
+                    true,
+                    TestContent.AmmoResource.Tag,
+                    1),
             ],
             activation: AccessoryActivation.None);
         var computerDef = new ActorDefinition("computer", [gun]);
+        w.SetActorDefinitions([computerDef, TestContent.Missile]);
 
         var cell = new HexAxial(0, 0);
         Assert.True(w.TryPlaceActor(cell, computerDef, factionId: 1));
         w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(2, 0), w.HexSize), TestContent.Bare);
 
         w.TickActorPassives(0.016f);
-        Assert.Empty(w.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(w));
         Assert.Equal(10, w.CellActors[cell].GetResource(TestContent.AmmoResource.Tag));
     }
 

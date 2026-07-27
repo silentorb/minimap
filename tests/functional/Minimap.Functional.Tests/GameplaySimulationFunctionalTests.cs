@@ -92,18 +92,22 @@ public class GameplaySimulationFunctionalTests
         var enemy = w.AddActor(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage;
 
-        w.SpawnMissile(
-            player.Position,
+        var projectile = w.AddActor(player.FactionId, player.Position, TestContent.Missile);
+        projectile.Projectile = new ProjectileFlight(
             new SimVec2(CombatTuning.MissileSpeed, 0f),
             CombatTuning.MissileDamage,
-            player.FactionId,
-            player.Id);
+            friendlyFire: true,
+            player.Id,
+            CombatTuning.MissileSize,
+            CombatTuning.MissileRange,
+            player.Position);
 
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
         Assert.DoesNotContain(enemy, w.Actors);
         Assert.Contains(player, w.Actors);
+        Assert.DoesNotContain(projectile, w.Actors);
     }
 
     [Fact]

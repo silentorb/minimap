@@ -13,9 +13,11 @@
     },
     {
       "type": "shoot",
+      "projectileActorId": "missile",
       "fireIntervalSeconds": 1.25,
-      "missileSpeed": 200,
+      "missileSpeed": 400,
       "missileDamage": 25,
+      "missileRange": 800,
       "friendlyFire": true,
       "cost": { "id": "ammo", "amount": 1 }
     }

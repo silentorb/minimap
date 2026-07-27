@@ -65,6 +65,37 @@ internal static class TestWorldHelpers
                 controlled.Add(pawn.Id);
         }
 
-        return world.Actors.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
+        return world.Actors.First(c =>
+            c.FactionId == playerFactionId &&
+            !c.IsProjectile &&
+            !controlled.Contains(c.Id));
+    }
+
+    public static IEnumerable<Actor> Projectiles(GameWorld world) =>
+        world.Actors.Where(a => a.IsProjectile);
+
+    public static Actor SpawnProjectile(
+        GameWorld world,
+        SimVec2 position,
+        SimVec2 velocity,
+        int damage,
+        int ownerFactionId,
+        int? ownerActorId,
+        bool friendlyFire = true,
+        float? size = null,
+        float? range = null,
+        ActorDefinition? definition = null)
+    {
+        var def = definition ?? TestContent.Missile;
+        var actor = world.AddActor(ownerFactionId, position, def);
+        actor.Projectile = new ProjectileFlight(
+            velocity,
+            damage,
+            friendlyFire,
+            ownerActorId,
+            size ?? def.Size ?? CombatTuning.MissileSize,
+            range ?? CombatTuning.MissileRange,
+            position);
+        return actor;
     }
 }

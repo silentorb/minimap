@@ -14,7 +14,7 @@ public class ShootFireGateTests
         for (var i = 0; i < 5; i++)
             world.Tick(1f);
 
-        Assert.Empty(world.Missiles);
+        Assert.Empty(TestWorldHelpers.Projectiles(world));
         Assert.Same(pawn, driver.Pawn);
     }
 
@@ -26,6 +26,6 @@ public class ShootFireGateTests
         driver.SetFireHeld(true);
 
         world.Tick(0.016f);
-        Assert.NotEmpty(world.Missiles);
+        Assert.NotEmpty(TestWorldHelpers.Projectiles(world));
     }
 }

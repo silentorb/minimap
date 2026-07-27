@@ -71,9 +71,11 @@ No accessory-level `resource` block. Grants and costs live on effects:
     },
     {
       "type": "shoot",
+      "projectileActorId": "missile",
       "fireIntervalSeconds": 1.25,
-      "missileSpeed": 200,
+      "missileSpeed": 400,
       "missileDamage": 25,
+      "missileRange": 800,
       "friendlyFire": true,
       "cost": { "id": "ammo", "amount": 1 }
     }
@@ -96,7 +98,7 @@ No accessory-level `resource` block. Grants and costs live on effects:
 - `tags` is an array of strings resolved via the registry `TagRegistry` (create-if-not-exists).
 - Effect `type` is a discriminator resolved by a registered factory. CompuQuest ships:
   - **`modify_resource`** — on acquire: add `amount` of resource `id` (amount may be negative).
-  - **`shoot`** → `ShootEffect` (`IShootEffect` + `IWorldPassiveEffect` for cell-actor auto-fire) — fire params + optional `cost`.
+  - **`shoot`** → `ShootEffect` (`IShootEffect` + `IWorldPassiveEffect` for cell-actor auto-fire) — required `projectileActorId`, `fireIntervalSeconds`, `missileSpeed`, `missileDamage`, `missileRange` (max distance traveled); optional `friendlyFire` (default true), optional `missileSizeScale` (default **1**), optional `cost`.
   - **`swing`** → `SwingEffect` (`ISwingEffect`) — melee Swing params (damage, interval, radius, arc, visual duration, friendly fire) + optional `cost`.
   - **`place_random_actor`** → `PlaceRandomActorEffect` (`ICellPlacementEffect`) — weighted `pool` of `{ "id", "weight" }` actor definition ids + optional `cost`.
 
@@ -131,8 +133,8 @@ No accessory-level `resource` block. Grants and costs live on effects:
 }
 ```
 
-- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional. Optional **`resources`**: array of `{ "id", "amount" }` starting amounts (`amount` ≥ **0**); applied in order at actor construction (set `max_health` before `health`).
-- Mobile pawns (e.g. **`generic`**, **`zombie`**) live in the same catalog and typically include **`move`**, hunger accessories, and starting health/energy resources. Lobby-selectable abilities are still chosen in the lobby.
+- `id` required. `accessories` optional (default empty). `displayName`, `depiction`, `icon` optional. Optional **`size`** (`> 0`): base collision radius for projectile actors (see [combat.md](../../game/features/gameplay/combat.md)); omit for non-projectiles. Optional **`resources`**: array of `{ "id", "amount" }` starting amounts (`amount` ≥ **0**); applied in order at actor construction (set `max_health` before `health`).
+- Mobile pawns (e.g. **`generic`**, **`zombie`**) live in the same catalog and typically include **`move`**, hunger accessories, and starting health/energy resources. Lobby-selectable abilities are still chosen in the lobby. Shipped **`missile`** is a projectile actor with `size` and no accessories/resources.
 
 
 ### Later similar catalogs

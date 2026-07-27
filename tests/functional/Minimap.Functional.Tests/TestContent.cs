@@ -55,17 +55,25 @@ internal static class TestContent
         [new FunctionalMoveEffect()],
         activation: AccessoryActivation.None);
 
+    public static ActorDefinition Missile { get; } = new(
+        "missile",
+        displayName: "Missile",
+        size: CombatTuning.MissileSize);
+
+    public static ActorDefinition Generic { get; } = new(
+        "generic",
+        [Move],
+        resources:
+        [
+            new ActorResourceAmount(MaxHealthResource.Tag, CombatTuning.DefaultMaxHealth),
+            new ActorResourceAmount(HealthResource.Tag, CombatTuning.DefaultMaxHealth),
+            new ActorResourceAmount(MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+            new ActorResourceAmount(EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+        ]);
+
     public static GameContent Content { get; } = new(
-        new ActorDefinition(
-            "generic",
-            [Move],
-            resources:
-            [
-                new ActorResourceAmount(MaxHealthResource.Tag, CombatTuning.DefaultMaxHealth),
-                new ActorResourceAmount(HealthResource.Tag, CombatTuning.DefaultMaxHealth),
-                new ActorResourceAmount(MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
-                new ActorResourceAmount(EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
-            ]),
+        Generic,
+        actors: [Generic, Missile],
         resources: Resources);
 }
 

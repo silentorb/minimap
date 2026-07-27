@@ -54,6 +54,24 @@ internal static class EffectJson
         return (resource.Tag, amount);
     }
 
+    public static string RequireString(
+        JsonElement effectObject,
+        string field,
+        string typeId,
+        int index,
+        string? sourcePath)
+    {
+        if (!TryGetString(effectObject, field, out var value) || string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException(
+                AppendSource(
+                    $"Accessory effect '{typeId}' at index {index} must include {field}.",
+                    sourcePath));
+        }
+
+        return value;
+    }
+
     public static float RequireFloat(
         JsonElement effectObject,
         string field,

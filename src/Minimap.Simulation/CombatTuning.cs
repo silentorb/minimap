@@ -6,8 +6,12 @@ public static class CombatTuning
     public const int DefaultMaxHealth = 100;
     public const int DefaultMaxEnergy = 100;
     public const int MissileDamage = 25;
-    public const float MissileSpeed = 200f;
+    public const float MissileSpeed = 400f;
     public const float FireIntervalSeconds = 1.25f;
+    /// <summary>Max distance traveled (world units); independent of speed.</summary>
+    public const float MissileRange = 800f;
+    /// <summary>Shipped missile actor base size (3× former hard-coded MissileRadius at default hex size).</summary>
+    public const float MissileSize = HexWorldLayout.DefaultHexSize * 0.35f * 0.45f * 3f;
     public const int SwingDamage = 30;
     public const float SwingIntervalSeconds = 0.8f;
     public const float SwingArcDegrees = 180f;

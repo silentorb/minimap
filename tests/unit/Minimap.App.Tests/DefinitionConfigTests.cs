@@ -58,9 +58,11 @@ public class DefinitionConfigTests
               "effects": [
                 {
                   "type": "shoot",
+                  "projectileActorId": "missile",
                   "fireIntervalSeconds": 1.25,
                   "missileSpeed": 200,
                   "missileDamage": 25,
+                  "missileRange": 800,
                   "friendlyFire": true
                 }
               ]
@@ -71,9 +73,12 @@ public class DefinitionConfigTests
 
         Assert.Equal("gun", def.Id);
         var shoot = Assert.IsType<ShootEffect>(Assert.Single(def.EffectTemplates));
+        Assert.Equal("missile", shoot.ProjectileActorId);
         Assert.Equal(1.25f, shoot.FireIntervalSeconds);
         Assert.Equal(200f, shoot.MissileSpeed);
         Assert.Equal(25, shoot.MissileDamage);
+        Assert.Equal(800f, shoot.MissileRange);
+        Assert.Equal(1f, shoot.MissileSizeScale);
         Assert.True(shoot.FriendlyFire);
         Assert.Null(def.DepictionConfig);
         Assert.Null(def.IconConfig);
@@ -88,9 +93,11 @@ public class DefinitionConfigTests
               "effects": [
                 {
                   "type": "shoot",
+                  "projectileActorId": "missile",
                   "fireIntervalSeconds": 1.25,
                   "missileSpeed": 200,
-                  "missileDamage": 25
+                  "missileDamage": 25,
+                  "missileRange": 800
                 }
               ],
               "depiction": {
@@ -115,9 +122,11 @@ public class DefinitionConfigTests
               "effects": [
                 {
                   "type": "shoot",
+                  "projectileActorId": "missile",
                   "fireIntervalSeconds": 1.25,
                   "missileSpeed": 200,
-                  "missileDamage": 25
+                  "missileDamage": 25,
+                  "missileRange": 800
                 }
               ],
               "icon": {
@@ -217,7 +226,14 @@ public class DefinitionConfigTests
         Assert.Equal(1, gun.PointCost);
         Assert.True(gun.HasTag(registry.Tags.GetOrCreate("player_selectable")));
         Assert.Contains(gun.EffectTemplates, e => e is ModifyResourceEffect);
-        Assert.Contains(gun.EffectTemplates, e => e is ShootEffect shoot && shoot.CostAmount == 1);
+        Assert.Contains(
+            gun.EffectTemplates,
+            e => e is ShootEffect shoot &&
+                 shoot.CostAmount == 1 &&
+                 shoot.ProjectileActorId == "missile" &&
+                 shoot.MissileRange == 800f &&
+                 shoot.MissileSpeed == 400f &&
+                 shoot.MissileSizeScale == 1f);
 
         var swing = registry.AccessoryDefinitions.Single(a => a.Id == "swing");
         Assert.Equal(1, swing.PointCost);
@@ -369,7 +385,10 @@ public class DefinitionConfigTests
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
-        Assert.Equal(16, registry.ActorDefinitions.Count);
+        Assert.Equal(17, registry.ActorDefinitions.Count);
+        Assert.Contains(registry.ActorDefinitions, a => a.Id == "missile");
+        var missile = registry.ActorDefinitions.Single(a => a.Id == "missile");
+        Assert.Equal(12.285f, missile.Size!.Value, precision: 3);
         var generic = registry.ActorDefinitions.Single(c => c.Id == "generic");
         Assert.Equal(
             ["move", "energy_upkeep", "movement_energy", "eat"],
@@ -413,9 +432,11 @@ public class DefinitionConfigTests
                   "effects": [
                     {
                       "type": "shoot",
+                      "projectileActorId": "missile",
                       "fireIntervalSeconds": 1.0,
                       "missileSpeed": 100,
-                      "missileDamage": 10
+                      "missileDamage": 10,
+                      "missileRange": 800
                     }
                   ]
                 }
@@ -504,9 +525,11 @@ public class DefinitionConfigTests
                     { "type": "modify_resource", "id": "ammo", "amount": 6 },
                     {
                       "type": "shoot",
+                      "projectileActorId": "missile",
                       "fireIntervalSeconds": 1.0,
                       "missileSpeed": 100,
                       "missileDamage": 10,
+                      "missileRange": 800,
                       "cost": { "id": "ammo", "amount": 1 }
                     }
                   ]

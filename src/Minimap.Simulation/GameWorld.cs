@@ -2,12 +2,11 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Authoritative simulation: terrain, actors, controllers, missiles.</summary>
+/// <summary>Authoritative simulation: terrain, actors, controllers, projectiles.</summary>
 public sealed class GameWorld
 {
     private readonly List<Actor> _actors = new();
     private readonly List<IController> _controllers = new();
-    private readonly List<Missile> _missiles = new();
     private readonly List<SwingArc> _swingArcs = new();
     private readonly List<Spawner> _spawners = new();
     private readonly Dictionary<HexAxial, Actor> _actorsByCell = new();
@@ -21,7 +20,6 @@ public sealed class GameWorld
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _rivalFactionId = 2;
     private int _nextActorId;
-    private int _nextMissileId;
     private int _nextSwingArcId;
     private int _nextSpawnerId;
 
@@ -55,7 +53,6 @@ public sealed class GameWorld
         WorldSeed = worldSeed;
         MoveSpeed = CombatTuning.MoveSpeed;
         PlayerRadius = hexSize * 0.35f;
-        MissileRadius = PlayerRadius * 0.45f;
         _random = random ?? new Random(1);
         RebuildWallColliders();
     }
@@ -65,9 +62,7 @@ public sealed class GameWorld
     public int WorldSeed { get; }
     public float MoveSpeed { get; set; }
     public float PlayerRadius { get; set; }
-    public float MissileRadius { get; set; }
     public IReadOnlyList<Actor> Actors => _actors;
-    public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<SwingArc> SwingArcs => _swingArcs;
     public IReadOnlyList<IController> Controllers => _controllers;
     public IReadOnlyList<Spawner> Spawners => _spawners;
@@ -273,27 +268,6 @@ public sealed class GameWorld
         return arc;
     }
 
-    public Missile SpawnMissile(
-        SimVec2 position,
-        SimVec2 velocity,
-        int damage,
-        int ownerFactionId,
-        int? ownerCharacterId,
-        bool friendlyFire = true)
-    {
-        var m = new Missile(
-            _nextMissileId++,
-            position,
-            velocity,
-            MissileRadius,
-            damage,
-            ownerFactionId,
-            ownerCharacterId,
-            friendlyFire);
-        _missiles.Add(m);
-        return m;
-    }
-
     public void InitializeScenarioLevel(
         Scenario scenario,
         SpawnConfig spawn,
@@ -468,7 +442,7 @@ public sealed class GameWorld
         }
     }
 
-    /// <summary>Full simulation step: passives → controllers → movement → missiles → death prune.</summary>
+    /// <summary>Full simulation step: passives → controllers → movement → projectiles → death prune.</summary>
     public void Tick(float dt)
     {
         if (dt <= 0f)
@@ -480,7 +454,7 @@ public sealed class GameWorld
             c.Tick(this, dt);
 
         ApplyMovement(dt);
-        TickMissiles(dt);
+        TickProjectiles(dt);
         TickSwingArcs(dt);
         RemoveDeadActors();
     }
@@ -523,15 +497,20 @@ public sealed class GameWorld
 
     private void ClearRivalsAndMissiles(int rivalFactionId)
     {
-        _missiles.Clear();
         _swingArcs.Clear();
 
         for (var i = _actors.Count - 1; i >= 0; i--)
         {
-            if (_actors[i].FactionId != rivalFactionId)
+            var actor = _actors[i];
+            if (actor.IsProjectile)
+            {
+                _actors.RemoveAt(i);
+                continue;
+            }
+
+            if (actor.FactionId != rivalFactionId)
                 continue;
 
-            var actor = _actors[i];
             DetachControllersFor(actor);
             if (actor.Cell is { } cell)
                 _actorsByCell.Remove(cell);
@@ -543,7 +522,9 @@ public sealed class GameWorld
     private void RepositionAndHealHumans(SpawnConfig spawn)
     {
         var playerFaction = spawn.PlayerFactionId;
-        var humans = _actors.Where(c => c.FactionId == playerFaction && c.Cell is null).ToList();
+        var humans = _actors
+            .Where(c => c.FactionId == playerFaction && c.Cell is null && !c.IsProjectile)
+            .ToList();
         var needed = Math.Max(0, spawn.HumanPlayerCount);
 
         while (humans.Count < needed)
@@ -628,7 +609,7 @@ public sealed class GameWorld
         _actorObstacleCenters.Clear();
         foreach (var other in _actors)
         {
-            if (!other.IsAlive || other.Id == excludeActorId || other.Cell is not null)
+            if (!other.IsAlive || other.IsProjectile || other.Id == excludeActorId || other.Cell is not null)
                 continue;
             if (!other.TryGetMoveEffect(out _))
                 continue;
@@ -636,40 +617,44 @@ public sealed class GameWorld
         }
     }
 
-    private void TickMissiles(float dt)
+    private void TickProjectiles(float dt)
     {
-        for (var i = _missiles.Count - 1; i >= 0; i--)
+        for (var i = _actors.Count - 1; i >= 0; i--)
         {
-            var m = _missiles[i];
-            m.Position += m.Velocity * dt;
-
-            if (HitsWall(m))
-            {
-                _missiles.RemoveAt(i);
+            var actor = _actors[i];
+            if (actor.Projectile is not { } flight)
                 continue;
-            }
 
-            if (TryMissileHitFreeActor(m) || TryMissileHitCellActor(m))
-                _missiles.RemoveAt(i);
+            var step = flight.Velocity * dt;
+            actor.Position += step;
+            flight.DistanceTraveled += step.Length;
+
+            if (flight.DistanceTraveled >= flight.Range ||
+                HitsWall(actor.Position, flight.Size) ||
+                TryProjectileHitFreeActor(actor, flight) ||
+                TryProjectileHitCellActor(actor, flight))
+            {
+                _actors.RemoveAt(i);
+            }
         }
     }
 
-    private bool TryMissileHitFreeActor(Missile m)
+    private bool TryProjectileHitFreeActor(Actor projectile, ProjectileFlight flight)
     {
         foreach (var actor in _actors)
         {
-            if (!actor.IsAlive || actor.Cell is not null)
+            if (!actor.IsAlive || actor.IsProjectile || actor.Cell is not null)
                 continue;
-            if (m.OwnerCharacterId is int oid && oid == actor.Id)
+            if (flight.OwnerActorId is int oid && oid == actor.Id)
                 continue;
-            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, actor.FactionId))
+            if (!flight.FriendlyFire && !FactionRules.AreHostile(projectile.FactionId, actor.FactionId))
                 continue;
 
-            var delta = actor.Position - m.Position;
-            var hitR = PlayerRadius + m.Radius;
+            var delta = actor.Position - projectile.Position;
+            var hitR = PlayerRadius + flight.Size;
             if (delta.LengthSquared <= hitR * hitR)
             {
-                ApplyDamage(actor, m.Damage);
+                ApplyDamage(actor, flight.Damage);
                 return true;
             }
         }
@@ -677,23 +662,23 @@ public sealed class GameWorld
         return false;
     }
 
-    private bool TryMissileHitCellActor(Missile m)
+    private bool TryProjectileHitCellActor(Actor projectile, ProjectileFlight flight)
     {
         foreach (var (cell, actor) in _actorsByCell)
         {
             if (!actor.IsDestructible || !actor.IsAlive)
                 continue;
-            if (m.OwnerCharacterId is int oid && oid == actor.Id)
+            if (flight.OwnerActorId is int oid && oid == actor.Id)
                 continue;
-            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, actor.FactionId))
+            if (!flight.FriendlyFire && !FactionRules.AreHostile(projectile.FactionId, actor.FactionId))
                 continue;
 
             var center = HexWorldLayout.ToWorld(cell, HexSize);
-            var delta = center - m.Position;
-            var hitR = PlayerRadius + m.Radius;
+            var delta = center - projectile.Position;
+            var hitR = PlayerRadius + flight.Size;
             if (delta.LengthSquared <= hitR * hitR)
             {
-                ApplyDamage(actor, m.Damage);
+                ApplyDamage(actor, flight.Damage);
                 return true;
             }
         }
@@ -715,7 +700,7 @@ public sealed class GameWorld
     {
         foreach (var actor in _actors)
         {
-            if (!actor.IsAlive || actor.Cell is not null)
+            if (!actor.IsAlive || actor.IsProjectile || actor.Cell is not null)
                 continue;
             if (arc.OwnerCharacterId is int oid && oid == actor.Id)
                 continue;
@@ -757,11 +742,11 @@ public sealed class GameWorld
         }
     }
 
-    private bool HitsWall(Missile m)
+    private bool HitsWall(SimVec2 position, float radius)
     {
         foreach (var wall in _wallPolygons)
         {
-            if (CircleHexCollision.TryCircleConvex(m.Position, m.Radius, wall, out _, out var pen) && pen > 0f)
+            if (CircleHexCollision.TryCircleConvex(position, radius, wall, out _, out var pen) && pen > 0f)
                 return true;
         }
 

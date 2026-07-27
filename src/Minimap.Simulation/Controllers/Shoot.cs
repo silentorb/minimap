@@ -15,7 +15,7 @@ public static class Shoot
         var bestDistSq = float.MaxValue;
         foreach (var other in characters)
         {
-            if (other.Id == ownerActorId || !other.IsAlive)
+            if (other.Id == ownerActorId || !other.IsAlive || other.IsProjectile)
                 continue;
             if (!FactionRules.AreHostile(ownerFactionId, other.FactionId))
                 continue;
@@ -52,7 +52,7 @@ public static class Shoot
     /// <summary>
     /// Decrements cooldown on the actor's <see cref="IShootEffect"/>; when ready,
     /// <paramref name="wantsFire"/> is true, and a fire direction is available
-    /// (aim, else facing), spawns a missile from <paramref name="origin"/>.
+    /// (aim, else facing), spawns a projectile actor from <paramref name="origin"/>.
     /// </summary>
     public static void Tick(
         GameWorld world,
@@ -85,16 +85,26 @@ public static class Shoot
         if (fireDirection.LengthSquared < 1e-10f)
             return;
 
+        if (!world.TryGetActorDefinition(effect.ProjectileActorId, out var projectileDef) ||
+            projectileDef is null ||
+            projectileDef.Size is not float baseSize)
+        {
+            return;
+        }
+
         var dir = fireDirection.Normalized();
-        world.SpawnMissile(
-            origin,
+        var projectile = world.AddActor(shooter.FactionId, origin, projectileDef);
+        projectile.Facing = dir;
+        projectile.Projectile = new ProjectileFlight(
             dir * effect.MissileSpeed,
             effect.MissileDamage,
-            shooter.FactionId,
+            effect.FriendlyFire,
             shooter.Id,
-            effect.FriendlyFire);
-        effect.CooldownRemaining = effect.FireIntervalSeconds;
+            baseSize * effect.MissileSizeScale,
+            effect.MissileRange,
+            origin);
 
+        effect.CooldownRemaining = effect.FireIntervalSeconds;
         EffectUseCosts.TryConsume(shooter, effectInstance);
     }
 

@@ -1,0 +1,9 @@
+{
+  "id": "missile",
+  "displayName": "Missile",
+  "size": 12.285,
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/lorc/missile-swarm.svg"
+  }
+}

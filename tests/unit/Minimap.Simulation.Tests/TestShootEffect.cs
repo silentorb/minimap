@@ -11,19 +11,28 @@ internal sealed class TestShootEffect : AccessoryEffect, IShootEffect, IEffectUs
         int missileDamage,
         bool friendlyFire = true,
         TagId? costResourceTag = null,
-        int costAmount = 0)
+        int costAmount = 0,
+        string projectileActorId = "missile",
+        float missileRange = CombatTuning.MissileRange,
+        float missileSizeScale = 1f)
     {
+        ProjectileActorId = projectileActorId;
         FireIntervalSeconds = fireIntervalSeconds;
         MissileSpeed = missileSpeed;
         MissileDamage = missileDamage;
+        MissileRange = missileRange;
+        MissileSizeScale = missileSizeScale;
         FriendlyFire = friendlyFire;
         CostResourceTag = costResourceTag;
         CostAmount = costAmount;
     }
 
+    public string ProjectileActorId { get; }
     public float FireIntervalSeconds { get; }
     public float MissileSpeed { get; }
     public int MissileDamage { get; }
+    public float MissileRange { get; }
+    public float MissileSizeScale { get; }
     public bool FriendlyFire { get; }
     public float CooldownRemaining { get; set; }
     public TagId? CostResourceTag { get; }
@@ -43,7 +52,10 @@ internal sealed class TestShootEffect : AccessoryEffect, IShootEffect, IEffectUs
             MissileDamage,
             FriendlyFire,
             CostResourceTag,
-            CostAmount);
+            CostAmount,
+            ProjectileActorId,
+            MissileRange,
+            MissileSizeScale);
 }
 
 /// <summary>Test double for on-acquire resource grant.</summary>

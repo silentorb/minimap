@@ -27,10 +27,13 @@ public class ActorDefinition
         DepictionConfig? depictionConfig = null,
         IconConfig? iconConfig = null,
         string? displayName = null,
-        IEnumerable<ActorResourceAmount>? resources = null)
+        IEnumerable<ActorResourceAmount>? resources = null,
+        float? size = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Actor definition id must be non-empty.", nameof(id));
+        if (size is <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(size));
 
         Id = id;
         _accessories = accessories?.ToList() ?? new List<AccessoryDefinition>();
@@ -38,6 +41,7 @@ public class ActorDefinition
         IconConfig = iconConfig;
         DisplayName = displayName;
         _resources = resources?.ToList() ?? new List<ActorResourceAmount>();
+        Size = size;
     }
 
     public string Id { get; }
@@ -51,4 +55,7 @@ public class ActorDefinition
     public IconConfig? IconConfig { get; }
 
     public string? DisplayName { get; }
+
+    /// <summary>Optional base collision radius (projectile actors).</summary>
+    public float? Size { get; }
 }

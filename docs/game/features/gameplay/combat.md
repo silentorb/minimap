@@ -6,13 +6,16 @@ Missiles, shooting, and Swing. Related: [damage.md](damage.md), [health.md](heal
 
 ### Gun / missiles
 
-- Actors shoot **medium-speed missiles** when they have an **`IShootEffect`** on their effect cache (CompuQuest **`ShootEffect`**) and can afford that effect’s use cost (Gun / computer gun: **1 ammo**). Controllers only fire for characters that have an `IShootEffect`. Cell-anchored **computers** auto-aim and fire via a world-passive tick (no controller).
-- **Missile speed**: **200** world units per second (character move speed is 120) — from the effect.
+- Actors shoot **missiles** when they have an **`IShootEffect`** on their effect cache (CompuQuest **`ShootEffect`**) and can afford that effect’s use cost (Gun / computer gun: **1 ammo**). Controllers only fire for characters that have an `IShootEffect`. Cell-anchored **computers** auto-aim and fire via a world-passive tick (no controller).
+- Each shot spawns a free **projectile actor** of the type named by the shoot effect (`projectileActorId`; shipped **`missile`**). The gun assigns flight attributes at fire time (velocity, damage, friendly fire, range, effective size).
+- **Missile speed**: shipped Gun / computer gun **400** world units per second (character move speed is 120) — from the shoot effect.
+- **Missile range**: max **distance traveled** in world units (shipped **800**). Independent of speed — the projectile despawns when distance traveled reaches range (walls and hits still end flight early).
+- **Missile size**: **base** collision radius comes from the selected projectile actor definition (`size`; shipped missile ≈ **12.285**, three times the former hard-coded missile radius). The gun may set an optional **`missileSizeScale`** (default **1**); effective radius = base × scale.
 - **Fire direction**:
   - **Player**: aim via right stick / mouse; fire only while **primary fire** is held (RT / LMB). If aim is zero, fall back to character **facing**. Gun is a **dedicated** ability bind (`primary_fire`), not modal.
-  - **AI / computer turrets**: aim toward the **nearest living hostile** (different faction), or do not fire when none exists.
+  - **AI / computer turrets**: aim toward the **nearest living hostile** (different faction), or do not fire when none exists. Projectiles are not valid aim targets.
 - **Fire interval**: about **1.25** seconds between shots — cooldown lives on the **`IShootEffect`**, not on the controller.
-- Missiles that hit a living **destructible** actor (other than the shooter) apply damage per [damage.md](damage.md) (default Gun damage **25**). **Gun / `ShootEffect` defaults to friendly fire** for factioned targets. Missiles that hit walls are destroyed. Cell-anchored destructible actors are valid missile targets. Geek-placed computers inherit the placer’s faction and start with **10** ammo.
+- Missiles that hit a living **destructible** non-projectile actor (other than the shooter) apply damage per [damage.md](damage.md) (default Gun damage **25**). **Gun / `ShootEffect` defaults to friendly fire** for factioned targets. Missiles that hit walls or reach range are destroyed. Cell-anchored destructible actors are valid missile targets. Geek-placed computers inherit the placer’s faction and start with **10** ammo.
 
 ### Swing
 

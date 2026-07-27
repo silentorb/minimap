@@ -72,7 +72,13 @@ internal static class TestContent
         "gun",
         [
             new TestGrantResourceEffect(AmmoResource.Tag, 6),
-            new TestShootEffect(1.25f, 200f, 25, true, AmmoResource.Tag, 1),
+            new TestShootEffect(
+                CombatTuning.FireIntervalSeconds,
+                CombatTuning.MissileSpeed,
+                CombatTuning.MissileDamage,
+                true,
+                AmmoResource.Tag,
+                1),
         ],
         activation: new AccessoryActivation(
             AccessoryActivationKind.Dedicated,
@@ -107,6 +113,11 @@ internal static class TestContent
         new ActorResourceAmount(MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
         new ActorResourceAmount(EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
     ];
+
+    public static ActorDefinition Missile { get; } = new(
+        "missile",
+        displayName: "Missile",
+        size: CombatTuning.MissileSize);
 
     public static ActorDefinition Bare { get; } =
         new("bare", [Move], resources: DefaultPawnResources);
@@ -165,7 +176,7 @@ internal static class TestContent
     public static GameContent Content { get; } = new(
         Generic,
         SpawnerPool,
-        actors: [Generic, Zombie, ZombieFarmer, Bare, Fox, ZombieSpawnerActor],
+        actors: [Generic, Zombie, ZombieFarmer, Bare, Fox, ZombieSpawnerActor, Missile],
         resources: Resources);
 }
 

@@ -59,6 +59,11 @@ public class Actor
 
     public SimVec2 Facing { get; set; }
 
+    /// <summary>Non-null while this actor is an in-flight projectile.</summary>
+    public ProjectileFlight? Projectile { get; set; }
+
+    public bool IsProjectile => Projectile is not null;
+
     public ResourceContext ResourceContext => _resourceContext;
 
     public IReadOnlyDictionary<TagId, int> Resources => _resources;

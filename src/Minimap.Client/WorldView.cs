@@ -428,8 +428,8 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         var live = new HashSet<int>();
         foreach (var actor in _world.Actors)
         {
-            // Cell-anchored actors are drawn by SyncCellActors.
-            if (actor.Cell is not null)
+            // Cell-anchored actors are drawn by SyncCellActors; projectiles by SyncMissiles.
+            if (actor.Cell is not null || actor.IsProjectile)
                 continue;
 
             live.Add(actor.Id);
@@ -462,26 +462,32 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             return;
 
         var live = new HashSet<int>();
-        foreach (var missile in _world.Missiles)
+        foreach (var actor in _world.Actors)
         {
-            live.Add(missile.Id);
-            if (!_missileNodes.TryGetValue(missile.Id, out var node))
+            if (actor.Projectile is not { } flight)
+                continue;
+
+            live.Add(actor.Id);
+            var half = Math.Max(2f, flight.Size);
+            if (!_missileNodes.TryGetValue(actor.Id, out var node))
             {
                 node = new Node2D();
                 var rect = new ColorRect
                 {
                     Color = new Color(1f, 0.9f, 0.3f),
-                    OffsetLeft = -4,
-                    OffsetTop = -4,
-                    OffsetRight = 4,
-                    OffsetBottom = 4,
+                    Name = "ColorRect",
                 };
                 node.AddChild(rect);
                 _missileLayer.AddChild(node);
-                _missileNodes[missile.Id] = node;
+                _missileNodes[actor.Id] = node;
             }
 
-            node.Position = new Vector2(missile.Position.X, missile.Position.Y);
+            var colorRect = node.GetNode<ColorRect>("ColorRect");
+            colorRect.OffsetLeft = -half;
+            colorRect.OffsetTop = -half;
+            colorRect.OffsetRight = half;
+            colorRect.OffsetBottom = half;
+            node.Position = new Vector2(actor.Position.X, actor.Position.Y);
             node.ZIndex = 3;
         }
 

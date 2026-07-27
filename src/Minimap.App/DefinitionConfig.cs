@@ -434,7 +434,23 @@ public static class DefinitionConfig
         var depiction = ParseDepictionProperty(root, sourcePath);
         var icon = ParseIconProperty(root, sourcePath);
         TryGetStringProperty(root, "displayName", out var displayName);
-        return new ActorDefinition(id, accessories, depiction, icon, displayName, startingResources);
+        float? size = null;
+        if (root.TryGetProperty("size", out var sizeElement))
+        {
+            if (sizeElement.ValueKind != JsonValueKind.Number ||
+                !sizeElement.TryGetSingle(out var sizeValue) ||
+                sizeValue <= 0f)
+            {
+                throw new InvalidOperationException(
+                    AppendSource(
+                        $"Actor definition '{id}' size must be a number > 0.",
+                        sourcePath));
+            }
+
+            size = sizeValue;
+        }
+
+        return new ActorDefinition(id, accessories, depiction, icon, displayName, startingResources, size);
     }
 
     private static List<ActorResourceAmount> ParseActorResourcesProperty(

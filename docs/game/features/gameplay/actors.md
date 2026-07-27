@@ -5,8 +5,9 @@ General runtime entities in the world. Related: [accessories.md](accessories.md)
 ## Requirements
 
 - An **actor** is a runtime entity with identity, accessories/effects, resources, facing, depiction (including an optional runtime depiction override), cartesian **position**, move intent, and ability loadout.
-- An **actor definition** describes what to spawn: id, optional display name / depiction / icon, ordered accessory definitions applied at instantiation, and optional **starting resources** (e.g. health / max health / energy).
+- An **actor definition** describes what to spawn: id, optional display name / depiction / icon, ordered accessory definitions applied at instantiation, optional **starting resources** (e.g. health / max health / energy), and optional **`size`** (base collision radius for projectiles).
 - All actor definitions ship as JSON under the content extension (`src/CompuQuest.Minimap/config/actors/`). There is no separate character catalog.
+- **Projectile actors** (e.g. shipped **`missile`**) are free actors with flight state assigned when a gun fires; they have no combat accessories and are not locomotion pawns (see [combat.md](combat.md)).
 - **Locomotion** is not intrinsic: actors that should move include the passive **`move`** accessory (see [movement.md](movement.md)).
 - **Cell occupancy** is optional: cell-anchored actors also appear in the world’s actor collection and in a cell → actor map. Free actors are only in the collection. Placement snaps to cell centers.
 - Destructible actors die and are removed when health reaches 0 (quiet removal; controllers unpossess when attached).

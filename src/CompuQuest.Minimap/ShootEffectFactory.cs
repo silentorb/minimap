@@ -17,9 +17,24 @@ public static class ShootEffectFactory
     {
         ArgumentNullException.ThrowIfNull(registry);
 
-        var fireInterval = EffectJson.RequireFloat(effectObject, "fireIntervalSeconds", TypeId, index, sourcePath);
-        var missileSpeed = EffectJson.RequireFloat(effectObject, "missileSpeed", TypeId, index, sourcePath);
-        var missileDamage = EffectJson.RequireInt(effectObject, "missileDamage", TypeId, index, sourcePath);
+        var projectileActorId = EffectJson.RequireString(
+            effectObject, "projectileActorId", TypeId, index, sourcePath);
+        var fireInterval = EffectJson.RequireFloat(
+            effectObject, "fireIntervalSeconds", TypeId, index, sourcePath);
+        var missileSpeed = EffectJson.RequireFloat(
+            effectObject, "missileSpeed", TypeId, index, sourcePath);
+        var missileDamage = EffectJson.RequireInt(
+            effectObject, "missileDamage", TypeId, index, sourcePath);
+        var missileRange = EffectJson.RequireFloat(
+            effectObject, "missileRange", TypeId, index, sourcePath);
+
+        var missileSizeScale = 1f;
+        if (effectObject.TryGetProperty("missileSizeScale", out var scaleEl) &&
+            scaleEl.ValueKind == JsonValueKind.Number)
+        {
+            missileSizeScale = scaleEl.GetSingle();
+        }
+
         var friendlyFire = true;
         if (effectObject.TryGetProperty("friendlyFire", out var ff) &&
             (ff.ValueKind == JsonValueKind.True || ff.ValueKind == JsonValueKind.False))
@@ -32,9 +47,12 @@ public static class ShootEffectFactory
         try
         {
             return new ShootEffect(
+                projectileActorId,
                 fireInterval,
                 missileSpeed,
                 missileDamage,
+                missileRange,
+                missileSizeScale,
                 friendlyFire,
                 costTag,
                 costAmount);
