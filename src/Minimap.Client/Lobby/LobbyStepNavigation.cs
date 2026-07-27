@@ -13,4 +13,11 @@ public static class LobbyStepNavigation
     public static bool CanGoForward(LobbySlotMode mode) =>
         mode is LobbySlotMode.SelectingProfile
             or LobbySlotMode.SelectingAccessories;
+
+    /// <summary>
+    /// True when Back/Forward may take GUI focus (pad/keyboard). False while SelectingAccessories
+    /// so focus stays on the accessory grids; device B / Start still move steps.
+    /// </summary>
+    public static bool AllowsButtonFocus(LobbySlotMode mode) =>
+        mode is LobbySlotMode.SelectingProfile or LobbySlotMode.Ready;
 }

@@ -16,6 +16,7 @@ Title / pause menu for local play. Related: [lobby.md](lobby.md), [game-over.md]
 - Players open the popup during play with **Start** or **Escape** (see [local-input.md](../session/local-input.md) for cancel-vs-menu precedence).
 - Whichever player activates the popup has **exclusive control** over it until it closes; other players’ input is ignored for the menu.
 - The owning device navigates options with **D-pad Up/Down** (gamepad) or **Up/Down** (keyboard), activates with **A** / **Enter** / **Space**, and dismisses with **Start** / **Escape** (**Continue**).
+- On the **main menu screen**, any device navigates with **D-pad Up/Down** or **Up/Down** and activates with **A** / **Start** / **Enter** / **Space** (no exclusive owner).
 - Once a match has started, there is **no** direct navigation from the world to the main menu screen; players return via post-session → lobby, then the [primary player may leave the lobby](lobby.md) to the main menu.
 
 ## Non-goals (for now)

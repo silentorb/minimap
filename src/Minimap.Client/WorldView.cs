@@ -36,6 +36,12 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private HexAxial? _previewCell;
     private bool _previewValid;
 
+    /// <summary>
+    /// Cache depiction texture loads (including failures). Repeated <see cref="GD.Load"/> of
+    /// unimported SVG paths can stall the main thread for tens of seconds after several world boots.
+    /// </summary>
+    private static readonly Dictionary<string, Texture2D?> TextureLoadCache = new();
+
     /// <summary>Raised after terrain visuals sync (e.g. level regen).</summary>
     public event Action? TerrainChanged;
 
@@ -311,7 +317,23 @@ public partial class WorldView : Node2D, IMovementKeyTarget
 
     private static bool TryApplyTexture(Node2D node, DepictionConfig depiction)
     {
-        var texture = GD.Load<Texture2D>(depiction.ResourcePath);
+        var path = depiction.ResourcePath;
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+
+        if (!TextureLoadCache.TryGetValue(path, out var texture))
+        {
+            // Skip known-missing paths without invoking ResourceLoader (avoids slow failed loads).
+            if (!ResourceLoader.Exists(path))
+            {
+                TextureLoadCache[path] = null;
+                return false;
+            }
+
+            texture = GD.Load<Texture2D>(path);
+            TextureLoadCache[path] = texture;
+        }
+
         if (texture is null)
             return false;
 

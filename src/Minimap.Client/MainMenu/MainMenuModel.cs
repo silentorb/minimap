@@ -5,6 +5,7 @@ public enum MainMenuAction
 {
     Continue,
     New,
+    Profiles,
     EndGame,
     Quit,
 }
@@ -13,7 +14,7 @@ public enum MainMenuAction
 public static class MainMenuModel
 {
     public static IReadOnlyList<MainMenuAction> ScreenOptions { get; } =
-        new[] { MainMenuAction.New, MainMenuAction.Quit };
+        new[] { MainMenuAction.New, MainMenuAction.Profiles, MainMenuAction.Quit };
 
     public static IReadOnlyList<MainMenuAction> PopupOptions(bool activeGame) =>
         activeGame

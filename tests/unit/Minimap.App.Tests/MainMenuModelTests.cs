@@ -7,10 +7,10 @@ namespace Minimap.App.Tests;
 public class MainMenuModelTests
 {
     [Fact]
-    public void ScreenOptions_AreNewAndQuit()
+    public void ScreenOptions_AreNewProfilesAndQuit()
     {
         Assert.Equal(
-            new[] { MainMenuAction.New, MainMenuAction.Quit },
+            new[] { MainMenuAction.New, MainMenuAction.Profiles, MainMenuAction.Quit },
             MainMenuModel.ScreenOptions);
     }
 
@@ -108,5 +108,28 @@ public class MainMenuPopupControllerTests
 
         Assert.True(controller.TryHandle(owner, navigateDelta: -1, activateSelected: false, dismiss: false, out _));
         Assert.Equal(MainMenuAction.Quit, controller.SelectedAction);
+    }
+}
+
+public class MainMenuScreenControllerTests
+{
+    [Fact]
+    public void JoypadActivate_SelectsNewByDefault()
+    {
+        var controller = new MainMenuScreenController();
+        Assert.Equal(MainMenuAction.New, controller.SelectedAction);
+        Assert.True(controller.TryHandle(navigateDelta: 0, activateSelected: true, out var activated));
+        Assert.Equal(MainMenuAction.New, activated);
+    }
+
+    [Fact]
+    public void Navigate_ThenActivate_Profiles()
+    {
+        var controller = new MainMenuScreenController();
+        Assert.True(controller.TryHandle(navigateDelta: 1, activateSelected: false, out var activated));
+        Assert.Null(activated);
+        Assert.Equal(MainMenuAction.Profiles, controller.SelectedAction);
+        Assert.True(controller.TryHandle(navigateDelta: 0, activateSelected: true, out activated));
+        Assert.Equal(MainMenuAction.Profiles, activated);
     }
 }

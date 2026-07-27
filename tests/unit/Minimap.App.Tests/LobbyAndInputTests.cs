@@ -116,6 +116,14 @@ public class LobbyStepNavigationTests
     [InlineData(LobbySlotMode.Ready, false)]
     public void CanGoForward_matches_wizard_position(LobbySlotMode mode, bool expected) =>
         Assert.Equal(expected, LobbyStepNavigation.CanGoForward(mode));
+
+    [Theory]
+    [InlineData(LobbySlotMode.Available, false)]
+    [InlineData(LobbySlotMode.SelectingProfile, true)]
+    [InlineData(LobbySlotMode.SelectingAccessories, false)]
+    [InlineData(LobbySlotMode.Ready, true)]
+    public void AllowsButtonFocus_only_when_not_picking_accessories(LobbySlotMode mode, bool expected) =>
+        Assert.Equal(expected, LobbyStepNavigation.AllowsButtonFocus(mode));
 }
 
 public class LocalPlayRosterTests

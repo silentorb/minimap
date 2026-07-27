@@ -279,8 +279,13 @@ public partial class LobbyApp : Control, ILobbySnapshotSource
         if (_lobby.FindSlotForDevice(device) is int slot)
         {
             var mode = _lobby.GetMode(slot);
-            var confirm = (key is Key k && (k is Key.Enter or Key.KpEnter))
-                || button is JoyButton.Start;
+            // SelectingProfile: A / Start / Enter = Forward (confirm). Accessories: A is take/return
+            // (handled earlier); only Start / Enter ready up.
+            var confirm = mode == LobbySlotMode.SelectingProfile
+                ? (key is Key k && (k is Key.Enter or Key.KpEnter or Key.Space))
+                    || button is JoyButton.Start or JoyButton.A
+                : (key is Key enter && (enter is Key.Enter or Key.KpEnter))
+                    || button is JoyButton.Start;
             if (!confirm)
                 return false;
 

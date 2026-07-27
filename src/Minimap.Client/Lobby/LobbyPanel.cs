@@ -163,6 +163,17 @@ public partial class LobbyPanel : PanelContainer
         _backButton.Visible = canBack;
         _forwardButton.Visible = canForward;
         _forwardButton.Disabled = canForward && !canAdvance;
+
+        // Profile / Ready: focusable so a pad can D-pad to Forward/Back and activate. Do not
+        // GrabFocus automatically — that steals ui_accept from other slots' devices. Accessories
+        // keep focus_mode none so D-pad stays on the icon grids (B / Start still step).
+        var focusMode = LobbyStepNavigation.AllowsButtonFocus(mode)
+            ? FocusModeEnum.All
+            : FocusModeEnum.None;
+        _backButton.FocusMode = canBack ? focusMode : FocusModeEnum.None;
+        _forwardButton.FocusMode = canForward && !_forwardButton.Disabled
+            ? focusMode
+            : FocusModeEnum.None;
     }
 
     public void ShowProfileSelection(IReadOnlyList<PlayerProfileRecord> available, LobbyProfileSelectionState state)

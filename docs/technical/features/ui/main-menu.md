@@ -14,7 +14,8 @@ Implements [../../../game/features/ui/main-menu.md](../../../game/features/ui/ma
 - **Pause**: set `WorldApp` gameplay-paused flag (skip simulation tick); do **not** use `GetTree().Paused`.
 - **Open**: in-world **Start** or **Escape** when not already in reconnect / post-session / main-menu modal. Escape still cancels placement/ability preview first when that cancel applies; otherwise Escape opens the menu.
 - **Exclusive control**: store activating `InputDeviceId` (and owning player index); only that owner’s device may navigate/activate until dismiss. Non-owner keys/joypads/mouse are ignored while open (`MainMenuPopupController` + `_Input` before GUI).
-- **Owner navigation**: D-pad Up/Down or keyboard Up/Down move selection (wraps); **A** / Enter / Space activate the selected option; Start / Escape dismiss as **Continue**. Selection focus is mirrored with `GrabFocus` on the active button.
+- **Screen navigation**: `MainMenuScreenController` + `MainMenuApp._Input` (before GUI) — D-pad Up/Down or keyboard Up/Down move selection over New / Profiles / Quit (wraps); **A** / Start / Enter / Space activate the selected option. Selection focus is mirrored with `GrabFocus`.
+- **Owner navigation** (popup): D-pad Up/Down or keyboard Up/Down move selection (wraps); **A** / Enter / Space activate the selected option; Start / Escape dismiss as **Continue**. Selection focus is mirrored with `GrabFocus` on the active button.
 - **Continue** / owner Start-or-Escape toggle dismisses popup and clears pause.
 - World must **not** `ChangeSceneToFile` to `main_menu.tscn`; after a match starts, main menu is reached via lobby leave.
 - Scene changes via `ChangeSceneToFile` must check `Error.Ok` (push error + throw on failure).

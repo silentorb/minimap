@@ -76,7 +76,7 @@ public partial class ProfileSelectionPanel : Control
         {
             Name = "Hint",
             HorizontalAlignment = HorizontalAlignment.Center,
-            Text = "← → cycle   Enter / Start confirm",
+            Text = "← → cycle   A / Enter / Start confirm",
         };
         vbox.AddChild(_hintLabel);
     }

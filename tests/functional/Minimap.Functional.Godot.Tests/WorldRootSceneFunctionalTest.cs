@@ -82,6 +82,16 @@ public class LobbyFunctionalTest(GodotAutomationFixture fixture)
     }
 
     [Fact]
+    public async Task Lobby_joypad_a_advances_and_b_backs_step_nav()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.LobbyJoypadStepNavId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
     public async Task Reconnect_overlay_allows_drop_player()
     {
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
@@ -111,6 +121,16 @@ public class MainMenuFunctionalTest(GodotAutomationFixture fixture)
         var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
         {
             PlaybookId = GodotAutomationFixture.MainMenuNewGoesToLobbyId,
+        });
+        Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
+    }
+
+    [Fact]
+    public async Task Main_menu_joypad_a_activates_new()
+    {
+        var result = await fixture.Client.RunPlaybookAsync(new RunPlaybookRequest
+        {
+            PlaybookId = GodotAutomationFixture.MainMenuJoypadActivateGoesToLobbyId,
         });
         Assert.True(result.Ok, $"{result.Error} diagnostics={result.Diagnostics}");
     }
