@@ -13,7 +13,7 @@ public class SeededWorldGeneratorTests
             w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 }, TestContent.Generic, TestContent.ResourceContext);
             var parts = w.Grid.Cells.OrderBy(kv => kv.Key.Q).ThenBy(kv => kv.Key.R)
                 .Select(kv => $"{kv.Key.Q},{kv.Key.R}:{(byte)kv.Value}");
-            var chars = w.Characters.OrderBy(c => c.Id)
+            var chars = w.Actors.OrderBy(c => c.Id)
                 .Select(c => $"{c.Id}:{c.FactionId}:{c.Position.X:F3},{c.Position.Y:F3}");
             return string.Join(";", parts) + "|" + string.Join(";", chars);
         }

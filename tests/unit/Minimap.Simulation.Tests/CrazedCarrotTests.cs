@@ -14,10 +14,10 @@ public class CrazedCarrotTests
         var pickup = new AccessoryDefinition(
             "pickup",
             [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
-        var lootDef = new ActorDefinition("loose_carrot", [pickup]);
+        var lootDef = new ActorDefinition("carrot_picked", [pickup]);
         w.SetActorDefinitions([lootDef]);
 
-        var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var picker = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         picker.AddAccessory(new AccessoryDefinition(
             "farm",
             [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
@@ -43,10 +43,10 @@ public class CrazedCarrotTests
         var pickup = new AccessoryDefinition(
             "pickup",
             [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
-        var lootDef = new ActorDefinition("loose_carrot", [pickup]);
+        var lootDef = new ActorDefinition("carrot_picked", [pickup]);
         w.SetActorDefinitions([lootDef]);
 
-        var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var picker = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         picker.Energy = 0;
         picker.AbilityLoadout.SelectModal(-1);
 
@@ -61,12 +61,12 @@ public class CrazedCarrotTests
     public void Crazed_harvest_spawns_character_without_food()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
-        var crazedChar = new CharacterDefinition("crazed_carrot", [TestContent.Swing]);
+        var crazedChar = new ActorDefinition("crazed_carrot", [TestContent.Swing]);
         w.ApplyGameContent(new GameContent(
             TestContent.Generic,
             TestContent.SpawnerPool,
-            resources: TestContent.Resources,
-            characters: [crazedChar]));
+            actors: [crazedChar],
+            resources: TestContent.Resources));
         w.RivalFactionId = 2;
 
         var mature = new DepictionConfig(DepictionKinds.Texture, "res://carrot.svg");
@@ -75,7 +75,7 @@ public class CrazedCarrotTests
             [new TestGrowEffect(0f, mature, null, 0, "crazed_carrot", 5f)]);
         var cropDef = new ActorDefinition("crazed_crop", [growAccessory]);
 
-        var farmer = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var farmer = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         farmer.AddAccessory(new AccessoryDefinition(
             "farm",
             [new TestHarvestEffect(TestContent.EnergyResource.Tag, 1)],
@@ -84,13 +84,13 @@ public class CrazedCarrotTests
 
         var front = CellFacing.CellInFront(farmer, w.HexSize);
         Assert.True(w.TryPlaceActor(front, cropDef));
-        w.TickCellActors(0.01f);
+        w.TickActorPassives(0.01f);
 
         Assert.True(EnvironmentInteraction.TryInteract(w, farmer));
         Assert.Equal(0, farmer.GetResource(TestContent.FoodResource.Tag));
         Assert.False(w.IsCellOccupied(front));
-        Assert.Equal(2, w.Characters.Count);
-        var spawned = w.Characters.Single(c => c.Id != farmer.Id);
+        Assert.Equal(2, w.Actors.Count);
+        var spawned = w.Actors.Single(c => c.Id != farmer.Id);
         Assert.Equal(2, spawned.FactionId);
         Assert.Equal("crazed_carrot", spawned.Definition.Id);
         var ai = Assert.IsType<AiController>(
@@ -102,11 +102,11 @@ public class CrazedCarrotTests
     public void Crazed_auto_emerges_after_post_mature_delay()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
-        var crazedChar = new CharacterDefinition("crazed_carrot", [TestContent.Swing]);
+        var crazedChar = new ActorDefinition("crazed_carrot", [TestContent.Swing]);
         w.ApplyGameContent(new GameContent(
             TestContent.Generic,
-            resources: TestContent.Resources,
-            characters: [crazedChar]));
+            actors: [crazedChar],
+            resources: TestContent.Resources));
 
         var mature = new DepictionConfig(DepictionKinds.Texture, "res://carrot.svg");
         var growAccessory = new AccessoryDefinition(
@@ -116,14 +116,16 @@ public class CrazedCarrotTests
         var cell = w.Grid.AllHexes().First();
         Assert.True(w.TryPlaceActor(cell, cropDef));
 
-        w.TickCellActors(1.01f);
+        w.TickActorPassives(1.01f);
         Assert.True(w.IsCellOccupied(cell));
-        Assert.Empty(w.Characters);
+        Assert.Single(w.Actors);
+        Assert.Equal("crazed_crop", w.Actors[0].Definition.Id);
 
-        w.TickCellActors(5.01f);
+        w.TickActorPassives(5.01f);
         Assert.False(w.IsCellOccupied(cell));
-        Assert.Single(w.Characters);
-        Assert.Equal("crazed_carrot", w.Characters[0].Definition.Id);
+        Assert.Single(w.Actors);
+        Assert.Equal("crazed_carrot", w.Actors[0].Definition.Id);
+        Assert.Null(w.Actors[0].Cell);
     }
 
     [Fact]
@@ -132,9 +134,9 @@ public class CrazedCarrotTests
         var w = GameWorld.Create(5, 5, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var chaser = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.Zombie);
-        var first = w.AddCharacter(1, new SimVec2(40f, 0f), TestContent.Bare);
-        var other = w.AddCharacter(1, new SimVec2(80f, 0f), TestContent.Bare);
+        var chaser = w.AddActor(2, new SimVec2(0f, 0f), TestContent.Zombie);
+        var first = w.AddActor(1, new SimVec2(40f, 0f), TestContent.Bare);
+        var other = w.AddActor(1, new SimVec2(80f, 0f), TestContent.Bare);
 
         var ai = new AiController(
             new Random(1),
@@ -159,7 +161,7 @@ public class CrazedCarrotTests
         var pickup = new AccessoryDefinition(
             "pickup",
             [new TestPickupEffect(TestContent.FoodResource.Tag, 1, TestContent.EnergyResource.Tag, 1)]);
-        var lootDef = new ActorDefinition("loose_carrot", [pickup]);
+        var lootDef = new ActorDefinition("carrot_picked", [pickup]);
         w.ApplyGameContent(new GameContent(
             TestContent.Generic,
             resources: TestContent.Resources,
@@ -167,19 +169,26 @@ public class CrazedCarrotTests
 
         var dropAccessory = new AccessoryDefinition(
             "death_drop",
-            [new TestDeathDropEffect("loose_carrot")]);
-        var monsterDef = new CharacterDefinition("crazed", [dropAccessory, TestContent.Swing]);
-        var monster = w.AddCharacter(2, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), monsterDef);
+            [new TestDeathDropEffect("carrot_picked")]);
+        var monsterDef = new ActorDefinition(
+            "crazed",
+            [dropAccessory, TestContent.Swing],
+            resources:
+            [
+                new ActorResourceAmount(TestContent.MaxHealthResource.Tag, 100),
+                new ActorResourceAmount(TestContent.HealthResource.Tag, 100),
+            ]);
+        var monster = w.AddActor(2, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), monsterDef);
         var cell = HexWorldLayout.WorldToAxial(monster.Position, w.HexSize);
 
         monster.Health = 0;
         w.Tick(0.016f);
 
-        Assert.DoesNotContain(monster, w.Characters);
+        Assert.DoesNotContain(monster, w.Actors);
         Assert.True(w.IsCellOccupied(cell));
-        Assert.Equal("loose_carrot", w.CellActors[cell].Definition.Id);
+        Assert.Equal("carrot_picked", w.CellActors[cell].Definition.Id);
 
-        var picker = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize), TestContent.Bare);
+        var picker = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize), TestContent.Bare);
         // Face toward loot cell.
         var lootWorld = HexWorldLayout.ToWorld(cell, w.HexSize);
         picker.Position = lootWorld - new SimVec2(w.HexSize, 0f);

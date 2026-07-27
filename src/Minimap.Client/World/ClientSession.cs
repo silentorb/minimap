@@ -160,7 +160,7 @@ public sealed class ClientSession
     }
 
     private static IReadOnlyList<PlayerHudResourceModel> BuildResourceModels(
-        Character? pawn,
+        Actor? pawn,
         GameContent content)
     {
         var rows = new List<PlayerHudResourceModel>();
@@ -216,7 +216,7 @@ public sealed class ClientSession
     }
 
     private static PlayerHudAbilityModel? BuildSelectedAbilityModel(
-        Character? pawn,
+        Actor? pawn,
         IReadOnlyList<DomainDefinition> domains)
     {
         var selected = pawn?.AbilityLoadout.SelectedModal;
@@ -238,8 +238,8 @@ public sealed class ClientSession
         foreach (var player in _session.Players)
         {
             var controller = new PlayerController(player, _session.Rng);
-            if (player.Character is not null)
-                _session.World.AttachController(controller, player.Character);
+            if (player.Actor is not null)
+                _session.World.AttachController(controller, player.Actor);
             _players.Add(controller);
         }
     }
@@ -249,7 +249,7 @@ public sealed class ClientSession
         for (var i = 0; i < _players.Count && i < _session.Players.Count; i++)
         {
             var controller = _players[i];
-            var character = _session.Players[i].Character;
+            var character = _session.Players[i].Actor;
             if (character is null)
                 continue;
 

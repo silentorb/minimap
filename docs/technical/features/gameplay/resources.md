@@ -13,7 +13,7 @@ Tag-keyed actor amounts and extension-registered resource types. Implements [res
 - No dedicated float health/energy storage fields; helpers on **`Actor`** / **`Character`** read/write resource tags. Combat and death use health / max_health; hunger uses energy / max_energy. Actor definitions may list starting resources applied at construction.
 
 - **`IEffectUseCost`** on activatable effects; **`IOnAccessoryAcquired`** / `modify_resource` for grants. Helpers afford/consume against the effect cost (not accessory-level fields).
-- JSON under extension `config/resources/`; load order **resources → domains → accessories → actors → characters** (see [definition-config.md](../platform/definition-config.md)).
+- JSON under extension `config/resources/`; load order **resources → domains → accessories → actors** (see [definition-config.md](../platform/definition-config.md)).
 - HUD DTOs stay Simulation-free: Client maps visible resources (sorted by `UiPriority` descending) to icon path + amount or `amount / limitAmount`.
 
 ## Non-goals (for now)

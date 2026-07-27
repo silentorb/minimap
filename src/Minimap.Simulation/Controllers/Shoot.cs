@@ -5,13 +5,13 @@ namespace Minimap.Simulation;
 /// <summary>Shared shoot helper: cooldown on IShootEffect; fire direction from controller or auto-aim (docs/game/features/gameplay/combat.md).</summary>
 public static class Shoot
 {
-    public static Character? FindNearestHostile(
+    public static Actor? FindNearestHostile(
         int ownerFactionId,
         SimVec2 origin,
         int ownerActorId,
-        IReadOnlyList<Character> characters)
+        IReadOnlyList<Actor> characters)
     {
-        Character? best = null;
+        Actor? best = null;
         var bestDistSq = float.MaxValue;
         foreach (var other in characters)
         {
@@ -31,7 +31,7 @@ public static class Shoot
         return best;
     }
 
-    public static Character? FindNearestHostile(Character shooter, IReadOnlyList<Character> characters) =>
+    public static Actor? FindNearestHostile(Actor shooter, IReadOnlyList<Actor> characters) =>
         FindNearestHostile(shooter.FactionId, shooter.Position, shooter.Id, characters);
 
     public static AccessoryEffect? FindShootEffectInstance(Actor shooter)
@@ -98,10 +98,10 @@ public static class Shoot
         EffectUseCosts.TryConsume(shooter, effectInstance);
     }
 
-    /// <summary>Character convenience overload: fires from <see cref="Character.Position"/>.</summary>
+    /// <summary>Actor convenience overload: fires from <see cref="Actor.Position"/>.</summary>
     public static void Tick(
         GameWorld world,
-        Character shooter,
+        Actor shooter,
         float dt,
         SimVec2 aimDirection,
         bool wantsFire) =>
@@ -120,7 +120,7 @@ public static class Shoot
             return;
 
         var origin = HexWorldLayout.ToWorld(cell, world.HexSize);
-        var target = FindNearestHostile(shooter.FactionId, origin, shooter.Id, world.Characters);
+        var target = FindNearestHostile(shooter.FactionId, origin, shooter.Id, world.Actors);
         if (target is null)
         {
             Tick(world, shooter, origin, dt, SimVec2.Zero, wantsFire: false);

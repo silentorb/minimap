@@ -23,7 +23,7 @@ public sealed class Player
     /// <summary>Starting accessory point budget for this player.</summary>
     public int AccessoryPoints { get; }
 
-    public Character? Character { get; internal set; }
+    public Actor? Actor { get; internal set; }
 
     public IReadOnlyList<AccessoryDefinition> SelectedAccessories => _selectedAccessories;
 

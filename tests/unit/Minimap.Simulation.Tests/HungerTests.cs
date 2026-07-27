@@ -16,7 +16,7 @@ public class HungerTests
     [Fact]
     public void Character_starts_with_default_energy()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         Assert.Equal(CombatTuning.DefaultMaxEnergy, character.Energy);
         Assert.Equal(CombatTuning.DefaultMaxEnergy, character.MaxEnergy);
     }
@@ -24,7 +24,7 @@ public class HungerTests
     [Fact]
     public void Energy_clamps_to_max_energy()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.Energy = 999;
         Assert.Equal(character.MaxEnergy, character.Energy);
     }
@@ -34,10 +34,10 @@ public class HungerTests
     {
         var world = GameWorld.Create(2, 1);
         world.ApplyGameContent(TestContent.Content);
-        var character = world.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var character = world.AddActor(1, SimVec2.Zero, TestContent.Bare);
         character.Energy = 0;
         world.Tick(0.016f);
-        Assert.Contains(character, world.Characters);
+        Assert.Contains(character, world.Actors);
         Assert.True(character.IsAlive);
         Assert.Equal(0, character.Energy);
     }
@@ -47,14 +47,14 @@ public class HungerTests
     {
         var world = GameWorld.Create(2, 1);
         world.ApplyGameContent(TestContent.Content);
-        var pawn = world.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var pawn = world.AddActor(1, SimVec2.Zero, TestContent.Bare);
         pawn.AddAccessory(new AccessoryDefinition(
             "drain",
             [new TestDrainResourceEffect(TestContent.EnergyResource.Tag, 1f)],
             activation: AccessoryActivation.None).CreateInstance());
 
         var before = pawn.Energy;
-        world.TickCharacterPassives(1f);
+        world.TickActorPassives(1f);
         Assert.Equal(before - 1, pawn.Energy);
     }
 
@@ -76,7 +76,7 @@ public class HungerTests
     {
         var world = GameWorld.Create(2, 1);
         world.ApplyGameContent(TestContent.Content);
-        var pawn = world.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var pawn = world.AddActor(1, SimVec2.Zero, TestContent.Bare);
         pawn.Energy = 0;
         pawn.Health = 50;
         pawn.AddAccessory(new AccessoryDefinition(
@@ -84,7 +84,7 @@ public class HungerTests
             [new TestVitalityEffect(TestContent.EnergyResource.Tag, TestContent.HealthResource.Tag, 1f)],
             activation: AccessoryActivation.None).CreateInstance());
 
-        world.TickCharacterPassives(1f);
+        world.TickActorPassives(1f);
         Assert.Equal(48, pawn.Health);
     }
 
@@ -92,14 +92,15 @@ public class HungerTests
     public void Eat_disabled_without_food_and_enabled_with_food()
     {
         var eat = CreateEatAccessoryDefinition();
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(eat.CreateInstance());
+        var eatInstance = Assert.Single(character.Accessories, a => a.Definition.Id == "eat");
 
         Assert.Empty(character.AbilityLoadout.Modal);
-        Assert.False(character.Accessories[0].IsEnabled);
+        Assert.False(eatInstance.IsEnabled);
 
         character.AddResource(TestContent.FoodResource.Tag, 1);
-        Assert.True(character.Accessories[0].IsEnabled);
+        Assert.True(eatInstance.IsEnabled);
         Assert.Single(character.AbilityLoadout.Modal);
         Assert.Equal("eat", character.AbilityLoadout.Modal[0].Definition.Id);
     }
@@ -113,7 +114,7 @@ public class HungerTests
             Array.Empty<AccessoryEffect>(),
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
 
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddResource(TestContent.FoodResource.Tag, 1);
         character.AddAccessory(eat.CreateInstance());
         character.AddAccessory(farm.CreateInstance());
@@ -137,7 +138,7 @@ public class HungerTests
             activation: new AccessoryActivation(
                 AccessoryActivationKind.Dedicated,
                 AccessoryActivationBinds.PrimaryFire));
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(gun.CreateInstance());
         Assert.Equal(6, character.GetResource(TestContent.AmmoResource.Tag));
         character.TryConsumeResource(TestContent.AmmoResource.Tag, 6);
@@ -151,7 +152,7 @@ public class HungerTests
     public void Instant_use_consumes_food_and_restores_energy()
     {
         var eat = CreateEatAccessoryDefinition();
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.Energy = 50;
         character.AddResource(TestContent.FoodResource.Tag, 2);
         character.AddAccessory(eat.CreateInstance());
@@ -173,7 +174,7 @@ public class HungerTests
                 1)],
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
         // Force-enabled without food by omitting enabledWhen
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(eat.CreateInstance());
         Assert.False(AbilityLoadout.TryActivateInstantUse(character.AbilityLoadout.SelectedModal, character));
         Assert.Equal(CombatTuning.DefaultMaxEnergy, character.Energy);

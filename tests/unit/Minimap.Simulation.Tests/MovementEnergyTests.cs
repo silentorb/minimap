@@ -10,18 +10,18 @@ public class MovementEnergyTests
     {
         var world = GameWorld.Create(8, 8, 1, new AllGrassGenerator());
         world.ApplyGameContent(TestContent.Content);
-        var pawn = world.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var pawn = world.AddActor(1, SimVec2.Zero, TestContent.Bare);
         pawn.AddAccessory(new AccessoryDefinition(
             "movement_energy",
             [new TestDrainResourceByDistanceEffect(TestContent.EnergyResource.Tag, 120f)],
             activation: AccessoryActivation.None).CreateInstance());
 
         var before = pawn.Energy;
-        world.TickCharacterPassives(0.016f);
+        world.TickActorPassives(0.016f);
         Assert.Equal(before, pawn.Energy);
 
         pawn.Position = new SimVec2(120f, 0f);
-        world.TickCharacterPassives(0.016f);
+        world.TickActorPassives(0.016f);
         Assert.Equal(before - 1, pawn.Energy);
     }
 
@@ -30,16 +30,16 @@ public class MovementEnergyTests
     {
         var world = GameWorld.Create(2, 1);
         world.ApplyGameContent(TestContent.Content);
-        var pawn = world.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var pawn = world.AddActor(1, SimVec2.Zero, TestContent.Bare);
         pawn.AddAccessory(new AccessoryDefinition(
             "movement_energy",
             [new TestDrainResourceByDistanceEffect(TestContent.EnergyResource.Tag, 120f)],
             activation: AccessoryActivation.None).CreateInstance());
 
         var before = pawn.Energy;
-        world.TickCharacterPassives(0.016f);
-        world.TickCharacterPassives(1f);
-        world.TickCharacterPassives(1f);
+        world.TickActorPassives(0.016f);
+        world.TickActorPassives(1f);
+        world.TickActorPassives(1f);
         Assert.Equal(before, pawn.Energy);
     }
 
@@ -59,10 +59,7 @@ public class MovementEnergyTests
 
         public void Tick(Actor actor, float dt)
         {
-            if (actor is not Character character)
-                return;
-
-            var position = character.Position;
+            var position = actor.Position;
             if (_lastPosition is not SimVec2 previous)
             {
                 _lastPosition = position;

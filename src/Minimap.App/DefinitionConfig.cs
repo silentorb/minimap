@@ -4,11 +4,10 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.App;
 
-/// <summary>Loads accessory and character definitions from JSON under extension content directories.</summary>
+/// <summary>Loads accessory and actor definitions from JSON under extension content directories.</summary>
 public static class DefinitionConfig
 {
     public const string AccessoriesDirectoryName = "accessories";
-    public const string CharactersDirectoryName = "characters";
     public const string ActorsDirectoryName = "actors";
     public const string ResourcesDirectoryName = "resources";
     public const string DomainsDirectoryName = "domains";
@@ -122,104 +121,9 @@ public static class DefinitionConfig
         return LoadAccessoryFromJson(File.ReadAllText(path), registry, path);
     }
 
-    public static IReadOnlyList<CharacterDefinition> LoadCharactersFromDirectory(
-        string directory,
-        IExtensionRegistry registry)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
-        ArgumentNullException.ThrowIfNull(registry);
-
-        if (!Directory.Exists(directory))
-            return Array.Empty<CharacterDefinition>();
-
-        var byId = registry.AccessoryDefinitions.ToDictionary(d => d.Id, StringComparer.Ordinal);
-        var definitions = new List<CharacterDefinition>();
-        foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
-            definitions.Add(LoadCharacterFromFile(path, byId));
-
-        return definitions;
-    }
-
-    public static CharacterDefinition LoadCharacterFromJson(
-        string json,
-        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById,
-        string? sourcePath = null)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(json);
-        ArgumentNullException.ThrowIfNull(accessoriesById);
-
-        using var document = ParseDocument(json, "character", sourcePath);
-        var root = document.RootElement;
-        if (root.ValueKind != JsonValueKind.Object)
-        {
-            throw new InvalidOperationException(
-                FormatEmptyObjectError("character", sourcePath));
-        }
-
-        if (!TryGetStringProperty(root, "id", out var id) || string.IsNullOrWhiteSpace(id))
-        {
-            throw new InvalidOperationException(
-                FormatRequiredFieldError("character", "id", sourcePath));
-        }
-
-        if (!root.TryGetProperty("accessories", out var accessoriesElement) ||
-            accessoriesElement.ValueKind != JsonValueKind.Array)
-        {
-            throw new InvalidOperationException(
-                FormatRequiredFieldError("character", "accessories", sourcePath));
-        }
-
-        var accessories = new List<AccessoryDefinition>();
-        foreach (var accessoryIdElement in accessoriesElement.EnumerateArray())
-        {
-            if (accessoryIdElement.ValueKind != JsonValueKind.String)
-            {
-                throw new InvalidOperationException(
-                    AppendSource(
-                        "Character definition accessories must be non-empty ids.",
-                        sourcePath));
-            }
-
-            var accessoryId = accessoryIdElement.GetString();
-            if (string.IsNullOrWhiteSpace(accessoryId))
-            {
-                throw new InvalidOperationException(
-                    AppendSource(
-                        "Character definition accessories must be non-empty ids.",
-                        sourcePath));
-            }
-
-            if (!accessoriesById.TryGetValue(accessoryId, out var accessory))
-            {
-                throw new InvalidOperationException(
-                    AppendSource(
-                        $"Character definition '{id}' references unknown accessory '{accessoryId}'.",
-                        sourcePath));
-            }
-
-            accessories.Add(accessory);
-        }
-
-        var depiction = ParseDepictionProperty(root, sourcePath);
-        var icon = ParseIconProperty(root, sourcePath);
-        return new CharacterDefinition(id, accessories, depiction, icon);
-    }
-
-    public static CharacterDefinition LoadCharacterFromFile(
-        string path,
-        IReadOnlyDictionary<string, AccessoryDefinition> accessoriesById)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentNullException.ThrowIfNull(accessoriesById);
-        if (!File.Exists(path))
-            throw new FileNotFoundException($"Character definition file not found: {path}", path);
-
-        return LoadCharacterFromJson(File.ReadAllText(path), accessoriesById, path);
-    }
-
     /// <summary>
     /// Registers JSON definitions from <paramref name="contentDirectory"/> into
-    /// <paramref name="registry"/> (resources, accessories, actors, then characters).
+    /// <paramref name="registry"/> (resources, domains, accessories, actors).
     /// Effect <c>type</c> values must already be registered via
     /// <see cref="IExtensionRegistry.AddAccessoryEffectFactory"/>.
     /// </summary>
@@ -244,10 +148,6 @@ public static class DefinitionConfig
         var actorsDir = Path.Combine(contentDirectory, ActorsDirectoryName);
         foreach (var actor in LoadActorsFromDirectory(actorsDir, registry))
             registry.AddActorDefinition(actor);
-
-        var charactersDir = Path.Combine(contentDirectory, CharactersDirectoryName);
-        foreach (var character in LoadCharactersFromDirectory(charactersDir, registry))
-            registry.AddCharacterDefinition(character);
     }
 
     public static IReadOnlyList<DomainDefinition> LoadDomainsFromDirectory(

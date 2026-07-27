@@ -41,9 +41,9 @@ public sealed class GameSession
     public ScenarioRunner ScenarioRunner => _scenarioRunner;
     public IReadOnlyList<Player> Players => _players;
 
-    /// <summary>Characters currently bound to <see cref="Players"/> (order matches).</summary>
-    public IReadOnlyList<Character> HumanPawns =>
-        _players.Select(p => p.Character).Where(c => c is not null).Cast<Character>().ToList();
+    /// <summary>Actors currently bound to <see cref="Players"/> (order matches).</summary>
+    public IReadOnlyList<Actor> HumanPawns =>
+        _players.Select(p => p.Actor).Where(c => c is not null).Cast<Actor>().ToList();
 
     public bool IsGameOver => _isGameOver;
     public ScenarioTickResult LastScenarioTickResult { get; private set; }
@@ -126,8 +126,8 @@ public sealed class GameSession
         var presentBefore = new bool[_players.Count];
         for (var i = 0; i < _players.Count; i++)
         {
-            var character = _players[i].Character;
-            presentBefore[i] = character is not null && World.Characters.Contains(character);
+            var character = _players[i].Actor;
+            presentBefore[i] = character is not null && World.Actors.Contains(character);
         }
 
         World.Tick(dt);
@@ -136,8 +136,8 @@ public sealed class GameSession
         {
             if (!presentBefore[i])
                 continue;
-            var character = _players[i].Character;
-            if (character is { IsAlive: true } && World.Characters.Contains(character))
+            var character = _players[i].Actor;
+            if (character is { IsAlive: true } && World.Actors.Contains(character))
                 continue;
             _humanDeathsThisTick.Add(i);
             ResetConsecutiveAlive(i);
@@ -156,12 +156,12 @@ public sealed class GameSession
             return false;
 
         var player = _players[playerIndex];
-        var pawn = player.Character;
-        player.Character = null;
+        var pawn = player.Actor;
+        player.Actor = null;
         _players.RemoveAt(playerIndex);
         RemoveTrackingAt(playerIndex);
         if (pawn is not null)
-            World.ForceRemoveCharacter(pawn);
+            World.ForceRemoveActor(pawn);
         return true;
     }
 
@@ -187,8 +187,8 @@ public sealed class GameSession
     {
         for (var i = 0; i < _players.Count; i++)
         {
-            var character = _players[i].Character;
-            if (character is not { IsAlive: true } || !World.Characters.Contains(character))
+            var character = _players[i].Actor;
+            if (character is not { IsAlive: true } || !World.Actors.Contains(character))
                 continue;
 
             _consecutiveAliveSeconds[i] += dt;
@@ -236,23 +236,23 @@ public sealed class GameSession
         var hexes = SeededWorldGenerator.PickGrassSpawns(World.Grid, _players.Count, Rng);
         for (var i = 0; i < _players.Count; i++)
         {
-            var character = World.AddCharacter(
+            var character = World.AddActor(
                 spawn.PlayerFactionId,
                 HexWorldLayout.ToWorld(hexes[i], World.HexSize),
-                Content.DefaultCharacter);
+                Content.DefaultActor);
 
             foreach (var accessoryDef in _players[i].SelectedAccessories)
                 character.AddAccessory(accessoryDef.CreateInstance());
 
-            _players[i].Character = character;
+            _players[i].Actor = character;
         }
     }
 
     private void RelinkPlayerCharacters(int playerFactionId)
     {
-        var humans = World.Characters.Where(c => c.FactionId == playerFactionId).ToList();
+        var humans = World.Actors.Where(c => c.FactionId == playerFactionId).ToList();
         for (var i = 0; i < _players.Count && i < humans.Count; i++)
-            _players[i].Character = humans[i];
+            _players[i].Actor = humans[i];
     }
 
     private bool AllHumanPawnsDead()
@@ -262,7 +262,7 @@ public sealed class GameSession
 
         foreach (var player in _players)
         {
-            if (player.Character is { IsAlive: true })
+            if (player.Actor is { IsAlive: true })
                 return false;
         }
 

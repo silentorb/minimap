@@ -71,31 +71,38 @@ public static class GrowEffectFactory
             yieldTag = resource.Tag;
         }
 
-        string? emergeCharacterId = null;
+        string? emergeActorId = null;
         var emergeAfter = 0f;
-        if (EffectJson.TryGetString(effectObject, "emergeCharacterId", out var emergeId) &&
+        if (EffectJson.TryGetString(effectObject, "emergeActorId", out var emergeId) &&
             !string.IsNullOrWhiteSpace(emergeId))
         {
-            emergeCharacterId = emergeId;
-            if (effectObject.TryGetProperty("emergeAfterMatureSeconds", out _))
+            emergeActorId = emergeId;
+        }
+        else if (EffectJson.TryGetString(effectObject, "emergeCharacterId", out var legacyEmergeId) &&
+                 !string.IsNullOrWhiteSpace(legacyEmergeId))
+        {
+            emergeActorId = legacyEmergeId;
+        }
+
+        if (emergeActorId is not null &&
+            effectObject.TryGetProperty("emergeAfterMatureSeconds", out _))
+        {
+            emergeAfter = EffectJson.RequireFloat(
+                effectObject, "emergeAfterMatureSeconds", TypeId, index, sourcePath);
+            if (emergeAfter < 0f)
             {
-                emergeAfter = EffectJson.RequireFloat(
-                    effectObject, "emergeAfterMatureSeconds", TypeId, index, sourcePath);
-                if (emergeAfter < 0f)
-                {
-                    throw new InvalidOperationException(
-                        EffectJson.AppendSource(
-                            $"Accessory effect '{TypeId}' at index {index} emergeAfterMatureSeconds must be >= 0.",
-                            sourcePath));
-                }
+                throw new InvalidOperationException(
+                    EffectJson.AppendSource(
+                        $"Accessory effect '{TypeId}' at index {index} emergeAfterMatureSeconds must be >= 0.",
+                        sourcePath));
             }
         }
 
-        if (emergeCharacterId is null && yieldTag is null)
+        if (emergeActorId is null && yieldTag is null)
         {
             throw new InvalidOperationException(
                 EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} must include harvestYield and/or emergeCharacterId.",
+                    $"Accessory effect '{TypeId}' at index {index} must include harvestYield and/or emergeActorId.",
                     sourcePath));
         }
 
@@ -104,7 +111,7 @@ public static class GrowEffectFactory
             matureDepiction,
             yieldTag,
             yieldAmount,
-            emergeCharacterId,
+            emergeActorId,
             emergeAfter);
     }
 

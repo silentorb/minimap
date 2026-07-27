@@ -15,8 +15,8 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [../../game/game-design.md](../../game/game-design.md) | Reading **gameplay vision**, genre pillars, co-op scope, or world/evolution feel. **Do not edit** unless the user explicitly instructed changes to that file. |
 | [gameplay/controllers.md](gameplay/controllers.md) | Working on **IController**, possess/unpossess, PlayerController / AiController, **IMoveSteering**, or tick order. |
 | [gameplay/navigation.md](gameplay/navigation.md) | Working on **navmesh**, Godot **NavigationAgent2D** / crowd avoidance, **Minimap.Simulation.Navigation**, or AI path steering. |
-| [gameplay/actors.md](gameplay/actors.md) | Working on **Actor** / **ActorDefinition**, cell-anchored actors, or actor vs character hierarchy. |
-| [gameplay/characters.md](gameplay/characters.md) | Working on **CharacterDefinition**, `GameContent.DefaultCharacter`, or character instantiation. |
+| [gameplay/actors.md](gameplay/actors.md) | Working on **Actor** / **ActorDefinition**, `GameContent.DefaultActor`, occupancy, or move gating. |
+| [gameplay/characters.md](gameplay/characters.md) | Historical redirect only — see [actors.md](gameplay/actors.md) / [characters-and-factions.md](gameplay/characters-and-factions.md). |
 | [gameplay/resources.md](gameplay/resources.md) | Working on **ResourceDefinition**, actor resource bags, limits, or effect use cost / acquire grant. |
 | [gameplay/hunger.md](gameplay/hunger.md) | Working on **energy** / max_energy, `energy_upkeep`, Eat enable gate, drain/vitality passives, or instant-use Eat. |
 | [gameplay/accessories.md](gameplay/accessories.md) | Working on **AccessoryDefinition**, effects, Gun, Farm, Geek, or actor effect cache add/remove. |

@@ -5,12 +5,12 @@ Implements [farming.md](../../../game/features/gameplay/farming.md). Related: [a
 ## Requirements
 
 - CompuQuest accessory **`farm`**: modal; effects include `modify_resource` (seeds +3 on acquire), `place_random_actor` (weighted vegetable pool + seed cost), and `harvest` (`IInteractionEffect`).
-- Vegetable **actor** defs (`carrot` / `corn` / `melon` / `crazed_carrot`) under `config/actors/`: seedling depiction; accessory `grow_*` with `grow` effect (`durationSeconds`, `matureDepiction`, optional `harvestYield`, optional `emergeCharacterId` + `emergeAfterMatureSeconds`).
-- Farm pool weights **3 / 3 / 3 / 1** for carrot / corn / melon / crazed_carrot.
-- **`grow`** effect ticks on cell actors (`Tick(GameWorld, Actor, dt)`); on completion sets harvestable and `DepictionOverride` to mature art. Ambush crops call `TryEmerge` after `emergeAfterMatureSeconds` post-mature (or immediately on Farm harvest).
-- **`harvest`**: mature grow with no emerge id → remove actor + grant yield; mature grow with `emergeCharacterId` → `TryEmerge` (no yield). Uses `GameWorld.SpawnChaseCharacter` (aggression **0.9** `AiController`) + `RivalFactionId`.
-- Free-loot actor **`loose_carrot`**: accessory with `pickup_resource` (`IDefaultInteractionEffect` + energy use cost) → food ×1.
-- Character **`crazed_carrot`**: accessories include `swing` and `death_drop` → `loose_carrot`.
+- Vegetable **growing** actor defs (`carrot_growing` / `corn_growing` / `melon_growing` / `crazed_carrot_growing`) under `config/actors/`: seedling depiction; accessory `grow_*` with `grow` effect (`durationSeconds`, `matureDepiction`, optional `harvestYield`, optional `emergeActorId` + `emergeAfterMatureSeconds`).
+- Farm pool weights **3 / 3 / 3 / 1** for those growing defs.
+- **`grow`** effect ticks on actors (`Tick(GameWorld, Actor, dt)`); on completion sets harvestable (**ripe**) and `DepictionOverride` to mature art. Ambush plants call `TryEmerge` after `emergeAfterMatureSeconds` post-ripe (or immediately on Farm harvest).
+- **`harvest`**: ripe grow with no emerge id → remove actor + grant yield; ripe grow with `emergeActorId` → `TryEmerge` (no yield). Uses `GameWorld.SpawnChaseActor` (aggression **0.9** `AiController`) + `RivalFactionId`.
+- **Picked** actor **`carrot_picked`**: accessory with `pickup_resource` (`IDefaultInteractionEffect` + energy use cost) → food ×1.
+- Mobile actor **`crazed_carrot`**: accessories include `move`, `swing`, and `death_drop` → `carrot_picked`.
 - Resource type **`food`** registered in CompuQuest; visible on HUD. Food is spent by **Eat** (see [hunger.md](hunger.md)).
 
 ## Non-goals (for now)

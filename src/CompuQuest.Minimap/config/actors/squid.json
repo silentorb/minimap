@@ -1,0 +1,36 @@
+{
+  "id": "squid",
+  "displayName": "Squid",
+  "accessories": [
+    "move",
+    "energy_upkeep",
+    "movement_energy",
+    "eat",
+    "swing"
+  ],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/lorc/squid.svg"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/lorc/squid.svg"
+  },
+  "resources": [
+    {
+      "id": "max_health",
+      "amount": 100
+    },
+    {
+      "id": "health",
+      "amount": 100
+    },
+    {
+      "id": "max_energy",
+      "amount": 100
+    },
+    {
+      "id": "energy",
+      "amount": 100
+    }
+  ]
+}

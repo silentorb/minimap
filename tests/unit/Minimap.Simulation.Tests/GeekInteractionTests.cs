@@ -12,7 +12,7 @@ public class GeekInteractionTests
         w.ApplyGameContent(TestContent.Content);
 
         var computerDef = new ActorDefinition("computer");
-        var geek = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var geek = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         geek.AddAccessory(new AccessoryDefinition(
             "geek",
             [new TestUseComputerEffect(TestContent.EnergyResource.Tag, 1)],
@@ -37,7 +37,7 @@ public class GeekInteractionTests
         w.ApplyGameContent(TestContent.Content);
 
         var computerDef = new ActorDefinition("computer");
-        var geek = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var geek = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         geek.Energy = 0;
         geek.AddAccessory(new AccessoryDefinition(
             "geek",
@@ -58,7 +58,7 @@ public class GeekInteractionTests
         w.ApplyGameContent(TestContent.Content);
 
         var other = new ActorDefinition("crate");
-        var geek = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var geek = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
         geek.AddAccessory(new AccessoryDefinition(
             "geek",
             [new TestUseComputerEffect(TestContent.EnergyResource.Tag, 1)],
@@ -80,7 +80,7 @@ public class GeekInteractionTests
         w.ApplyGameContent(TestContent.Content);
 
         var computerDef = new ActorDefinition("computer");
-        var character = w.AddCharacter(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
+        var character = w.AddActor(1, HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize), TestContent.Bare);
 
         var front = CellFacing.CellInFront(character, w.HexSize);
         Assert.True(w.TryPlaceActor(front, computerDef));

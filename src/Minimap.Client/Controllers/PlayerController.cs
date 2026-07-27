@@ -26,7 +26,7 @@ public sealed class PlayerController : IController
 
     public Player Player { get; }
 
-    public Character? Pawn { get; private set; }
+    public Actor? Pawn { get; private set; }
 
     public bool IsPlacementPreviewing => _placementPreview;
 
@@ -37,7 +37,7 @@ public sealed class PlayerController : IController
     /// <summary>Cell-actor id currently valid for environment interact, if any.</summary>
     public int? InteractTargetActorId { get; private set; }
 
-    public void Possess(Character character) => Pawn = character;
+    public void Possess(Actor character) => Pawn = character;
 
     public void Unpossess()
     {

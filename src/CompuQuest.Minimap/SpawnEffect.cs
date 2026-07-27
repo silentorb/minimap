@@ -43,10 +43,10 @@ public sealed class SpawnEffect : AccessoryEffect, ISpawnEffect
             {
                 if (!_pool.TryPick(world.Random, out var characterId) || string.IsNullOrWhiteSpace(characterId))
                     break;
-                if (!world.TryGetCharacterDefinition(characterId, out var definition) || definition is null)
+                if (!world.TryGetActorDefinition(characterId, out var definition) || definition is null)
                     continue;
 
-                var seekCrops = AiController.CharacterSeeksCrops(definition);
+                var seekCrops = AiController.ActorSeeksCrops(definition);
                 world.TrySpawnNearbyHostile(
                     cell,
                     definition,

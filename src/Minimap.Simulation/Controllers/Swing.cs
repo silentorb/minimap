@@ -5,7 +5,7 @@ namespace Minimap.Simulation;
 /// <summary>Shared Swing helper: cooldown on ISwingEffect; attack direction from controller.</summary>
 public static class Swing
 {
-    public static AccessoryEffect? FindSwingEffectInstance(Character attacker)
+    public static AccessoryEffect? FindSwingEffectInstance(Actor attacker)
     {
         foreach (var effect in attacker.Effects)
         {
@@ -16,7 +16,7 @@ public static class Swing
         return null;
     }
 
-    public static ISwingEffect? FindSwingEffect(Character attacker) =>
+    public static ISwingEffect? FindSwingEffect(Actor attacker) =>
         FindSwingEffectInstance(attacker) as ISwingEffect;
 
     /// <summary>
@@ -26,7 +26,7 @@ public static class Swing
     /// </summary>
     public static void Tick(
         GameWorld world,
-        Character attacker,
+        Actor attacker,
         float dt,
         SimVec2 aimDirection,
         bool wantsSwing)

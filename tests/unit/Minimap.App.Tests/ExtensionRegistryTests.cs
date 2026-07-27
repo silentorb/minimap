@@ -12,7 +12,7 @@ public class ExtensionRegistryTests
 
         public GameContent CreateGameContent(IExtensionRegistry registry)
         {
-            if (registry.CharacterDefinitions.Count == 0)
+            if (registry.ActorDefinitions.Count == 0)
                 throw new InvalidOperationException("No characters.");
 
             var tags = registry.Tags;
@@ -37,7 +37,7 @@ public class ExtensionRegistryTests
                 visible: true,
                 uiPriority: 900);
             return new GameContent(
-                registry.CharacterDefinitions[0],
+                registry.ActorDefinitions[0],
                 resources: [health, maxHealth, energy, maxEnergy]);
         }
 
@@ -80,16 +80,16 @@ public class ExtensionRegistryTests
         var registry = new ExtensionRegistry();
         var gunA = new AccessoryDefinition("gun-a", Array.Empty<AccessoryEffect>());
         var gunB = new AccessoryDefinition("gun-b", Array.Empty<AccessoryEffect>());
-        var charA = new CharacterDefinition("char-a", [gunA]);
-        var charB = new CharacterDefinition("char-b", [gunB]);
+        var charA = new ActorDefinition("char-a", [gunA]);
+        var charB = new ActorDefinition("char-b", [gunB]);
 
         registry.AddAccessoryDefinition(gunA);
         registry.AddAccessoryDefinition(gunB);
-        registry.AddCharacterDefinition(charA);
-        registry.AddCharacterDefinition(charB);
+        registry.AddActorDefinition(charA);
+        registry.AddActorDefinition(charB);
 
         Assert.Equal(["gun-a", "gun-b"], registry.AccessoryDefinitions.Select(d => d.Id));
-        Assert.Equal(["char-a", "char-b"], registry.CharacterDefinitions.Select(d => d.Id));
+        Assert.Equal(["char-a", "char-b"], registry.ActorDefinitions.Select(d => d.Id));
     }
 
     [Fact]
@@ -125,13 +125,13 @@ public class ExtensionRegistryTests
     }
 
     [Fact]
-    public void AddCharacterDefinition_rejects_duplicate_id()
+    public void AddActorDefinition_rejects_duplicate_id()
     {
         var registry = new ExtensionRegistry();
-        var def = new CharacterDefinition("generic", Array.Empty<AccessoryDefinition>());
-        registry.AddCharacterDefinition(def);
+        var def = new ActorDefinition("generic", Array.Empty<AccessoryDefinition>());
+        registry.AddActorDefinition(def);
         Assert.Throws<InvalidOperationException>(() =>
-            registry.AddCharacterDefinition(new CharacterDefinition("generic", Array.Empty<AccessoryDefinition>())));
+            registry.AddActorDefinition(new ActorDefinition("generic", Array.Empty<AccessoryDefinition>())));
     }
 
     [Fact]
@@ -160,13 +160,13 @@ public class ExtensionRegistryTests
     public void CreateGameContent_uses_first_registered_character()
     {
         var registry = new ExtensionRegistry();
-        var first = new CharacterDefinition("first", Array.Empty<AccessoryDefinition>());
-        var second = new CharacterDefinition("second", Array.Empty<AccessoryDefinition>());
-        registry.AddCharacterDefinition(first);
-        registry.AddCharacterDefinition(second);
+        var first = new ActorDefinition("first", Array.Empty<AccessoryDefinition>());
+        var second = new ActorDefinition("second", Array.Empty<AccessoryDefinition>());
+        registry.AddActorDefinition(first);
+        registry.AddActorDefinition(second);
 
         var content = new TestIntegrator().CreateGameContent(registry);
-        Assert.Same(first, content.DefaultCharacter);
+        Assert.Same(first, content.DefaultActor);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ public sealed class DirectMoveSteering : IMoveSteering
 
     public void ClearGoal() => _goal = null;
 
-    public SimVec2 SampleMoveIntent(Character pawn, float dt)
+    public SimVec2 SampleMoveIntent(Actor pawn, float dt)
     {
         ArgumentNullException.ThrowIfNull(pawn);
         if (_goal is not { } goal)

@@ -6,8 +6,8 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
 
 - **Extension** — a loadable C# library that implements `IExtension` and registers contributions via typed APIs on `IExtensionRegistry`.
 - **Integrator** — the single authority for how registered contributions are turned into playthrough **`GameContent`**, plus content policy queries such as player-selectable accessories. **One active integrator per new game** (avoids conflicting multi-plugin integration).
-- Typed registration only (e.g. `AddIntegrator`, `AddCharacterDefinition`, `RegisterTags`). There is **no** universal element type or normalized enumeration of “all registrable things.”
-- **`GameContent`** (in Simulation.Types) is ordinary content for the rest of the app (`DefaultCharacter`, `WorldSpawnerPool`). Building it is an integration concern; consuming it is not.
+- Typed registration only (e.g. `AddIntegrator`, `AddActorDefinition`, `RegisterTags`). There is **no** universal element type or normalized enumeration of “all registrable things.”
+- **`GameContent`** (in Simulation.Types) is ordinary content for the rest of the app (`DefaultActor`, `WorldSpawnerPool`). Building it is an integration concern; consuming it is not.
 
 ## Requirements
 
@@ -17,7 +17,7 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
   - resource definitions
   - domain definitions
   - accessory definitions
-  - character definitions
+  - actor definitions
   - placed-object definitions
   - tags (`TagRegistry` + `RegisterTags`)
 - **`IIntegrator`**:
@@ -41,7 +41,7 @@ Minimap loads **extension** assemblies so game content can ship as libraries on 
 - There is **no** built-in default integrator; CompuQuest registers id **`compuquest`**.
 - `LobbyApp` (Client) loads extensions via `WorldHostHooks.RequireExtensions` on ready so a bad extension set fails before the player starts a game; also loads core accessory points for the selection budget.
 - Sample content extension: **`CompuQuest.Minimap`** under `src/CompuQuest.Minimap`, built as a loadable DLL (**not** linked into the Godot host assembly). Depends on **Extensive** and **Simulation**. The host project (`minimap.csproj`) has a **build-only** `ProjectReference` (`ReferenceOutputAssembly=false`) so Godot Play / `dotnet build` builds it and copies output to repo-root `extensions/`. Registers integrator id **`compuquest`**, accessory effect factories (`shoot`, `place_random_actor`, `modify_resource`, `grow`, `harvest`, `use_computer`), tag **`player_selectable`**, and ships accessory/character/actor/resource/domain JSON under `src/CompuQuest.Minimap/config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy so retired JSON cannot linger; see [definition-config.md](definition-config.md) and `extensions/README.md`); `ExtensionLoader` registers each extension’s content directory after that DLL’s `Register` and before `CreateGameContent`. CompuQuest presentation art lives under host **`assets/compuquest/`** (see [depiction.md](../gameplay/depiction.md), [ui-icons.md](../ui/ui-icons.md)).
-- `CompuQuestIntegrator` sets `DefaultCharacter` to **`generic`**, builds a world spawner pool of **zombie spawners**, passes registered **resource** definitions into `GameContent` (including health / max_health tags), and filters selectable accessories by `player_selectable`.
+- `CompuQuestIntegrator` sets `DefaultActor` to **`generic`**, builds a world spawner pool of **zombie spawners**, passes registered **resource** definitions into `GameContent` (including health / max_health tags), and filters selectable accessories by `player_selectable`.
 - Lobby boot binds panels **before** extension load (`LobbySceneBoot`). A failed load **aborts** the lobby (no input / no further play) and quits; it must not leave a corrupted interactive scene.
 - World boot (`WorldApp` / `WorldSceneBoot`) likewise fail-fast loads extensions (and core/scenario settings) via host hooks. On any exception during ready, abort (no tick / no reconnect), `GD.PushError`, and quit the process—same boundary pattern as lobby.
 

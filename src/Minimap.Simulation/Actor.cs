@@ -14,6 +14,8 @@ public class Actor
         int id,
         ActorDefinition definition,
         ResourceContext resourceContext,
+        int factionId = 0,
+        SimVec2 position = default,
         bool applyDefinitionAccessories = true)
     {
         if (id < 0)
@@ -25,7 +27,9 @@ public class Actor
         Definition = definition;
         _resourceContext = resourceContext;
         Facing = new SimVec2(1f, 0f);
-        FactionId = 0;
+        FactionId = factionId;
+        Position = position;
+        AbilityLoadout = new AbilityLoadout();
 
         ApplyDefinitionStartingResources();
         if (applyDefinitionAccessories)
@@ -39,10 +43,16 @@ public class Actor
     /// <summary>Faction for hostility / ownership (default 0 for unowned placeables).</summary>
     public int FactionId { get; set; }
 
-    /// <summary>Cell occupancy when this actor is cell-anchored; null for free-moving characters.</summary>
+    /// <summary>Cell occupancy when this actor is cell-anchored; null when free.</summary>
     public HexAxial? Cell { get; set; }
 
-    /// <summary>Runtime depiction override (e.g. seedling → mature). Null uses definition depiction.</summary>
+    public SimVec2 Position { get; set; }
+
+    public SimVec2 MoveIntent { get; set; }
+
+    public AbilityLoadout AbilityLoadout { get; }
+
+    /// <summary>Runtime depiction override (e.g. growing → ripe). Null uses definition depiction.</summary>
     public DepictionConfig? DepictionOverride { get; set; }
 
     public DepictionConfig? EffectiveDepiction => DepictionOverride ?? Definition.DepictionConfig;
@@ -64,6 +74,14 @@ public class Actor
     }
 
     public int MaxHealth => GetResource(ResourceContext.MaxHealthTag);
+
+    public int Energy
+    {
+        get => GetResource(ResourceContext.EnergyTag);
+        set => SetResource(ResourceContext.EnergyTag, value);
+    }
+
+    public int MaxEnergy => GetResource(ResourceContext.MaxEnergyTag);
 
     /// <summary>True when the actor has positive max health and can take combat damage.</summary>
     public bool IsDestructible => MaxHealth > 0;
@@ -155,6 +173,22 @@ public class Actor
         return true;
     }
 
+    /// <summary>First move effect on this actor, if any.</summary>
+    public bool TryGetMoveEffect(out IMoveEffect? move)
+    {
+        foreach (var effect in _effects)
+        {
+            if (effect is IMoveEffect found)
+            {
+                move = found;
+                return true;
+            }
+        }
+
+        move = null;
+        return false;
+    }
+
     protected void ApplyDefinitionStartingResources()
     {
         foreach (var entry in Definition.Resources)
@@ -169,9 +203,13 @@ public class Actor
 
     protected virtual void OnAccessoriesChanged()
     {
+        AccessoryEnablement.Sync(this);
+        AbilityLoadout.Rebuild(Accessories);
     }
 
     protected virtual void OnResourcesChanged()
     {
+        if (AccessoryEnablement.Sync(this))
+            AbilityLoadout.Rebuild(Accessories);
     }
 }

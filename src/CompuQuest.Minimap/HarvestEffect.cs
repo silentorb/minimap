@@ -48,7 +48,7 @@ public sealed class HarvestEffect : AccessoryEffect, IInteractionEffect, IEffect
         if (target.Cell is not { } cell)
             return false;
 
-        if (!string.IsNullOrWhiteSpace(grow.EmergeCharacterId))
+        if (!string.IsNullOrWhiteSpace(grow.EmergeActorId))
         {
             if (!grow.TryEmerge(world, target))
                 return false;

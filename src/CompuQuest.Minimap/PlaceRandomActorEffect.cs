@@ -29,7 +29,7 @@ public sealed class PlaceRandomActorEffect : AccessoryEffect, ICellPlacementEffe
     public TagId? CostResourceTag { get; }
     public int CostAmount { get; }
 
-    public bool CanPlace(GameWorld world, Character placer, HexAxial cell)
+    public bool CanPlace(GameWorld world, Actor placer, HexAxial cell)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(placer);
@@ -46,7 +46,7 @@ public sealed class PlaceRandomActorEffect : AccessoryEffect, ICellPlacementEffe
         return true;
     }
 
-    public bool TryPlace(GameWorld world, Character placer, HexAxial cell, Random random)
+    public bool TryPlace(GameWorld world, Actor placer, HexAxial cell, Random random)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(placer);

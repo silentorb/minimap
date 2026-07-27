@@ -15,6 +15,7 @@ public sealed class CompuQuestExtension : IExtension
         ]);
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddAccessoryEffectFactory(SwingEffectFactory.TypeId, SwingEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(MoveEffectFactory.TypeId, MoveEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PlaceRandomActorEffectFactory.TypeId,
             PlaceRandomActorEffectFactory.Create);

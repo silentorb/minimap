@@ -3,7 +3,10 @@
   "displayName": "Farm",
   "description": "Plant vegetables and harvest mature crops for food.",
   "pointCost": 1,
-  "tags": ["player_selectable", "gardening"],
+  "tags": [
+    "player_selectable",
+    "gardening"
+  ],
   "activation": {
     "kind": "modal"
   },
@@ -16,16 +19,34 @@
     {
       "type": "place_random_actor",
       "pool": [
-        { "id": "carrot", "weight": 3 },
-        { "id": "corn", "weight": 3 },
-        { "id": "melon", "weight": 3 },
-        { "id": "crazed_carrot", "weight": 1 }
+        {
+          "id": "carrot_growing",
+          "weight": 3
+        },
+        {
+          "id": "corn_growing",
+          "weight": 3
+        },
+        {
+          "id": "melon_growing",
+          "weight": 3
+        },
+        {
+          "id": "crazed_carrot_growing",
+          "weight": 1
+        }
       ],
-      "cost": { "id": "seeds", "amount": 1 }
+      "cost": {
+        "id": "seeds",
+        "amount": 1
+      }
     },
     {
       "type": "harvest",
-      "cost": { "id": "energy", "amount": 1 }
+      "cost": {
+        "id": "energy",
+        "amount": 1
+      }
     }
   ],
   "icon": {

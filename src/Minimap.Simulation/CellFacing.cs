@@ -27,7 +27,7 @@ public static class CellFacing
         return best;
     }
 
-    public static HexAxial CellInFront(Character character, float hexSize)
+    public static HexAxial CellInFront(Actor character, float hexSize)
     {
         ArgumentNullException.ThrowIfNull(character);
         var cell = HexWorldLayout.WorldToAxial(character.Position, hexSize);

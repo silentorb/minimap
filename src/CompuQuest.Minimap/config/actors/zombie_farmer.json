@@ -1,0 +1,37 @@
+{
+  "id": "zombie_farmer",
+  "accessories": [
+    "move",
+    "energy_upkeep",
+    "movement_energy",
+    "eat",
+    "swing",
+    "farm"
+  ],
+  "depiction": {
+    "kind": "sprite_frames",
+    "path": "res://assets/compuquest/kenney-1bit/depict/generic.tres",
+    "animation": "default"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/farmer.svg"
+  },
+  "resources": [
+    {
+      "id": "max_health",
+      "amount": 100
+    },
+    {
+      "id": "health",
+      "amount": 100
+    },
+    {
+      "id": "max_energy",
+      "amount": 100
+    },
+    {
+      "id": "energy",
+      "amount": 100
+    }
+  ]
+}

@@ -95,14 +95,30 @@ internal static class TestContent
             AccessoryActivationKind.Dedicated,
             AccessoryActivationBinds.SecondaryFire));
 
-    public static CharacterDefinition Bare { get; } =
-        new("bare", Array.Empty<AccessoryDefinition>());
+    public static AccessoryDefinition Move { get; } = new(
+        "move",
+        [new TestMoveEffect()],
+        activation: AccessoryActivation.None);
 
-    public static CharacterDefinition Generic { get; } = new("generic", [Gun]);
+    private static IEnumerable<ActorResourceAmount> DefaultPawnResources { get; } =
+    [
+        new ActorResourceAmount(MaxHealthResource.Tag, CombatTuning.DefaultMaxHealth),
+        new ActorResourceAmount(HealthResource.Tag, CombatTuning.DefaultMaxHealth),
+        new ActorResourceAmount(MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+        new ActorResourceAmount(EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+    ];
 
-    public static CharacterDefinition Zombie { get; } = new("zombie", [Swing]);
+    public static ActorDefinition Bare { get; } =
+        new("bare", [Move], resources: DefaultPawnResources);
 
-    public static CharacterDefinition Fox { get; } = new("fox", [Swing]);
+    public static ActorDefinition Generic { get; } = new(
+        "generic", [Move, Gun], resources: DefaultPawnResources);
+
+    public static ActorDefinition Zombie { get; } = new(
+        "zombie", [Move, Swing], resources: DefaultPawnResources);
+
+    public static ActorDefinition Fox { get; } = new(
+        "fox", [Move, Swing], resources: DefaultPawnResources);
 
     public static AccessoryDefinition Farm { get; } = new(
         AiTuning.FarmAccessoryId,
@@ -119,9 +135,10 @@ internal static class TestContent
         activation: new AccessoryActivation(AccessoryActivationKind.Modal),
         enabledWhen: new AccessoryResourceGate(FoodResource.Tag, 1));
 
-    public static CharacterDefinition ZombieFarmer { get; } = new(
+    public static ActorDefinition ZombieFarmer { get; } = new(
         "zombie_farmer",
-        [Swing, Farm, Eat]);
+        [Move, Swing, Farm, Eat],
+        resources: DefaultPawnResources);
 
     public static ActorDefinition ZombieSpawnerActor { get; } = new(
         AiTuning.ZombieSpawnerActorId,
@@ -135,9 +152,9 @@ internal static class TestContent
 
     public static SpawnerDefinition ZombieSpawner { get; } = new(
         "zombie_spawner",
-        new WeightedPool<CharacterDefinition>(
+        new WeightedPool<ActorDefinition>(
         [
-            new WeightedEntry<CharacterDefinition>(Zombie, 1),
+            new WeightedEntry<ActorDefinition>(Zombie, 1),
         ]));
 
     public static WeightedPool<SpawnerDefinition> SpawnerPool { get; } = new(
@@ -148,7 +165,16 @@ internal static class TestContent
     public static GameContent Content { get; } = new(
         Generic,
         SpawnerPool,
-        actors: [ZombieSpawnerActor],
-        resources: Resources,
-        characters: [Generic, Zombie, ZombieFarmer, Bare]);
+        actors: [Generic, Zombie, ZombieFarmer, Bare, Fox, ZombieSpawnerActor],
+        resources: Resources);
+}
+
+/// <summary>Test double for locomotion (<see cref="IMoveEffect"/>).</summary>
+internal sealed class TestMoveEffect : AccessoryEffect, IMoveEffect
+{
+    public TestMoveEffect(float speed = CombatTuning.MoveSpeed) => Speed = speed;
+
+    public float Speed { get; }
+
+    public override AccessoryEffect Clone() => new TestMoveEffect(Speed);
 }

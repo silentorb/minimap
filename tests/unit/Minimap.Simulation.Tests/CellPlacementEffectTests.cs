@@ -16,7 +16,7 @@ internal sealed class TestPlaceEffect : AccessoryEffect, ICellPlacementEffect
 
     public int PlaceAttempts { get; private set; }
 
-    public bool CanPlace(GameWorld world, Character placer, HexAxial cell)
+    public bool CanPlace(GameWorld world, Actor placer, HexAxial cell)
     {
         if (!world.Grid.Contains(cell))
             return false;
@@ -27,7 +27,7 @@ internal sealed class TestPlaceEffect : AccessoryEffect, ICellPlacementEffect
         return true;
     }
 
-    public bool TryPlace(GameWorld world, Character placer, HexAxial cell, Random random)
+    public bool TryPlace(GameWorld world, Actor placer, HexAxial cell, Random random)
     {
         PlaceAttempts++;
         if (!CanPlace(world, placer, cell))
@@ -45,11 +45,11 @@ public class CellPlacementEffectTests
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(TestContent.Bare);
-        var veg = new ActorDefinition("carrot");
+        w.SetSpawnActorDefinition(TestContent.Bare);
+        var veg = new ActorDefinition("carrot_growing");
         w.SetActorDefinitions([veg]);
         var effect = new TestPlaceEffect(veg);
-        var placer = w.AddCharacter(1, SimVec2.Zero, TestContent.Bare);
+        var placer = w.AddActor(1, SimVec2.Zero, TestContent.Bare);
         var grass = w.Grid.AllHexes().First(h => w.Grid.Get(h) == CellType.Grass);
 
         Assert.True(effect.TryPlace(w, placer, grass, new Random(1)));

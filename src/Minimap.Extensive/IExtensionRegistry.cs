@@ -23,12 +23,6 @@ public interface IExtensionRegistry
 
     bool TryGetAccessoryDefinition(string id, out AccessoryDefinition? definition);
 
-    void AddCharacterDefinition(CharacterDefinition definition);
-
-    IReadOnlyList<CharacterDefinition> CharacterDefinitions { get; }
-
-    bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition);
-
     void AddActorDefinition(ActorDefinition definition);
 
     IReadOnlyList<ActorDefinition> ActorDefinitions { get; }

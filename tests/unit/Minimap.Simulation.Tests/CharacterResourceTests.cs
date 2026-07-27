@@ -8,7 +8,7 @@ public class CharacterResourceTests
     [Fact]
     public void AddAccessory_grants_starting_resource_amount()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         Assert.Equal(0, character.GetResource(TestContent.AmmoResource.Tag));
 
         character.AddAccessory(TestContent.Gun.CreateInstance());
@@ -18,7 +18,7 @@ public class CharacterResourceTests
     [Fact]
     public void TryConsumeResource_fails_when_stock_insufficient()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.SetResource(TestContent.AmmoResource.Tag, 1);
 
         Assert.True(character.TryConsumeResource(TestContent.AmmoResource.Tag, 1));
@@ -29,7 +29,7 @@ public class CharacterResourceTests
     [Fact]
     public void Health_clamps_to_max_health_resource()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.SetResource(TestContent.MaxHealthResource.Tag, 50);
         character.Health = 80;
         Assert.Equal(50, character.Health);

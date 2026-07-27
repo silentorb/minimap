@@ -80,10 +80,19 @@ public class HungerEffectTests
         var context = new ResourceContext(
             [health, maxHealth, energy, maxEnergy],
             health.Tag, maxHealth.Tag, energy.Tag, maxEnergy.Tag);
-        var character = new Character(
-            0, 1, SimVec2.Zero,
-            new CharacterDefinition("bare", Array.Empty<AccessoryDefinition>()),
-            context);
+        var character = new Actor(
+            0,
+            new ActorDefinition(
+                "bare",
+                Array.Empty<AccessoryDefinition>(),
+                resources:
+                [
+                    new ActorResourceAmount(maxEnergy.Tag, CombatTuning.DefaultMaxEnergy),
+                    new ActorResourceAmount(energy.Tag, CombatTuning.DefaultMaxEnergy),
+                ]),
+            context,
+            1,
+            SimVec2.Zero);
         var effect = new DrainResourceEffect(energy.Tag, 1f);
         effect.Tick(character, 1f);
         Assert.Equal(CombatTuning.DefaultMaxEnergy - 1, character.Energy);
@@ -106,10 +115,19 @@ public class HungerEffectTests
         var context = new ResourceContext(
             [health, maxHealth, energy, maxEnergy],
             health.Tag, maxHealth.Tag, energy.Tag, maxEnergy.Tag);
-        var character = new Character(
-            0, 1, SimVec2.Zero,
-            new CharacterDefinition("bare", Array.Empty<AccessoryDefinition>()),
-            context);
+        var character = new Actor(
+            0,
+            new ActorDefinition(
+                "bare",
+                Array.Empty<AccessoryDefinition>(),
+                resources:
+                [
+                    new ActorResourceAmount(maxEnergy.Tag, CombatTuning.DefaultMaxEnergy),
+                    new ActorResourceAmount(energy.Tag, CombatTuning.DefaultMaxEnergy),
+                ]),
+            context,
+            1,
+            SimVec2.Zero);
         var effect = new DrainResourceByDistanceEffect(energy.Tag, 120f);
         effect.Tick(character, 0.016f);
         Assert.Equal(CombatTuning.DefaultMaxEnergy, character.Energy);

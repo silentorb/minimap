@@ -1,7 +1,9 @@
 {
-  "id": "loose_carrot",
+  "id": "carrot_picked",
   "displayName": "Carrot",
-  "accessories": ["pickup_loose_carrot"],
+  "accessories": [
+    "pickup_carrot_picked"
+  ],
   "depiction": {
     "kind": "texture",
     "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"

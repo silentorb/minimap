@@ -10,37 +10,32 @@ public class AnimalCompanionTests
     {
         var w = GameWorld.Create(4, 4, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetCharacterDefinitions(
-        [
-            .. TestContent.Content.Characters,
-            TestContent.Fox,
-        ]);
 
         var foxAbility = new AccessoryDefinition(
             "fox",
             [new TestSpawnNearbyAllyEffect("fox")],
             activation: new AccessoryActivation(AccessoryActivationKind.None));
 
-        var owner = w.AddCharacter(
+        var owner = w.AddActor(
             1,
             HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize),
             TestContent.Bare);
         owner.AddAccessory(foxAbility.CreateInstance());
 
-        Assert.Single(w.Characters);
+        Assert.Single(w.Actors);
 
-        w.TickCharacterPassives(0.016f);
-        Assert.Equal(2, w.Characters.Count);
+        w.TickActorPassives(0.016f);
+        Assert.Equal(2, w.Actors.Count);
 
-        var ally = Assert.Single(w.Characters, c => c.Id != owner.Id);
+        var ally = Assert.Single(w.Actors, c => c.Id != owner.Id);
         Assert.Equal(owner.FactionId, ally.FactionId);
         Assert.Equal("fox", ally.Definition.Id);
         Assert.Contains(
             w.Controllers,
             c => c.Pawn?.Id == ally.Id && c is AiController { Aggression: AiTuning.DefaultAggression });
 
-        w.TickCharacterPassives(0.016f);
-        Assert.Equal(2, w.Characters.Count);
+        w.TickActorPassives(0.016f);
+        Assert.Equal(2, w.Actors.Count);
     }
 
     [Fact]
@@ -50,7 +45,7 @@ public class AnimalCompanionTests
             "fox",
             [new TestSpawnNearbyAllyEffect("fox")],
             activation: new AccessoryActivation(AccessoryActivationKind.None));
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(foxAbility.CreateInstance());
 
         Assert.Empty(character.AbilityLoadout.Modal);
@@ -66,26 +61,21 @@ public class AnimalCompanionTests
     {
         var w = GameWorld.Create(4, 4, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetCharacterDefinitions(
-        [
-            .. TestContent.Content.Characters,
-            TestContent.Fox,
-        ]);
 
         var foxAbility = new AccessoryDefinition(
             "fox",
             [new TestSpawnNearbyAllyEffect("fox")],
             activation: new AccessoryActivation(AccessoryActivationKind.None));
 
-        var owner = w.AddCharacter(
+        var owner = w.AddActor(
             1,
             HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize),
             TestContent.Bare);
         owner.AddAccessory(foxAbility.CreateInstance());
-        w.TickCharacterPassives(0.016f);
+        w.TickActorPassives(0.016f);
 
-        var ally = Assert.Single(w.Characters, c => c.Id != owner.Id);
-        var rival = w.AddCharacter(
+        var ally = Assert.Single(w.Actors, c => c.Id != owner.Id);
+        var rival = w.AddActor(
             2,
             HexWorldLayout.ToWorld(new HexAxial(2, 0), w.HexSize),
             TestContent.Bare);

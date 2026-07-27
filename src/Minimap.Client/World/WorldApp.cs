@@ -531,7 +531,7 @@ public partial class WorldApp : Node, IGameAutomationTarget
 
         foreach (var player in _session.Players)
         {
-            if (player.Character is { IsAlive: true } character)
+            if (player.Actor is { IsAlive: true } character)
                 _session.World.ApplyDamage(character, character.Health);
         }
 

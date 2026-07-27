@@ -12,6 +12,7 @@ public class DefinitionConfigTests
         var registry = new ExtensionRegistry();
         registry.AddAccessoryEffectFactory(ShootEffectFactory.TypeId, ShootEffectFactory.Create);
         registry.AddAccessoryEffectFactory(SwingEffectFactory.TypeId, SwingEffectFactory.Create);
+        registry.AddAccessoryEffectFactory(MoveEffectFactory.TypeId, MoveEffectFactory.Create);
         registry.AddAccessoryEffectFactory(
             PlaceRandomActorEffectFactory.TypeId,
             PlaceRandomActorEffectFactory.Create);
@@ -201,8 +202,8 @@ public class DefinitionConfigTests
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "monkey");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "penguin");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "poison_dart_frog");
-        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "fox");
-        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "poison_dart_frog");
+        Assert.Contains(registry.ActorDefinitions, c => c.Id == "fox");
+        Assert.Contains(registry.ActorDefinitions, c => c.Id == "poison_dart_frog");
 
         var fox = registry.AccessoryDefinitions.Single(a => a.Id == "fox");
         Assert.Equal(1, fox.PointCost);
@@ -210,7 +211,7 @@ public class DefinitionConfigTests
         Assert.True(fox.HasTag(registry.Tags.GetOrCreate("player_selectable")));
         Assert.Contains(
             fox.EffectTemplates,
-            e => e is SpawnNearbyAllyEffect ally && ally.CharacterId == "fox");
+            e => e is SpawnNearbyAllyEffect ally && ally.ActorId == "fox");
 
         var gun = registry.AccessoryDefinitions.Single(a => a.Id == "gun");
         Assert.Equal(1, gun.PointCost);
@@ -301,18 +302,18 @@ public class DefinitionConfigTests
                  m.Amount == 10);
         Assert.Contains(computerGun.EffectTemplates, e => e is ShootEffect);
 
-        Assert.Equal(7, registry.ActorDefinitions.Count);
-        Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot");
-        Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn");
-        Assert.Contains(registry.ActorDefinitions, p => p.Id == "melon");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot_growing");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "corn_growing");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "melon_growing");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "crazed_carrot_growing");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "crazed_carrot");
-        Assert.Contains(registry.ActorDefinitions, p => p.Id == "loose_carrot");
+        Assert.Contains(registry.ActorDefinitions, p => p.Id == "carrot_picked");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "computer");
         Assert.Contains(registry.ActorDefinitions, p => p.Id == "zombie_spawner");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "grow_crazed_carrot");
+        Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "move");
         Assert.Contains(registry.AccessoryDefinitions, a => a.Id == "spawn_zombies");
-        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "crazed_carrot");
-        Assert.Contains(registry.CharacterDefinitions, c => c.Id == "zombie_farmer");
+        Assert.Contains(registry.ActorDefinitions, c => c.Id == "zombie_farmer");
 
         var spawner = registry.ActorDefinitions.Single(a => a.Id == "zombie_spawner");
         Assert.Equal("spawn_zombies", Assert.Single(spawner.Accessories).Id);
@@ -322,7 +323,7 @@ public class DefinitionConfigTests
             spawnZombies.EffectTemplates,
             e => e is SpawnEffect s && s.Volume == 2 && Math.Abs(s.IntervalSeconds - 15f) < 1e-5f);
 
-        var carrot = registry.ActorDefinitions.Single(a => a.Id == "carrot");
+        var carrot = registry.ActorDefinitions.Single(a => a.Id == "carrot_growing");
         Assert.Equal("grow_carrot", Assert.Single(carrot.Accessories).Id);
         Assert.Equal(
             "res://assets/compuquest/game-icons/delapouite/seedling.svg",
@@ -368,30 +369,30 @@ public class DefinitionConfigTests
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("gardening")));
         Assert.False(gunNeutral.HasTag(registry.Tags.GetOrCreate("computing")));
 
-        Assert.Equal(9, registry.CharacterDefinitions.Count);
-        var generic = registry.CharacterDefinitions.Single(c => c.Id == "generic");
+        Assert.Equal(16, registry.ActorDefinitions.Count);
+        var generic = registry.ActorDefinitions.Single(c => c.Id == "generic");
         Assert.Equal(
-            ["energy_upkeep", "movement_energy", "eat"],
+            ["move", "energy_upkeep", "movement_energy", "eat"],
             generic.Accessories.Select(a => a.Id).ToArray());
 
-        var zombie = registry.CharacterDefinitions.Single(c => c.Id == "zombie");
+        var zombie = registry.ActorDefinitions.Single(c => c.Id == "zombie");
         Assert.Equal(
-            ["energy_upkeep", "movement_energy", "eat", "swing"],
+            ["move", "energy_upkeep", "movement_energy", "eat", "swing"],
             zombie.Accessories.Select(a => a.Id).ToArray());
 
-        var foxCharacter = registry.CharacterDefinitions.Single(c => c.Id == "fox");
+        var foxCharacter = registry.ActorDefinitions.Single(c => c.Id == "fox");
         Assert.Equal(
-            ["energy_upkeep", "movement_energy", "eat", "swing"],
+            ["move", "energy_upkeep", "movement_energy", "eat", "swing"],
             foxCharacter.Accessories.Select(a => a.Id).ToArray());
 
-        var farmer = registry.CharacterDefinitions.Single(c => c.Id == "zombie_farmer");
+        var farmer = registry.ActorDefinitions.Single(c => c.Id == "zombie_farmer");
         Assert.Equal(
-            ["energy_upkeep", "movement_energy", "eat", "swing", "farm"],
+            ["move", "energy_upkeep", "movement_energy", "eat", "swing", "farm"],
             farmer.Accessories.Select(a => a.Id).ToArray());
 
-        var crazed = registry.CharacterDefinitions.Single(c => c.Id == "crazed_carrot");
+        var crazed = registry.ActorDefinitions.Single(c => c.Id == "crazed_carrot");
         Assert.Equal(
-            ["energy_upkeep", "movement_energy", "eat", "swing", "death_drop_loose_carrot"],
+            ["move", "energy_upkeep", "movement_energy", "eat", "swing", "death_drop_carrot_picked"],
             crazed.Accessories.Select(a => a.Id).ToArray());
     }
 
@@ -400,9 +401,9 @@ public class DefinitionConfigTests
     {
         var root = Path.Combine(Path.GetTempPath(), $"defs-{Guid.NewGuid():N}");
         var accessories = Path.Combine(root, DefinitionConfig.AccessoriesDirectoryName);
-        var characters = Path.Combine(root, DefinitionConfig.CharactersDirectoryName);
+        var actors = Path.Combine(root, DefinitionConfig.ActorsDirectoryName);
         Directory.CreateDirectory(accessories);
-        Directory.CreateDirectory(characters);
+        Directory.CreateDirectory(actors);
 
         try
         {
@@ -419,7 +420,7 @@ public class DefinitionConfigTests
                   ]
                 }
                 """);
-            File.WriteAllText(Path.Combine(characters, "generic.json"), """
+            File.WriteAllText(Path.Combine(actors, "generic.json"), """
                 { "id": "generic", "accessories": ["gun"] }
                 """);
 
@@ -427,7 +428,7 @@ public class DefinitionConfigTests
             DefinitionConfig.RegisterFromConfigDirectory(root, registry);
 
             Assert.Equal("gun", Assert.Single(registry.AccessoryDefinitions).Id);
-            Assert.Equal("generic", Assert.Single(registry.CharacterDefinitions).Id);
+            Assert.Equal("generic", Assert.Single(registry.ActorDefinitions).Id);
         }
         finally
         {

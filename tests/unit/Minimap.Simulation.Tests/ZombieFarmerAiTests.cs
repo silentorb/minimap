@@ -11,17 +11,17 @@ public class ZombieFarmerAiTests
         var w = GameWorld.Create(5, 5, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var farmer = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.ZombieFarmer);
+        var farmer = w.AddActor(2, new SimVec2(0f, 0f), TestContent.ZombieFarmer);
         var mature = new DepictionConfig(DepictionKinds.Texture, "res://carrot.svg");
         var growAccessory = new AccessoryDefinition(
             "grow",
             [new TestGrowEffect(0f, mature, TestContent.FoodResource.Tag, 1)]);
-        var cropDef = new ActorDefinition("carrot", [growAccessory]);
+        var cropDef = new ActorDefinition("carrot_growing", [growAccessory]);
         w.SetActorDefinitions([cropDef, .. TestContent.Content.Actors]);
 
         var cropCell = new HexAxial(2, 0);
         Assert.True(w.TryPlaceActor(cropCell, cropDef));
-        w.TickCellActors(0.01f);
+        w.TickActorPassives(0.01f);
 
         var ai = new AiController(
             new Random(1),
@@ -40,7 +40,7 @@ public class ZombieFarmerAiTests
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var farmer = w.AddCharacter(
+        var farmer = w.AddActor(
             2,
             HexWorldLayout.ToWorld(new HexAxial(0, 0), w.HexSize),
             TestContent.ZombieFarmer);
@@ -50,12 +50,12 @@ public class ZombieFarmerAiTests
         var growAccessory = new AccessoryDefinition(
             "grow",
             [new TestGrowEffect(0f, mature, TestContent.FoodResource.Tag, 1)]);
-        var cropDef = new ActorDefinition("carrot", [growAccessory]);
+        var cropDef = new ActorDefinition("carrot_growing", [growAccessory]);
         w.SetActorDefinitions([cropDef, .. TestContent.Content.Actors]);
 
         var front = CellFacing.CellInFront(farmer, w.HexSize);
         Assert.True(w.TryPlaceActor(front, cropDef));
-        w.TickCellActors(0.01f);
+        w.TickActorPassives(0.01f);
 
         var ai = new AiController(
             new Random(1),
@@ -75,7 +75,7 @@ public class ZombieFarmerAiTests
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var farmer = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.ZombieFarmer);
+        var farmer = w.AddActor(2, new SimVec2(0f, 0f), TestContent.ZombieFarmer);
         farmer.AddResource(TestContent.FoodResource.Tag, 1);
         farmer.Energy = farmer.MaxEnergy - AiTuning.EatEnergyDeficitThreshold;
 
@@ -92,10 +92,10 @@ public class ZombieFarmerAiTests
     }
 
     [Fact]
-    public void CharacterSeeksCrops_detects_farm_accessory()
+    public void ActorSeeksCrops_detects_farm_accessory()
     {
-        Assert.False(AiController.CharacterSeeksCrops(TestContent.Zombie));
-        Assert.True(AiController.CharacterSeeksCrops(TestContent.ZombieFarmer));
+        Assert.False(AiController.ActorSeeksCrops(TestContent.Zombie));
+        Assert.True(AiController.ActorSeeksCrops(TestContent.ZombieFarmer));
     }
 
     private sealed class AllGrassGenerator : IWorldGenerator

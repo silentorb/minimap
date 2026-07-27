@@ -50,7 +50,28 @@ internal static class TestContent
         EnergyResource.Tag,
         MaxEnergyResource.Tag);
 
+    public static AccessoryDefinition Move { get; } = new(
+        "move",
+        [new FunctionalMoveEffect()],
+        activation: AccessoryActivation.None);
+
     public static GameContent Content { get; } = new(
-        new CharacterDefinition("generic", Array.Empty<AccessoryDefinition>()),
+        new ActorDefinition(
+            "generic",
+            [Move],
+            resources:
+            [
+                new ActorResourceAmount(MaxHealthResource.Tag, CombatTuning.DefaultMaxHealth),
+                new ActorResourceAmount(HealthResource.Tag, CombatTuning.DefaultMaxHealth),
+                new ActorResourceAmount(MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+                new ActorResourceAmount(EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+            ]),
         resources: Resources);
+}
+
+internal sealed class FunctionalMoveEffect : AccessoryEffect, IMoveEffect
+{
+    public float Speed => CombatTuning.MoveSpeed;
+
+    public override AccessoryEffect Clone() => new FunctionalMoveEffect();
 }

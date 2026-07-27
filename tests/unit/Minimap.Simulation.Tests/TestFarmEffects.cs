@@ -14,14 +14,14 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
         DepictionConfig matureDepiction,
         TagId? yieldResourceTag,
         int yieldAmount,
-        string? emergeCharacterId = null,
+        string? emergeActorId = null,
         float emergeAfterMatureSeconds = 0f)
     {
         DurationSeconds = durationSeconds;
         MatureDepiction = matureDepiction;
         YieldResourceTag = yieldResourceTag;
         YieldAmount = yieldAmount;
-        EmergeCharacterId = emergeCharacterId;
+        EmergeActorId = emergeActorId;
         EmergeAfterMatureSeconds = emergeAfterMatureSeconds;
     }
 
@@ -29,7 +29,7 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
     public DepictionConfig MatureDepiction { get; }
     public TagId? YieldResourceTag { get; }
     public int YieldAmount { get; }
-    public string? EmergeCharacterId { get; }
+    public string? EmergeActorId { get; }
     public float EmergeAfterMatureSeconds { get; }
     public bool IsMature => _elapsed >= DurationSeconds;
 
@@ -45,7 +45,7 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
             actor.DepictionOverride = MatureDepiction;
         }
 
-        if (EmergeCharacterId is null)
+        if (EmergeActorId is null)
             return;
         _postMatureElapsed += dt;
         if (_postMatureElapsed >= EmergeAfterMatureSeconds)
@@ -54,16 +54,16 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
 
     public bool TryEmerge(GameWorld world, Actor actor)
     {
-        if (_emerged || string.IsNullOrWhiteSpace(EmergeCharacterId) || !IsMature)
+        if (_emerged || string.IsNullOrWhiteSpace(EmergeActorId) || !IsMature)
             return false;
         if (actor.Cell is not { } cell)
             return false;
-        if (!world.TryGetCharacterDefinition(EmergeCharacterId, out var characterDef) || characterDef is null)
+        if (!world.TryGetActorDefinition(EmergeActorId, out var characterDef) || characterDef is null)
             return false;
         if (!world.TryRemoveActorAt(cell, out _))
             return false;
         _emerged = true;
-        world.SpawnChaseCharacter(
+        world.SpawnChaseActor(
             characterDef,
             HexWorldLayout.ToWorld(cell, world.HexSize),
             world.RivalFactionId);
@@ -76,7 +76,7 @@ internal sealed class TestGrowEffect : AccessoryEffect, IGrowEffect
             MatureDepiction,
             YieldResourceTag,
             YieldAmount,
-            EmergeCharacterId,
+            EmergeActorId,
             EmergeAfterMatureSeconds);
 }
 
@@ -123,7 +123,7 @@ internal sealed class TestHarvestEffect : AccessoryEffect, IInteractionEffect, I
         if (grow is null || target.Cell is not { } cell)
             return false;
 
-        if (!string.IsNullOrWhiteSpace(grow.EmergeCharacterId))
+        if (!string.IsNullOrWhiteSpace(grow.EmergeActorId))
         {
             if (!grow.TryEmerge(world, target))
                 return false;
@@ -217,7 +217,7 @@ internal sealed class TestSpawnEffect : AccessoryEffect, ISpawnEffect
             {
                 if (!_pool.TryPick(world.Random, out var characterId) || string.IsNullOrWhiteSpace(characterId))
                     break;
-                if (!world.TryGetCharacterDefinition(characterId, out var definition) || definition is null)
+                if (!world.TryGetActorDefinition(characterId, out var definition) || definition is null)
                     continue;
 
                 world.TrySpawnNearbyHostile(
@@ -225,7 +225,7 @@ internal sealed class TestSpawnEffect : AccessoryEffect, ISpawnEffect
                     definition,
                     world.RivalFactionId,
                     AiTuning.DefaultAggression,
-                    AiController.CharacterSeeksCrops(definition));
+                    AiController.ActorSeeksCrops(definition));
             }
         }
     }
@@ -235,42 +235,42 @@ internal sealed class TestSpawnEffect : AccessoryEffect, ISpawnEffect
 }
 
 /// <summary>Test double for CompuQuest <c>spawn_nearby_ally</c>.</summary>
-internal sealed class TestSpawnNearbyAllyEffect : AccessoryEffect, IWorldCharacterPassiveEffect
+internal sealed class TestSpawnNearbyAllyEffect : AccessoryEffect, IWorldActorPassiveEffect
 {
     private bool _spawned;
 
-    public TestSpawnNearbyAllyEffect(string characterId, float aggression = AiTuning.DefaultAggression)
+    public TestSpawnNearbyAllyEffect(string actorId, float aggression = AiTuning.DefaultAggression)
     {
-        CharacterId = characterId;
+        ActorId = actorId;
         Aggression = aggression;
     }
 
-    public string CharacterId { get; }
+    public string ActorId { get; }
 
     public float Aggression { get; }
 
-    public void Tick(GameWorld world, Character character, float dt)
+    public void Tick(GameWorld world, Actor actor, float dt)
     {
-        if (_spawned || !character.IsAlive)
+        if (_spawned || !actor.IsAlive)
             return;
 
-        if (!world.TryGetCharacterDefinition(CharacterId, out var definition) || definition is null)
+        if (!world.TryGetActorDefinition(ActorId, out var definition) || definition is null)
         {
             throw new InvalidOperationException(
-                $"spawn_nearby_ally character definition '{CharacterId}' is not registered.");
+                $"spawn_nearby_ally actor definition '{ActorId}' is not registered.");
         }
 
-        var origin = HexWorldLayout.WorldToAxial(character.Position, world.HexSize);
-        var ally = world.TrySpawnNearbyCharacter(
+        var origin = HexWorldLayout.WorldToAxial(actor.Position, world.HexSize);
+        var ally = world.TrySpawnNearbyActor(
             origin,
             definition,
-            character.FactionId,
+            actor.FactionId,
             Aggression,
-            AiController.CharacterSeeksCrops(definition));
+            AiController.ActorSeeksCrops(definition));
         if (ally is not null)
             _spawned = true;
     }
 
     public override AccessoryEffect Clone() =>
-        new TestSpawnNearbyAllyEffect(CharacterId, Aggression);
+        new TestSpawnNearbyAllyEffect(ActorId, Aggression);
 }

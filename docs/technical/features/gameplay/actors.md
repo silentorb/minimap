@@ -1,17 +1,17 @@
 # Actors (technical)
 
-Actor definition vs instance contracts. Implements [actors.md](../../../game/features/gameplay/actors.md). Related: [characters.md](characters.md), [characters-and-factions.md](characters-and-factions.md), [accessories.md](accessories.md), [health.md](../../../game/features/gameplay/health.md), [cell-placement.md](cell-placement.md), [definition-config.md](../platform/definition-config.md), [depiction.md](depiction.md).
+Actor definition vs instance contracts. Implements [actors.md](../../../game/features/gameplay/actors.md). Related: [characters-and-factions.md](characters-and-factions.md), [accessories.md](accessories.md), [health.md](../../../game/features/gameplay/health.md), [cell-placement.md](cell-placement.md), [definition-config.md](../platform/definition-config.md), [depiction.md](depiction.md), [movement.md](../../../game/features/gameplay/movement.md).
 
 ## Requirements
 
 - **`ActorDefinition`** (Types): `Id`, ordered accessory definitions, optional `DepictionConfig` / `IconConfig` / `DisplayName`, optional starting **`Resources`** (`TagId` → amount) applied when the actor is constructed.
-- **`CharacterDefinition` : `ActorDefinition`** — character content under `config/characters/`.
-- **`Actor`** (Simulation): stable **`Id`** from a shared world allocator (characters and cell placeables), accessories, flat `Effects` cache, resource bag, facing, **`FactionId`** (default **0**), optional `DepictionOverride`, definition ref, health helpers (`Health` / `MaxHealth` / `IsDestructible` / `IsAlive`). `AddAccessory` / `RemoveAccessory` sync effects and run on-acquire effects.
-- **`Character` : `Actor`** — move intent, `AbilityLoadout`, energy helpers; possessable pawn. Sets `FactionId` in the constructor. Always initializes destructible health (default max 100) plus energy.
-- Cell-anchored actors: `GameWorld` occupancy map cell → `Actor`; `TryPlaceActor(cell, definition, factionId)` / `TryRemoveActorAt` / `IsCellOccupied`. Definitions catalog on the world from `GameContent.Actors`. Dead destructible cell actors are pruned after damage.
-- JSON load order: **`actors/` → resources → accessories → characters** (see [definition-config.md](../platform/definition-config.md)). Registry APIs: `AddActorDefinition` / `ActorDefinitions` / `TryGetActorDefinition`.
-- Client syncs cell actors separately from characters; applies depiction override when set.
+- **`Actor`** (Simulation): stable **`Id`** from a shared world allocator, accessories, flat `Effects` cache, resource bag, facing, **`FactionId`** (default **0**), optional `Cell`, **`Position`**, **`MoveIntent`**, **`AbilityLoadout`**, optional `DepictionOverride`, definition ref, health helpers (`Health` / `MaxHealth` / `IsDestructible` / `IsAlive`), energy helpers. `AddAccessory` / `RemoveAccessory` sync effects, enablement, and loadout; run on-acquire effects.
+- **`GameWorld`**: one **`Actors`** list for all live actors; **`CellActors`** occupancy map is a subset (every mapped actor is also in `Actors`). `TryPlaceActor` adds to both; free spawn (`AddActor`) adds to the list only; remove/death clears list and occupancy when `Cell` was set.
+- **`IMoveEffect`** on accessories gates `ApplyMovement` (speed from the effect). Actors without a move effect ignore move intent.
+- Passive ticks run over all actors (grow / spawn / world-passive / passive).
+- JSON load: **`actors/`** after resources / domains / accessories (see [definition-config.md](../platform/definition-config.md)). Registry APIs: `AddActorDefinition` / `ActorDefinitions` / `TryGetActorDefinition`.
+- **`GameContent.DefaultActor`** is the definition used for normal player spawns. Client syncs from `Actors` (cell vs cartesian presentation from `Cell` / `Position`); applies depiction override when set.
 
 ## Non-goals (for now)
 
-- Unified mobile+cell actor list API beyond characters list + cell map
+- Separate character type or character definition catalog

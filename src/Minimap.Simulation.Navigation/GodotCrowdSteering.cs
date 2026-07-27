@@ -60,7 +60,7 @@ public sealed class GodotCrowdSteering : IMoveSteering
         }
     }
 
-    public SimVec2 SampleMoveIntent(Character pawn, float dt)
+    public SimVec2 SampleMoveIntent(Actor pawn, float dt)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(pawn);

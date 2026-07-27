@@ -84,7 +84,7 @@ public class MovementCollisionTests
     {
         var gen = new AllGrassGenerator();
         var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
-        var blocker = w.AddCharacter(2, new SimVec2(40f, 0f));
+        var blocker = w.AddActor(2, new SimVec2(40f, 0f));
         pawn.Position = new SimVec2(0f, 0f);
         blocker.Position = new SimVec2(w.PlayerRadius * 2f + 8f, 0f);
 
@@ -107,7 +107,7 @@ public class MovementCollisionTests
     {
         var gen = new AllGrassGenerator();
         var (w, _, pawn) = TestWorldHelpers.CreateDriven(3, 3, 1, gen, Solo);
-        var blocker = w.AddCharacter(2, new SimVec2(0f, 0f));
+        var blocker = w.AddActor(2, new SimVec2(0f, 0f));
         pawn.Position = new SimVec2(-(w.PlayerRadius * 2f + 6f), -8f);
         blocker.Position = new SimVec2(0f, 0f);
         var before = pawn.Position;

@@ -18,12 +18,23 @@ public static class SpawnNearbyAllyEffectFactory
     {
         ArgumentNullException.ThrowIfNull(registry);
 
-        if (!EffectJson.TryGetString(effectObject, "characterId", out var characterId) ||
-            string.IsNullOrWhiteSpace(characterId))
+        string? actorId = null;
+        if (EffectJson.TryGetString(effectObject, "actorId", out var fromActorId) &&
+            !string.IsNullOrWhiteSpace(fromActorId))
+        {
+            actorId = fromActorId;
+        }
+        else if (EffectJson.TryGetString(effectObject, "characterId", out var fromCharacterId) &&
+                 !string.IsNullOrWhiteSpace(fromCharacterId))
+        {
+            actorId = fromCharacterId;
+        }
+
+        if (actorId is null)
         {
             throw new InvalidOperationException(
                 EffectJson.AppendSource(
-                    $"Accessory effect '{TypeId}' at index {index} must include characterId.",
+                    $"Accessory effect '{TypeId}' at index {index} must include actorId (or characterId).",
                     sourcePath));
         }
 
@@ -44,7 +55,7 @@ public static class SpawnNearbyAllyEffectFactory
 
         try
         {
-            return new SpawnNearbyAllyEffect(characterId, aggression);
+            return new SpawnNearbyAllyEffect(actorId, aggression);
         }
         catch (ArgumentException ex)
         {

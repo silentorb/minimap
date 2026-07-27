@@ -5,7 +5,7 @@ Simulation `Player` records and client controller association. Implements [playe
 ## Requirements
 
 - **`Player`** (Simulation): slot `Id`, starting `AccessoryPoints`, selected `AccessoryDefinition`s, optional `Character` pawn link.
-- **`GameSession`** owns `Players` (1–4). Create applies lobby-selected accessories onto each pawn after spawning from `GameContent.DefaultCharacter`.
+- **`GameSession`** owns `Players` (1–4). Create applies lobby-selected accessories onto each pawn after spawning from `GameContent.DefaultActor`.
 - **`PlayerController`** (Client) is constructed with a `Player` and possesses that player’s character.
 - Device bindings remain on client **`LocalPlayRoster` / `LocalPlayerEntry`** (including selected accessory defs for spawn).
 - Core setting **`player.accessoryPoints`** (default **2**) seeds each `Player.AccessoryPoints` and the lobby selection budget.

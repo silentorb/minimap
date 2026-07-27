@@ -15,7 +15,7 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
         DepictionConfig matureDepiction,
         TagId? yieldResourceTag,
         int yieldAmount,
-        string? emergeCharacterId = null,
+        string? emergeActorId = null,
         float emergeAfterMatureSeconds = 0f)
     {
         if (durationSeconds < 0f)
@@ -25,14 +25,14 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
             throw new ArgumentOutOfRangeException(nameof(yieldAmount));
         if (emergeAfterMatureSeconds < 0f)
             throw new ArgumentOutOfRangeException(nameof(emergeAfterMatureSeconds));
-        if (emergeCharacterId is null && yieldResourceTag is null && yieldAmount > 0)
+        if (emergeActorId is null && yieldResourceTag is null && yieldAmount > 0)
             throw new ArgumentException("Yield amount requires a yield resource tag.", nameof(yieldAmount));
 
         DurationSeconds = durationSeconds;
         MatureDepiction = matureDepiction;
         YieldResourceTag = yieldResourceTag;
         YieldAmount = yieldAmount;
-        EmergeCharacterId = emergeCharacterId;
+        EmergeActorId = emergeActorId;
         EmergeAfterMatureSeconds = emergeAfterMatureSeconds;
     }
 
@@ -44,7 +44,7 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
 
     public int YieldAmount { get; }
 
-    public string? EmergeCharacterId { get; }
+    public string? EmergeActorId { get; }
 
     public float EmergeAfterMatureSeconds { get; }
 
@@ -65,7 +65,7 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
             actor.DepictionOverride = MatureDepiction;
         }
 
-        if (EmergeCharacterId is null)
+        if (EmergeActorId is null)
             return;
 
         _postMatureElapsed += dt;
@@ -77,18 +77,18 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(actor);
-        if (_emerged || string.IsNullOrWhiteSpace(EmergeCharacterId) || !IsMature)
+        if (_emerged || string.IsNullOrWhiteSpace(EmergeActorId) || !IsMature)
             return false;
         if (actor.Cell is not { } cell)
             return false;
-        if (!world.TryGetCharacterDefinition(EmergeCharacterId, out var characterDef) || characterDef is null)
+        if (!world.TryGetActorDefinition(EmergeActorId, out var characterDef) || characterDef is null)
             return false;
 
         if (!world.TryRemoveActorAt(cell, out _))
             return false;
 
         _emerged = true;
-        world.SpawnChaseCharacter(
+        world.SpawnChaseActor(
             characterDef,
             HexWorldLayout.ToWorld(cell, world.HexSize),
             world.RivalFactionId);
@@ -101,6 +101,6 @@ public sealed class GrowEffect : AccessoryEffect, IGrowEffect
             MatureDepiction,
             YieldResourceTag,
             YieldAmount,
-            EmergeCharacterId,
+            EmergeActorId,
             EmergeAfterMatureSeconds);
 }

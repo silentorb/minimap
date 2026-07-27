@@ -72,7 +72,7 @@ public class PlayerSessionTests
 
         Assert.Single(session.Players);
         Assert.Equal(2, session.Players[0].AccessoryPoints);
-        Assert.NotNull(session.Players[0].Character);
-        Assert.Contains(session.Players[0].Character!.Accessories, a => a.Definition.Id == "gun");
+        Assert.NotNull(session.Players[0].Actor);
+        Assert.Contains(session.Players[0].Actor!.Accessories, a => a.Definition.Id == "gun");
     }
 }

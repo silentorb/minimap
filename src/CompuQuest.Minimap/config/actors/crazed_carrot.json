@@ -1,13 +1,37 @@
 {
   "id": "crazed_carrot",
-  "displayName": "Crazed Carrot Seedling",
-  "accessories": ["grow_crazed_carrot"],
-  "resources": [
-    { "id": "max_health", "amount": 25 },
-    { "id": "health", "amount": 25 }
+  "displayName": "Crazed Carrot",
+  "accessories": [
+    "move",
+    "energy_upkeep",
+    "movement_energy",
+    "eat",
+    "swing",
+    "death_drop_carrot_picked"
   ],
   "depiction": {
     "kind": "texture",
-    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
-  }
+    "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"
+  },
+  "icon": {
+    "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"
+  },
+  "resources": [
+    {
+      "id": "max_health",
+      "amount": 100
+    },
+    {
+      "id": "health",
+      "amount": 100
+    },
+    {
+      "id": "max_energy",
+      "amount": 100
+    },
+    {
+      "id": "energy",
+      "amount": 100
+    }
+  ]
 }

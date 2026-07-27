@@ -32,7 +32,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     private readonly Dictionary<int, Node2D> _swingNodes = new();
     private readonly Dictionary<int, Line2D> _aimLines = new();
     private readonly HashSet<Key> _heldKeys = new();
-    private readonly List<Character> _humanPawns = new();
+    private readonly List<Actor> _humanPawns = new();
     private HexAxial? _previewCell;
     private bool _previewValid;
 
@@ -45,7 +45,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
     /// <summary>Raised after terrain visuals sync (e.g. level regen).</summary>
     public event Action? TerrainChanged;
 
-    public void Bind(GameWorld world, IReadOnlyList<Character> humanPawns)
+    public void Bind(GameWorld world, IReadOnlyList<Actor> humanPawns)
     {
         _world = world;
         _humanPawns.Clear();
@@ -123,7 +123,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         SyncAimLines(localPlayers);
     }
 
-    public void OnLevelRegenerated(IReadOnlyList<Character> humanPawns)
+    public void OnLevelRegenerated(IReadOnlyList<Actor> humanPawns)
     {
         _humanPawns.Clear();
         _humanPawns.AddRange(humanPawns);
@@ -426,18 +426,22 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             return;
 
         var live = new HashSet<int>();
-        foreach (var character in _world.Characters)
+        foreach (var actor in _world.Actors)
         {
-            live.Add(character.Id);
-            if (!_characterNodes.TryGetValue(character.Id, out var node))
+            // Cell-anchored actors are drawn by SyncCellActors.
+            if (actor.Cell is not null)
+                continue;
+
+            live.Add(actor.Id);
+            if (!_characterNodes.TryGetValue(actor.Id, out var node))
             {
                 node = _playerScene.Instantiate<Node2D>();
                 _playerLayer.AddChild(node);
-                _characterNodes[character.Id] = node;
-                ApplyCharacterDepiction(node, character);
+                _characterNodes[actor.Id] = node;
+                ApplyActorDepiction(node, actor);
             }
 
-            var p = character.Position;
+            var p = actor.Position;
             node.Position = new Vector2(p.X, p.Y);
             node.Visible = true;
             node.ZIndex = 2;
@@ -541,7 +545,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
         return points;
     }
 
-    private static void ApplyCharacterDepiction(Node2D node, Character character)
+    private static void ApplyActorDepiction(Node2D node, Actor character)
     {
         var colorRect = node.GetNode<ColorRect>("ColorRect");
         var sprite = node.GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
@@ -664,7 +668,7 @@ public partial class WorldView : Node2D, IMovementKeyTarget
             return null;
 
         var pawn = _humanPawns[playerIndex];
-        if (_world is null || !_world.Characters.Contains(pawn))
+        if (_world is null || !_world.Actors.Contains(pawn))
             return null;
 
         return new Vector2(pawn.Position.X, pawn.Position.Y);

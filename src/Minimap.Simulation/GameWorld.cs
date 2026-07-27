@@ -2,10 +2,10 @@ using Minimap.Simulation.Types;
 
 namespace Minimap.Simulation;
 
-/// <summary>Authoritative simulation: terrain, characters, controllers, missiles.</summary>
+/// <summary>Authoritative simulation: terrain, actors, controllers, missiles.</summary>
 public sealed class GameWorld
 {
-    private readonly List<Character> _characters = new();
+    private readonly List<Actor> _actors = new();
     private readonly List<IController> _controllers = new();
     private readonly List<Missile> _missiles = new();
     private readonly List<SwingArc> _swingArcs = new();
@@ -13,12 +13,10 @@ public sealed class GameWorld
     private readonly Dictionary<HexAxial, Actor> _actorsByCell = new();
     private readonly Dictionary<string, ActorDefinition> _actorDefinitions =
         new(StringComparer.Ordinal);
-    private readonly Dictionary<string, CharacterDefinition> _characterDefinitions =
-        new(StringComparer.Ordinal);
     private readonly List<SimVec2[]> _wallPolygons = new();
-    private readonly List<SimVec2> _characterObstacleCenters = new();
+    private readonly List<SimVec2> _actorObstacleCenters = new();
     private readonly Random _random;
-    private CharacterDefinition? _spawnCharacterDefinition;
+    private ActorDefinition? _spawnActorDefinition;
     private ResourceContext? _resourceContext;
     private WeightedPool<SpawnerDefinition> _worldSpawnerPool = WeightedPool<SpawnerDefinition>.Empty;
     private int _rivalFactionId = 2;
@@ -68,7 +66,7 @@ public sealed class GameWorld
     public float MoveSpeed { get; set; }
     public float PlayerRadius { get; set; }
     public float MissileRadius { get; set; }
-    public IReadOnlyList<Character> Characters => _characters;
+    public IReadOnlyList<Actor> Actors => _actors;
     public IReadOnlyList<Missile> Missiles => _missiles;
     public IReadOnlyList<SwingArc> SwingArcs => _swingArcs;
     public IReadOnlyList<IController> Controllers => _controllers;
@@ -79,12 +77,12 @@ public sealed class GameWorld
     public Random Random => _random;
 
     /// <summary>Definition used for spawns when callers omit an explicit definition.</summary>
-    public CharacterDefinition? SpawnCharacterDefinition => _spawnCharacterDefinition;
+    public ActorDefinition? SpawnActorDefinition => _spawnActorDefinition;
 
-    /// <summary>Resource types / health tags required before adding characters.</summary>
+    /// <summary>Resource types / health tags required before adding actors.</summary>
     public ResourceContext? ResourceContext => _resourceContext;
 
-    /// <summary>Rival / zombie faction id used when emerging ambush characters.</summary>
+    /// <summary>Rival / zombie faction id used when emerging ambush actors.</summary>
     public int RivalFactionId
     {
         get => _rivalFactionId;
@@ -94,10 +92,10 @@ public sealed class GameWorld
     /// <summary>Solid hex polygons (walls + out-of-map boundary cells).</summary>
     public IReadOnlyList<SimVec2[]> WallPolygons => _wallPolygons;
 
-    public void SetSpawnCharacterDefinition(CharacterDefinition definition)
+    public void SetSpawnActorDefinition(ActorDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        _spawnCharacterDefinition = definition;
+        _spawnActorDefinition = definition;
     }
 
     public void SetResourceContext(ResourceContext context)
@@ -109,36 +107,9 @@ public sealed class GameWorld
     public void ApplyGameContent(GameContent content)
     {
         ArgumentNullException.ThrowIfNull(content);
-        SetSpawnCharacterDefinition(content.DefaultCharacter);
+        SetSpawnActorDefinition(content.DefaultActor);
         SetActorDefinitions(content.Actors);
-        SetCharacterDefinitions(content.Characters);
         SetResourceContext(ResourceContext.FromGameContent(content));
-    }
-
-    public void SetCharacterDefinitions(IEnumerable<CharacterDefinition> definitions)
-    {
-        ArgumentNullException.ThrowIfNull(definitions);
-        _characterDefinitions.Clear();
-        foreach (var def in definitions)
-        {
-            ArgumentNullException.ThrowIfNull(def);
-            if (!_characterDefinitions.TryAdd(def.Id, def))
-            {
-                throw new InvalidOperationException(
-                    $"Duplicate character definition id '{def.Id}'.");
-            }
-        }
-    }
-
-    public bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition)
-    {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            definition = null;
-            return false;
-        }
-
-        return _characterDefinitions.TryGetValue(id, out definition);
     }
 
     public void SetActorDefinitions(IEnumerable<ActorDefinition> definitions)
@@ -185,9 +156,14 @@ public sealed class GameWorld
         var resources = _resourceContext
             ?? throw new InvalidOperationException(
                 "Resource context is required (call SetResourceContext or ApplyGameContent).");
-        var actor = new Actor(_nextActorId++, definition, resources);
+        var actor = new Actor(
+            _nextActorId++,
+            definition,
+            resources,
+            factionId,
+            HexWorldLayout.ToWorld(cell, HexSize));
         actor.Cell = cell;
-        actor.FactionId = factionId;
+        _actors.Add(actor);
         _actorsByCell[cell] = actor;
         return true;
     }
@@ -197,6 +173,7 @@ public sealed class GameWorld
         if (_actorsByCell.Remove(cell, out var obj))
         {
             obj.Cell = null;
+            _actors.Remove(obj);
             removed = obj;
             return true;
         }
@@ -205,19 +182,23 @@ public sealed class GameWorld
         return false;
     }
 
-    /// <summary>Ticks passive effects on cell-anchored actors (e.g. grow / spawn).</summary>
-    public void TickCellActors(float dt)
+    /// <summary>Ticks passive effects on all actors (grow / spawn / hunger / companions).</summary>
+    public void TickActorPassives(float dt)
     {
-        // Snapshot: grow emerge / spawn may mutate actors during the tick.
-        var actors = _actorsByCell.Values.ToList();
+        // Snapshot: grow emerge / spawn / companions may mutate actors during the tick.
+        var actors = _actors.ToList();
         foreach (var actor in actors)
         {
+            if (!actor.IsAlive)
+                continue;
             foreach (var effect in actor.Effects.ToList())
             {
                 if (effect is IGrowEffect grow)
                     grow.Tick(this, actor, dt);
                 else if (effect is ISpawnEffect spawn)
                     spawn.Tick(this, actor, dt);
+                else if (effect is IWorldActorPassiveEffect worldActorPassive)
+                    worldActorPassive.Tick(this, actor, dt);
                 else if (effect is IWorldPassiveEffect worldPassive)
                     worldPassive.Tick(this, actor, dt);
                 else if (effect is IPassiveEffect passive)
@@ -226,63 +207,42 @@ public sealed class GameWorld
         }
     }
 
-    /// <summary>Spawn a high-aggression AI character (e.g. crazed carrot emerge).</summary>
-    public Character SpawnChaseCharacter(
-        CharacterDefinition definition,
+    /// <summary>Spawn a high-aggression AI actor (e.g. crazed carrot emerge).</summary>
+    public Actor SpawnChaseActor(
+        ActorDefinition definition,
         SimVec2 position,
         int factionId)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        var character = AddCharacter(factionId, position, definition);
+        var actor = AddActor(factionId, position, definition);
         AttachController(
             new AiController(
                 _random,
                 aggression: AiTuning.CrazedCarrotAggression,
-                seekCrops: AiController.CharacterSeeksCrops(definition)),
-            character);
-        return character;
+                seekCrops: AiController.ActorSeeksCrops(definition)),
+            actor);
+        return actor;
     }
 
-    /// <summary>Ticks passive effects on characters (e.g. energy drain / vitality / companion spawn).</summary>
-    public void TickCharacterPassives(float dt)
-    {
-        // Snapshot: world-character passives may spawn allies during the tick.
-        var characters = _characters.ToList();
-        foreach (var character in characters)
-        {
-            if (!character.IsAlive)
-                continue;
-            foreach (var effect in character.Effects.ToList())
-            {
-                if (effect is IWorldCharacterPassiveEffect worldPassive)
-                    worldPassive.Tick(this, character, dt);
-                else if (effect is IPassiveEffect passive)
-                    passive.Tick(character, dt);
-            }
-        }
-    }
-
-    public Character AddCharacter(
+    public Actor AddActor(
         int factionId,
         SimVec2 position,
-        CharacterDefinition? definition = null,
-        int maxHealth = CombatTuning.DefaultMaxHealth,
-        int maxEnergy = CombatTuning.DefaultMaxEnergy)
+        ActorDefinition? definition = null)
     {
-        var def = definition ?? _spawnCharacterDefinition
+        var def = definition ?? _spawnActorDefinition
             ?? throw new InvalidOperationException(
-                "Character definition is required (pass definition or call SetSpawnCharacterDefinition).");
+                "Actor definition is required (pass definition or call SetSpawnActorDefinition).");
         var resources = _resourceContext
             ?? throw new InvalidOperationException(
                 "Resource context is required (call SetResourceContext or ApplyGameContent).");
-        var c = new Character(_nextActorId++, factionId, position, def, resources, maxHealth, maxEnergy);
-        _characters.Add(c);
-        return c;
+        var actor = new Actor(_nextActorId++, def, resources, factionId, position);
+        _actors.Add(actor);
+        return actor;
     }
 
-    public void AttachController(IController controller, Character character)
+    public void AttachController(IController controller, Actor actor)
     {
-        controller.Possess(character);
+        controller.Possess(actor);
         _controllers.Add(controller);
     }
 
@@ -355,7 +315,7 @@ public sealed class GameWorld
     {
         ClearRivalsAndMissiles(spawn.RivalFactionId);
         _spawners.Clear();
-        _actorsByCell.Clear();
+        ClearCellAnchoredActors();
 
         var rng = new Random(WorldSeed + levelIndex);
         var gen = new SeededWorldGenerator();
@@ -374,7 +334,7 @@ public sealed class GameWorld
 
         var hexes = SeededWorldGenerator.PickGrassSpawns(Grid, humans, _random);
         for (var h = 0; h < humans; h++)
-            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[h], HexSize));
+            AddActor(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[h], HexSize));
     }
 
     /// <summary>
@@ -395,7 +355,7 @@ public sealed class GameWorld
             if (!pool.TryPick(_random, out var definition) || definition is null)
                 break;
 
-            _spawners.Add(new Spawner(_nextSpawnerId++, hexes[i], definition.CharacterPool));
+            _spawners.Add(new Spawner(_nextSpawnerId++, hexes[i], definition.ActorPool));
         }
     }
 
@@ -418,12 +378,12 @@ public sealed class GameWorld
     public void SpawnWaveEnemies(Spawner spawner, int count, int rivalFactionId)
     {
         ArgumentNullException.ThrowIfNull(spawner);
-        if (count <= 0 || spawner.CharacterPool.IsEmpty)
+        if (count <= 0 || spawner.ActorPool.IsEmpty)
             return;
 
         for (var i = 0; i < count; i++)
         {
-            if (!spawner.CharacterPool.TryPick(_random, out var definition) || definition is null)
+            if (!spawner.ActorPool.TryPick(_random, out var definition) || definition is null)
                 break;
 
             TrySpawnNearbyHostile(
@@ -431,27 +391,27 @@ public sealed class GameWorld
                 definition,
                 rivalFactionId,
                 AiTuning.DefaultAggression,
-                AiController.CharacterSeeksCrops(definition));
+                AiController.ActorSeeksCrops(definition));
         }
     }
 
     /// <summary>
     /// Spawn one rival AI on a nearby grass hex. Returns null when no grass candidates exist.
     /// </summary>
-    public Character? TrySpawnNearbyHostile(
+    public Actor? TrySpawnNearbyHostile(
         HexAxial origin,
-        CharacterDefinition definition,
+        ActorDefinition definition,
         int rivalFactionId,
         float aggression = AiTuning.DefaultAggression,
         bool seekCrops = false) =>
-        TrySpawnNearbyCharacter(origin, definition, rivalFactionId, aggression, seekCrops);
+        TrySpawnNearbyActor(origin, definition, rivalFactionId, aggression, seekCrops);
 
     /// <summary>
-    /// Spawn one AI character on a nearby grass hex. Returns null when no grass candidates exist.
+    /// Spawn one AI actor on a nearby grass hex. Returns null when no grass candidates exist.
     /// </summary>
-    public Character? TrySpawnNearbyCharacter(
+    public Actor? TrySpawnNearbyActor(
         HexAxial origin,
-        CharacterDefinition definition,
+        ActorDefinition definition,
         int factionId,
         float aggression = AiTuning.DefaultAggression,
         bool seekCrops = false)
@@ -470,7 +430,7 @@ public sealed class GameWorld
             return null;
 
         var hex = candidates[_random.Next(candidates.Count)];
-        var spawned = AddCharacter(
+        var spawned = AddActor(
             factionId,
             HexWorldLayout.ToWorld(hex, HexSize),
             definition);
@@ -481,10 +441,10 @@ public sealed class GameWorld
     /// <summary>Legacy bootstrap roster (humans + ally AI + rival AI). Kept for tests.</summary>
     public void SpawnDefaultRoster(
         SpawnConfig spawn,
-        CharacterDefinition characterDefinition,
+        ActorDefinition actorDefinition,
         ResourceContext? resourceContext = null)
     {
-        SetSpawnCharacterDefinition(characterDefinition);
+        SetSpawnActorDefinition(actorDefinition);
         if (resourceContext is not null)
             SetResourceContext(resourceContext);
         var humans = Math.Max(0, spawn.HumanPlayerCount);
@@ -493,29 +453,28 @@ public sealed class GameWorld
         var i = 0;
 
         for (var h = 0; h < humans; h++)
-            AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+            AddActor(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
 
         for (var a = 0; a < spawn.AiPerFaction; a++)
         {
-            var ally = AddCharacter(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+            var ally = AddActor(spawn.PlayerFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
             AttachController(new AiController(_random), ally);
         }
 
         for (var a = 0; a < spawn.AiPerFaction; a++)
         {
-            var rival = AddCharacter(spawn.RivalFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
+            var rival = AddActor(spawn.RivalFactionId, HexWorldLayout.ToWorld(hexes[i++], HexSize));
             AttachController(new AiController(_random), rival);
         }
     }
 
-    /// <summary>Full simulation step: cell actors → controllers → movement → missiles → death prune.</summary>
+    /// <summary>Full simulation step: passives → controllers → movement → missiles → death prune.</summary>
     public void Tick(float dt)
     {
         if (dt <= 0f)
             return;
 
-        TickCellActors(dt);
-        TickCharacterPassives(dt);
+        TickActorPassives(dt);
 
         foreach (var c in _controllers)
             c.Tick(this, dt);
@@ -542,11 +501,24 @@ public sealed class GameWorld
         target.Health = Math.Max(0, target.Health - amount);
     }
 
-    /// <summary>Remove a living character and detach its controller (player drop).</summary>
-    public void ForceRemoveCharacter(Character character)
+    /// <summary>Remove a living actor and detach its controller (player drop).</summary>
+    public void ForceRemoveActor(Actor actor)
     {
-        DetachControllersFor(character);
-        _characters.Remove(character);
+        DetachControllersFor(actor);
+        if (actor.Cell is { } cell)
+            _actorsByCell.Remove(cell);
+        actor.Cell = null;
+        _actors.Remove(actor);
+    }
+
+    private void ClearCellAnchoredActors()
+    {
+        foreach (var actor in _actorsByCell.Values.ToList())
+        {
+            DetachControllersFor(actor);
+            _actors.Remove(actor);
+        }
+        _actorsByCell.Clear();
     }
 
     private void ClearRivalsAndMissiles(int rivalFactionId)
@@ -554,24 +526,28 @@ public sealed class GameWorld
         _missiles.Clear();
         _swingArcs.Clear();
 
-        for (var i = _characters.Count - 1; i >= 0; i--)
+        for (var i = _actors.Count - 1; i >= 0; i--)
         {
-            if (_characters[i].FactionId != rivalFactionId)
+            if (_actors[i].FactionId != rivalFactionId)
                 continue;
 
-            DetachControllersFor(_characters[i]);
-            _characters.RemoveAt(i);
+            var actor = _actors[i];
+            DetachControllersFor(actor);
+            if (actor.Cell is { } cell)
+                _actorsByCell.Remove(cell);
+            actor.Cell = null;
+            _actors.RemoveAt(i);
         }
     }
 
     private void RepositionAndHealHumans(SpawnConfig spawn)
     {
         var playerFaction = spawn.PlayerFactionId;
-        var humans = _characters.Where(c => c.FactionId == playerFaction).ToList();
+        var humans = _actors.Where(c => c.FactionId == playerFaction && c.Cell is null).ToList();
         var needed = Math.Max(0, spawn.HumanPlayerCount);
 
         while (humans.Count < needed)
-            humans.Add(AddCharacter(playerFaction, SimVec2.Zero));
+            humans.Add(AddActor(playerFaction, SimVec2.Zero));
 
         if (humans.Count == 0)
             return;
@@ -609,11 +585,11 @@ public sealed class GameWorld
         return result;
     }
 
-    private void DetachControllersFor(Character character)
+    private void DetachControllersFor(Actor actor)
     {
         for (var c = _controllers.Count - 1; c >= 0; c--)
         {
-            if (_controllers[c].Pawn?.Id != character.Id)
+            if (_controllers[c].Pawn?.Id != actor.Id)
                 continue;
             _controllers[c].Unpossess();
             _controllers.RemoveAt(c);
@@ -622,39 +598,41 @@ public sealed class GameWorld
 
     private void ApplyMovement(float dt)
     {
-        foreach (var character in _characters)
+        foreach (var actor in _actors)
         {
-            if (!character.IsAlive)
+            if (!actor.IsAlive || !actor.TryGetMoveEffect(out var move) || move is null)
                 continue;
 
-            var input = character.MoveIntent;
+            var input = actor.MoveIntent;
             var displacement = SimVec2.Zero;
             if (input.LengthSquared >= 1e-10f)
             {
                 var dir = input.Normalized();
-                character.Facing = dir;
-                displacement = dir * (MoveSpeed * dt);
+                actor.Facing = dir;
+                displacement = dir * (move.Speed * dt);
             }
 
-            CollectCharacterObstacles(character.Id);
-            character.Position = CircleHexCollision.MoveAndSlide(
-                character.Position,
+            CollectFreeActorObstacles(actor.Id);
+            actor.Position = CircleHexCollision.MoveAndSlide(
+                actor.Position,
                 displacement,
                 PlayerRadius,
                 _wallPolygons,
-                _characterObstacleCenters,
+                _actorObstacleCenters,
                 PlayerRadius);
         }
     }
 
-    private void CollectCharacterObstacles(int excludeCharacterId)
+    private void CollectFreeActorObstacles(int excludeActorId)
     {
-        _characterObstacleCenters.Clear();
-        foreach (var other in _characters)
+        _actorObstacleCenters.Clear();
+        foreach (var other in _actors)
         {
-            if (!other.IsAlive || other.Id == excludeCharacterId)
+            if (!other.IsAlive || other.Id == excludeActorId || other.Cell is not null)
                 continue;
-            _characterObstacleCenters.Add(other.Position);
+            if (!other.TryGetMoveEffect(out _))
+                continue;
+            _actorObstacleCenters.Add(other.Position);
         }
     }
 
@@ -671,27 +649,27 @@ public sealed class GameWorld
                 continue;
             }
 
-            if (TryMissileHitCharacter(m) || TryMissileHitCellActor(m))
+            if (TryMissileHitFreeActor(m) || TryMissileHitCellActor(m))
                 _missiles.RemoveAt(i);
         }
     }
 
-    private bool TryMissileHitCharacter(Missile m)
+    private bool TryMissileHitFreeActor(Missile m)
     {
-        foreach (var character in _characters)
+        foreach (var actor in _actors)
         {
-            if (!character.IsAlive)
+            if (!actor.IsAlive || actor.Cell is not null)
                 continue;
-            if (m.OwnerCharacterId is int oid && oid == character.Id)
+            if (m.OwnerCharacterId is int oid && oid == actor.Id)
                 continue;
-            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, character.FactionId))
+            if (!m.FriendlyFire && !FactionRules.AreHostile(m.OwnerFactionId, actor.FactionId))
                 continue;
 
-            var delta = character.Position - m.Position;
+            var delta = actor.Position - m.Position;
             var hitR = PlayerRadius + m.Radius;
             if (delta.LengthSquared <= hitR * hitR)
             {
-                ApplyDamage(character, m.Damage);
+                ApplyDamage(actor, m.Damage);
                 return true;
             }
         }
@@ -735,13 +713,13 @@ public sealed class GameWorld
 
     private void ResolveSwingHits(SwingArc arc)
     {
-        foreach (var character in _characters)
+        foreach (var actor in _actors)
         {
-            if (!character.IsAlive)
+            if (!actor.IsAlive || actor.Cell is not null)
                 continue;
-            if (arc.OwnerCharacterId is int oid && oid == character.Id)
+            if (arc.OwnerCharacterId is int oid && oid == actor.Id)
                 continue;
-            if (!arc.FriendlyFire && !FactionRules.AreHostile(arc.OwnerFactionId, character.FactionId))
+            if (!arc.FriendlyFire && !FactionRules.AreHostile(arc.OwnerFactionId, actor.FactionId))
                 continue;
 
             if (Swing.IsPointInArc(
@@ -749,10 +727,10 @@ public sealed class GameWorld
                     arc.Facing,
                     arc.Radius,
                     arc.ArcDegrees,
-                    character.Position,
+                    actor.Position,
                     PlayerRadius))
             {
-                ApplyDamage(character, arc.Damage);
+                ApplyDamage(actor, arc.Damage);
             }
         }
 
@@ -792,33 +770,21 @@ public sealed class GameWorld
 
     private void RemoveDeadActors()
     {
-        for (var i = _characters.Count - 1; i >= 0; i--)
+        for (var i = _actors.Count - 1; i >= 0; i--)
         {
-            if (_characters[i].IsAlive)
+            if (_actors[i].IsAlive)
                 continue;
-            var dead = _characters[i];
+            var dead = _actors[i];
             TryPlaceDeathDrops(dead);
             DetachControllersFor(dead);
-            _characters.RemoveAt(i);
+            if (dead.Cell is { } cell)
+                _actorsByCell.Remove(cell);
+            dead.Cell = null;
+            _actors.RemoveAt(i);
         }
-
-        List<HexAxial>? deadCells = null;
-        foreach (var (cell, actor) in _actorsByCell)
-        {
-            if (actor.IsAlive)
-                continue;
-            deadCells ??= new List<HexAxial>();
-            deadCells.Add(cell);
-        }
-
-        if (deadCells is null)
-            return;
-
-        foreach (var cell in deadCells)
-            TryRemoveActorAt(cell, out _);
     }
 
-    private void TryPlaceDeathDrops(Character dead)
+    private void TryPlaceDeathDrops(Actor dead)
     {
         foreach (var effect in dead.Effects)
         {
@@ -827,7 +793,7 @@ public sealed class GameWorld
             if (!TryGetActorDefinition(drop.ActorDefinitionId, out var actorDef) || actorDef is null)
                 continue;
 
-            var cell = HexWorldLayout.WorldToAxial(dead.Position, HexSize);
+            var cell = dead.Cell ?? HexWorldLayout.WorldToAxial(dead.Position, HexSize);
             if (!Grid.Contains(cell) || IsCellOccupied(cell))
                 continue;
             TryPlaceActor(cell, actorDef);

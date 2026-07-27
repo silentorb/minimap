@@ -10,7 +10,7 @@ Placing cell-anchored **actors** on map **cells** (spatial partitions). Related:
 ## Requirements
 
 - Characters may place **cell-anchored actors** onto individual cells. Placement snaps to cell centers so actors cannot be crammed together.
-- Occupancy tracks **cell-anchored actors only** (not mobile characters).
+- Occupancy tracks **cell-anchored actors only** (not free actors without a cell).
 - General placement is engine-owned; content ability effects supply validation and what gets placed (weighted pool of actor definitions).
 - **Farm** (CompuQuest): modal ability; plant effect costs **seeds**; places a random vegetable actor on an **unoccupied Grass** cell in front of the player. See [farming.md](farming.md).
 - **Geek** (CompuQuest): modal ability; place effect costs **electronics**; places a **computer** actor on an **unoccupied Grass** cell in front of the player (inherits the placer’s faction). Computers are immobile **turrets**: intrinsic gun accessory, **10** starting ammo, auto-aim at nearest hostile and fire like AI gunners. With Geek selected, environment interact targets a computer in the front cell (costs **1** energy).

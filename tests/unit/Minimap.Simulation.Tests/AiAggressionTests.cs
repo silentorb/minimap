@@ -10,8 +10,8 @@ public class AiAggressionTests
         var w = GameWorld.Create(5, 5, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var aiPawn = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.Zombie);
-        var hostile = w.AddCharacter(1, new SimVec2(200f, 0f), TestContent.Bare);
+        var aiPawn = w.AddActor(2, new SimVec2(0f, 0f), TestContent.Zombie);
+        var hostile = w.AddActor(1, new SimVec2(200f, 0f), TestContent.Bare);
 
         // Seeded RNG that always pauses roam (NextDouble < PauseChance).
         var ai = new AiController(new AlwaysPauseRandom(), new DirectMoveSteering(), aggression: 0f);
@@ -22,7 +22,7 @@ public class AiAggressionTests
         Assert.Equal(0f, ai.Aggression);
 
         // Contrast: aggression 1 with same pause RNG still beelines.
-        var chaser = w.AddCharacter(2, new SimVec2(0f, 20f), TestContent.Zombie);
+        var chaser = w.AddActor(2, new SimVec2(0f, 20f), TestContent.Zombie);
         var chaseAi = new AiController(new AlwaysPauseRandom(), new DirectMoveSteering(), aggression: 1f);
         w.AttachController(chaseAi, chaser);
         chaseAi.Tick(w, 0.016f);
@@ -36,8 +36,8 @@ public class AiAggressionTests
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var aiPawn = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.Zombie);
-        var victim = w.AddCharacter(1, new SimVec2(w.HexSize * 0.5f, 0f), TestContent.Bare);
+        var aiPawn = w.AddActor(2, new SimVec2(0f, 0f), TestContent.Zombie);
+        var victim = w.AddActor(1, new SimVec2(w.HexSize * 0.5f, 0f), TestContent.Bare);
 
         var ai = new AiController(new Random(1), new DirectMoveSteering(), aggression: 0f);
         w.AttachController(ai, aiPawn);
@@ -55,8 +55,8 @@ public class AiAggressionTests
         var w = GameWorld.Create(5, 5, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var chaser = w.AddCharacter(2, new SimVec2(0f, 0f), TestContent.Zombie);
-        w.AddCharacter(1, new SimVec2(80f, 0f), TestContent.Bare);
+        var chaser = w.AddActor(2, new SimVec2(0f, 0f), TestContent.Zombie);
+        w.AddActor(1, new SimVec2(80f, 0f), TestContent.Bare);
 
         var ai = new AiController(
             new Random(1),
@@ -69,12 +69,12 @@ public class AiAggressionTests
     }
 
     [Fact]
-    public void SpawnChaseCharacter_uses_crazed_aggression()
+    public void SpawnChaseActor_uses_crazed_aggression()
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
 
-        var spawned = w.SpawnChaseCharacter(
+        var spawned = w.SpawnChaseActor(
             TestContent.Zombie,
             new SimVec2(0f, 0f),
             factionId: 2);

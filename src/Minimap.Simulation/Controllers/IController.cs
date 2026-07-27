@@ -1,10 +1,10 @@
 namespace Minimap.Simulation;
 
-/// <summary>Drives a possessed <see cref="Character"/> (docs/technical/features/gameplay/controllers.md).</summary>
+/// <summary>Drives a possessed <see cref="Actor"/> (docs/technical/features/gameplay/controllers.md).</summary>
 public interface IController
 {
-    Character? Pawn { get; }
-    void Possess(Character character);
+    Actor? Pawn { get; }
+    void Possess(Actor actor);
     void Unpossess();
     void Tick(GameWorld world, float dt);
 }

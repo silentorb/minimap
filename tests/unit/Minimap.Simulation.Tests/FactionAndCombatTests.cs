@@ -18,12 +18,12 @@ public class FactionAndCombatTests
         var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2, AiPerFaction = 3, HumanPlayerCount = 1 };
         var w = GameWorld.Create(4, 4, 42);
         w.SpawnDefaultRoster(spawn, TestContent.Generic, TestContent.ResourceContext);
-        Assert.Equal(1 + 3 + 3, w.Characters.Count);
+        Assert.Equal(1 + 3 + 3, w.Actors.Count);
         Assert.Equal(spawn.AiPerFaction * 2, w.Controllers.Count);
         var human = TestWorldHelpers.FindUnpossessedHuman(w, spawn.PlayerFactionId);
-        Assert.Equal(1, w.Characters.Count(c => c.FactionId == 1 && c.Id == human.Id));
-        Assert.Equal(4, w.Characters.Count(c => c.FactionId == 1));
-        Assert.Equal(3, w.Characters.Count(c => c.FactionId == 2));
+        Assert.Equal(1, w.Actors.Count(c => c.FactionId == 1 && c.Id == human.Id));
+        Assert.Equal(4, w.Actors.Count(c => c.FactionId == 1));
+        Assert.Equal(3, w.Actors.Count(c => c.FactionId == 2));
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class FactionAndCombatTests
     {
         var gen = new AllGrassGenerator();
         var (w, _, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
+        var enemy = w.AddActor(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage; // one hit kills
 
         w.SpawnMissile(
@@ -45,7 +45,7 @@ public class FactionAndCombatTests
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
-        Assert.DoesNotContain(enemy, w.Characters);
+        Assert.DoesNotContain(enemy, w.Actors);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class FactionAndCombatTests
     {
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
+        var ally = w.AddActor(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
 
         w.SpawnMissile(
@@ -69,7 +69,7 @@ public class FactionAndCombatTests
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
-        Assert.Contains(ally, w.Characters);
+        Assert.Contains(ally, w.Actors);
         Assert.Equal(before - CombatTuning.MissileDamage, ally.Health);
     }
 
@@ -78,7 +78,7 @@ public class FactionAndCombatTests
     {
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        var ally = w.AddCharacter(player.FactionId, player.Position + new SimVec2(5f, 0f));
+        var ally = w.AddActor(player.FactionId, player.Position + new SimVec2(5f, 0f));
         var before = ally.Health;
 
         w.SpawnMissile(
@@ -95,7 +95,7 @@ public class FactionAndCombatTests
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
-        Assert.Contains(ally, w.Characters);
+        Assert.Contains(ally, w.Actors);
         Assert.Equal(before, ally.Health);
     }
 
@@ -105,7 +105,7 @@ public class FactionAndCombatTests
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
         // Closer hostile to the left — aim right must not auto-aim at them.
-        w.AddCharacter(2, player.Position + new SimVec2(-20f, 0f));
+        w.AddActor(2, player.Position + new SimVec2(-20f, 0f));
 
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetFireHeld(true);
@@ -122,7 +122,7 @@ public class FactionAndCombatTests
     {
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(3, 3, 1, gen);
-        w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
+        w.AddActor(2, player.Position + new SimVec2(40f, 0f));
 
         driver.SetAimInput(SimVec2.Zero);
         driver.SetFireHeld(false);
@@ -149,8 +149,8 @@ public class FactionAndCombatTests
         var gen = new AllGrassGenerator();
         var w = GameWorld.Create(3, 3, 1, gen);
         w.ApplyGameContent(TestContent.Content);
-        var shooter = w.AddCharacter(1, SimVec2.Zero);
-        w.AddCharacter(2, new SimVec2(40f, 0f));
+        var shooter = w.AddActor(1, SimVec2.Zero);
+        w.AddActor(2, new SimVec2(40f, 0f));
         var ai = new AiController(new Random(1));
         w.AttachController(ai, shooter);
         var effect = Shoot.FindShootEffect(shooter)!;
@@ -164,7 +164,7 @@ public class FactionAndCombatTests
     [Fact]
     public void Character_defaults_to_documented_max_health()
     {
-        var c = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
+        var c = new Actor(0, TestContent.Generic, TestContent.ResourceContext, 1, SimVec2.Zero);
         Assert.Equal(CombatTuning.DefaultMaxHealth, c.MaxHealth);
         Assert.Equal(CombatTuning.DefaultMaxHealth, c.Health);
     }

@@ -20,7 +20,7 @@ public class AbilityLoadoutTests
             Array.Empty<AccessoryEffect>(),
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
 
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(gun.CreateInstance());
         character.AddAccessory(plant.CreateInstance());
 
@@ -40,7 +40,7 @@ public class AbilityLoadoutTests
             activation: new AccessoryActivation(
                 AccessoryActivationKind.Dedicated,
                 AccessoryActivationBinds.SecondaryFire));
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(swing.CreateInstance());
 
         Assert.True(character.AbilityLoadout.TryGetDedicated(
@@ -55,7 +55,7 @@ public class AbilityLoadoutTests
             "plant",
             Array.Empty<AccessoryEffect>(),
             activation: new AccessoryActivation(AccessoryActivationKind.Modal));
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(plant.CreateInstance());
 
         character.AbilityLoadout.SelectModal(3);
@@ -66,7 +66,7 @@ public class AbilityLoadoutTests
     [Fact]
     public void Rebuild_includes_more_than_four_modal_accessories()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         for (var i = 0; i < 5; i++)
         {
             var def = new AccessoryDefinition(
@@ -83,7 +83,7 @@ public class AbilityLoadoutTests
     [Fact]
     public void CycleModal_wraps_through_none_slot()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         foreach (var id in new[] { "a", "b", "c" })
         {
             var def = new AccessoryDefinition(
@@ -114,7 +114,7 @@ public class AbilityLoadoutTests
     [Fact]
     public void Rebuild_preserves_unequipped_selection()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AddAccessory(new AccessoryDefinition(
             "a",
             Array.Empty<AccessoryEffect>(),
@@ -140,7 +140,7 @@ public class AbilityLoadoutTests
     [Fact]
     public void CycleModal_no_ops_when_pool_empty()
     {
-        var character = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var character = new Actor(0, TestContent.Bare, TestContent.ResourceContext, 1, SimVec2.Zero);
         character.AbilityLoadout.CycleModal(1);
         character.AbilityLoadout.CycleModal(-1);
         Assert.Empty(character.AbilityLoadout.Modal);

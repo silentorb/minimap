@@ -32,15 +32,18 @@ public class SpawnEffectTests
 
         var cell = new HexAxial(0, 0);
         Assert.True(w.TryPlaceActor(cell, spawnerDef));
-        Assert.Empty(w.Characters);
+        Assert.Single(w.Actors);
+        Assert.Same(w.CellActors[cell], w.Actors[0]);
 
-        w.TickCellActors(0.5f);
-        Assert.Empty(w.Characters);
+        w.TickActorPassives(0.5f);
+        Assert.Single(w.Actors);
 
-        w.TickCellActors(0.6f);
-        Assert.Equal(2, w.Characters.Count);
-        Assert.All(w.Characters, c => Assert.Equal(2, c.FactionId));
-        Assert.All(w.Characters, c => Assert.Equal("zombie", c.Definition.Id));
+        w.TickActorPassives(0.6f);
+        Assert.Equal(3, w.Actors.Count);
+        var spawned = w.Actors.Where(a => a.Cell is null).ToList();
+        Assert.Equal(2, spawned.Count);
+        Assert.All(spawned, c => Assert.Equal(2, c.FactionId));
+        Assert.All(spawned, c => Assert.Equal("zombie", c.Definition.Id));
         Assert.Contains(w.Controllers, c => c is AiController { Aggression: AiTuning.DefaultAggression });
     }
 
@@ -75,8 +78,8 @@ public class SpawnEffectTests
         w.Tick(0.016f);
         Assert.False(w.IsCellOccupied(cell));
 
-        w.TickCellActors(2f);
-        Assert.Empty(w.Characters);
+        w.TickActorPassives(2f);
+        Assert.Empty(w.Actors);
     }
 
     private sealed class AllGrassGenerator : IWorldGenerator

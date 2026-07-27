@@ -8,8 +8,8 @@ namespace Minimap.Simulation;
 /// </summary>
 public interface ICellPlacementEffect
 {
-    bool CanPlace(GameWorld world, Character placer, HexAxial cell);
+    bool CanPlace(GameWorld world, Actor placer, HexAxial cell);
 
     /// <summary>Returns false for expected rejection; does not throw for those cases.</summary>
-    bool TryPlace(GameWorld world, Character placer, HexAxial cell, Random random);
+    bool TryPlace(GameWorld world, Actor placer, HexAxial cell, Random random);
 }

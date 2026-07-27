@@ -57,11 +57,11 @@ public class ExtensionLoaderTests
         Assert.Equal("compuquest", result.Integrator.Id);
         Assert.False(result.Registry.TryGetIntegrator("default", out _));
         Assert.True(result.Registry.TryGetIntegrator("compuquest", out _));
-        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
+        Assert.Equal("generic", result.Content.DefaultActor.Id);
         Assert.False(result.Content.WorldSpawnerPool.IsEmpty);
         Assert.Contains(result.Registry.AccessoryDefinitions, d => d.Id == "gun");
-        Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "generic");
-        Assert.Contains(result.Registry.CharacterDefinitions, d => d.Id == "zombie");
+        Assert.Contains(result.Registry.ActorDefinitions, d => d.Id == "generic");
+        Assert.Contains(result.Registry.ActorDefinitions, d => d.Id == "zombie");
         Assert.True(result.Registry.Tags.TryGet("player_selectable", out _));
         var selectable = result.Integrator.GetPlayerSelectableAccessories(result.Registry);
         Assert.Equal(9, selectable.Count);
@@ -80,7 +80,7 @@ public class ExtensionLoaderTests
 
         var result = ExtensionLoader.LoadFromFile(Path.Combine(repoRoot, "config", "extensions.json"));
         Assert.Equal("compuquest", result.Integrator.Id);
-        Assert.Equal("generic", result.Content.DefaultCharacter.Id);
+        Assert.Equal("generic", result.Content.DefaultActor.Id);
     }
 
     private static string FindRepoRoot()

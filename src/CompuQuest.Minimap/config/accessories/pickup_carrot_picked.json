@@ -1,5 +1,5 @@
 {
-  "id": "pickup_loose_carrot",
+  "id": "pickup_carrot_picked",
   "displayName": "Pickup Loose Carrot",
   "activation": {
     "kind": "none"
@@ -9,7 +9,10 @@
       "type": "pickup_resource",
       "id": "food",
       "amount": 1,
-      "cost": { "id": "energy", "amount": 1 }
+      "cost": {
+        "id": "energy",
+        "amount": 1
+      }
     }
   ]
 }

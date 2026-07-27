@@ -3,7 +3,7 @@ namespace Minimap.Simulation;
 /// <summary>Resolve environment-interact targets from facing + default / ability override.</summary>
 public static class EnvironmentInteraction
 {
-    public static Actor? ResolveTarget(GameWorld world, Character actor)
+    public static Actor? ResolveTarget(GameWorld world, Actor actor)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(actor);
@@ -11,7 +11,7 @@ public static class EnvironmentInteraction
         return Resolve(world, actor, out var target) is not null ? target : null;
     }
 
-    public static bool TryInteract(GameWorld world, Character actor)
+    public static bool TryInteract(GameWorld world, Actor actor)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(actor);
@@ -28,7 +28,7 @@ public static class EnvironmentInteraction
     /// </summary>
     public static IInteractionEffect? Resolve(
         GameWorld world,
-        Character actor,
+        Actor actor,
         out Actor? target)
     {
         target = GetFrontActor(world, actor);
@@ -58,7 +58,7 @@ public static class EnvironmentInteraction
         return null;
     }
 
-    private static Actor? GetFrontActor(GameWorld world, Character actor)
+    private static Actor? GetFrontActor(GameWorld world, Actor actor)
     {
         var cell = CellFacing.CellInFront(actor, world.HexSize);
         if (!world.TryGetActorAt(cell, out var target) || target is null)

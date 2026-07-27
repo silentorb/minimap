@@ -11,7 +11,7 @@ public class CellOccupancyTests
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
-        var def = new ActorDefinition("carrot");
+        var def = new ActorDefinition("carrot_growing");
         var cell = w.Grid.AllHexes().First();
 
         Assert.True(w.TryPlaceActor(cell, def));
@@ -27,12 +27,38 @@ public class CellOccupancyTests
     {
         var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
         w.ApplyGameContent(TestContent.Content);
-        var def = new ActorDefinition("corn");
+        var def = new ActorDefinition("corn_growing");
         var cell = w.Grid.AllHexes().First();
         Assert.True(w.TryPlaceActor(cell, def));
         Assert.True(w.TryRemoveActorAt(cell, out var removed));
-        Assert.Equal("corn", removed!.Definition.Id);
+        Assert.Equal("corn_growing", removed!.Definition.Id);
         Assert.False(w.IsCellOccupied(cell));
+        Assert.DoesNotContain(removed, w.Actors);
+    }
+
+    [Fact]
+    public void TryPlaceActor_adds_to_actors_collection_and_occupancy()
+    {
+        var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+        var def = new ActorDefinition("carrot_growing");
+        var cell = w.Grid.AllHexes().First();
+
+        Assert.True(w.TryPlaceActor(cell, def));
+        Assert.True(w.TryGetActorAt(cell, out var placed));
+        Assert.Contains(placed!, w.Actors);
+        Assert.Same(placed, w.CellActors[cell]);
+    }
+
+    [Fact]
+    public void AddActor_is_in_actors_but_not_occupancy()
+    {
+        var w = GameWorld.Create(3, 3, 1, new AllGrassGenerator());
+        w.ApplyGameContent(TestContent.Content);
+        var actor = w.AddActor(1, SimVec2.Zero);
+        Assert.Contains(actor, w.Actors);
+        Assert.Null(actor.Cell);
+        Assert.Empty(w.CellActors);
     }
 
     private sealed class AllGrassGenerator : IWorldGenerator

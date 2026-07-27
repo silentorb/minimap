@@ -6,9 +6,10 @@ namespace Minimap.Functional.Tests;
 
 public class GameplaySimulationFunctionalTests
 {
-    private static readonly CharacterDefinition Generic = new(
+    private static readonly ActorDefinition Generic = new(
         "generic",
         [
+            TestContent.Move,
             new AccessoryDefinition(
                 "gun",
                 [
@@ -17,6 +18,17 @@ public class GameplaySimulationFunctionalTests
                         CombatTuning.MissileSpeed,
                         CombatTuning.MissileDamage),
                 ]),
+        ],
+        resources:
+        [
+            new ActorResourceAmount(
+                TestContent.MaxHealthResource.Tag, CombatTuning.DefaultMaxHealth),
+            new ActorResourceAmount(
+                TestContent.HealthResource.Tag, CombatTuning.DefaultMaxHealth),
+            new ActorResourceAmount(
+                TestContent.MaxEnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
+            new ActorResourceAmount(
+                TestContent.EnergyResource.Tag, CombatTuning.DefaultMaxEnergy),
         ]);
 
     [Fact]
@@ -24,8 +36,8 @@ public class GameplaySimulationFunctionalTests
     {
         var w = GameWorld.Create(3, 3, 42);
         w.SpawnDefaultRoster(new SpawnConfig { AiPerFaction = 1 }, Generic, TestContent.ResourceContext);
-        Assert.Equal(1 + 1 + 1, w.Characters.Count);
-        foreach (var p in w.Characters)
+        Assert.Equal(1 + 1 + 1, w.Actors.Count);
+        foreach (var p in w.Actors)
         {
             var hex = HexWorldLayout.WorldToAxial(p.Position, w.HexSize);
             Assert.True(w.Grid.Contains(hex));
@@ -39,7 +51,7 @@ public class GameplaySimulationFunctionalTests
         var gen = new FixedLayoutGenerator();
         var w = GameWorld.Create(2, 2, 1, gen);
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(Generic);
+        w.SetSpawnActorDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var driver = new DriveController();
@@ -61,12 +73,12 @@ public class GameplaySimulationFunctionalTests
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(Generic);
+        w.SetSpawnActorDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
-        var victim = w.AddCharacter(2, SimVec2.Zero);
+        var victim = w.AddActor(2, SimVec2.Zero);
         w.ApplyDamage(victim, CombatTuning.DefaultMaxHealth);
         w.Tick(0.016f);
-        Assert.DoesNotContain(victim, w.Characters);
+        Assert.DoesNotContain(victim, w.Actors);
     }
 
     [Fact]
@@ -74,10 +86,10 @@ public class GameplaySimulationFunctionalTests
     {
         var w = GameWorld.Create(3, 3, 1, new FixedLayoutGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(Generic);
+        w.SetSpawnActorDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var player = FindUnpossessedHuman(w, 1);
-        var enemy = w.AddCharacter(99, player.Position + new SimVec2(5f, 0f));
+        var enemy = w.AddActor(99, player.Position + new SimVec2(5f, 0f));
         enemy.Health = CombatTuning.MissileDamage;
 
         w.SpawnMissile(
@@ -90,8 +102,8 @@ public class GameplaySimulationFunctionalTests
         for (var i = 0; i < 30; i++)
             w.Tick(1f / 60f);
 
-        Assert.DoesNotContain(enemy, w.Characters);
-        Assert.Contains(player, w.Characters);
+        Assert.DoesNotContain(enemy, w.Actors);
+        Assert.Contains(player, w.Actors);
     }
 
     [Fact]
@@ -99,7 +111,7 @@ public class GameplaySimulationFunctionalTests
     {
         var w = GameWorld.Create(2, 2, 1, new CorridorWithEastWallGenerator());
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(Generic);
+        w.SetSpawnActorDefinition(Generic);
         w.SpawnHumanPlayers(new SpawnConfig { AiPerFaction = 0 });
         var pawn = FindUnpossessedHuman(w, 1);
         var wallCenter = HexWorldLayout.ToWorld(new HexAxial(1, 0), w.HexSize);
@@ -126,7 +138,7 @@ public class GameplaySimulationFunctionalTests
         Assert.Equal(blockedX, pawn.Position.X, precision: 2);
     }
 
-    private static Character FindUnpossessedHuman(GameWorld world, int playerFactionId)
+    private static Actor FindUnpossessedHuman(GameWorld world, int playerFactionId)
     {
         var controlled = new HashSet<int>();
         foreach (var c in world.Controllers)
@@ -135,7 +147,7 @@ public class GameplaySimulationFunctionalTests
                 controlled.Add(pawn.Id);
         }
 
-        return world.Characters.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
+        return world.Actors.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
     }
 
     /// <summary>Local drive double (PlayerController lives in Client).</summary>
@@ -144,9 +156,9 @@ public class GameplaySimulationFunctionalTests
         private SimVec2 _moveInput;
         private SimVec2 _aimInput;
 
-        public Character? Pawn { get; private set; }
+        public Actor? Pawn { get; private set; }
 
-        public void Possess(Character character) => Pawn = character;
+        public void Possess(Actor character) => Pawn = character;
 
         public void Unpossess() => Pawn = null;
 

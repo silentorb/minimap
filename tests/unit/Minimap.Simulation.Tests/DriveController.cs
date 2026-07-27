@@ -10,9 +10,9 @@ internal sealed class DriveController : IController
     private bool _fireHeld;
     private bool _secondaryFireHeld;
 
-    public Character? Pawn { get; private set; }
+    public Actor? Pawn { get; private set; }
 
-    public void Possess(Character character) => Pawn = character;
+    public void Possess(Actor character) => Pawn = character;
 
     public void Unpossess() => Pawn = null;
 
@@ -36,19 +36,19 @@ internal sealed class DriveController : IController
 
 internal static class TestWorldHelpers
 {
-    public static (GameWorld World, DriveController Driver, Character Pawn) CreateDriven(
+    public static (GameWorld World, DriveController Driver, Actor Pawn) CreateDriven(
         int radiusX,
         int radiusY,
         int seed,
         IWorldGenerator? generator = null,
         SpawnConfig? spawn = null,
-        CharacterDefinition? definition = null)
+        ActorDefinition? definition = null)
     {
         var config = spawn ?? new SpawnConfig { AiPerFaction = 0 };
         var def = definition ?? TestContent.Generic;
         var w = GameWorld.Create(radiusX, radiusY, seed, generator);
         w.ApplyGameContent(TestContent.Content);
-        w.SetSpawnCharacterDefinition(def);
+        w.SetSpawnActorDefinition(def);
         w.SpawnHumanPlayers(config);
         var human = FindUnpossessedHuman(w, config.PlayerFactionId);
         var driver = new DriveController();
@@ -56,7 +56,7 @@ internal static class TestWorldHelpers
         return (w, driver, human);
     }
 
-    public static Character FindUnpossessedHuman(GameWorld world, int playerFactionId)
+    public static Actor FindUnpossessedHuman(GameWorld world, int playerFactionId)
     {
         var controlled = new HashSet<int>();
         foreach (var c in world.Controllers)
@@ -65,6 +65,6 @@ internal static class TestWorldHelpers
                 controlled.Add(pawn.Id);
         }
 
-        return world.Characters.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
+        return world.Actors.First(c => c.FactionId == playerFactionId && !controlled.Contains(c.Id));
     }
 }

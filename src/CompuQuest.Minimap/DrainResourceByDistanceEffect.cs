@@ -26,10 +26,8 @@ public sealed class DrainResourceByDistanceEffect : AccessoryEffect, IPassiveEff
     public void Tick(Actor actor, float dt)
     {
         ArgumentNullException.ThrowIfNull(actor);
-        if (actor is not Character character)
-            return;
 
-        var position = character.Position;
+        var position = actor.Position;
         if (_lastPosition is not SimVec2 previous)
         {
             _lastPosition = position;

@@ -88,7 +88,7 @@ public class ScenarioRunnerTests
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
-        var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
+        var player = world.Actors.Single(c => c.FactionId == spawn.PlayerFactionId);
         player.Health = 10;
         var runner = EnabledRunner();
 
@@ -106,7 +106,7 @@ public class ScenarioRunnerTests
         Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));
         Assert.Single(world.Spawners);
 
-        var healed = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
+        var healed = world.Actors.Single(c => c.FactionId == spawn.PlayerFactionId);
         Assert.Equal(CombatTuning.DefaultMaxHealth, healed.Health);
     }
 
@@ -124,17 +124,17 @@ public class ScenarioRunnerTests
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
-        var player = world.Characters.Single(c => c.FactionId == spawn.PlayerFactionId);
+        var player = world.Actors.Single(c => c.FactionId == spawn.PlayerFactionId);
         world.ApplyDamage(player, CombatTuning.DefaultMaxHealth);
         world.Tick(0.016f);
-        Assert.DoesNotContain(player, world.Characters);
+        Assert.DoesNotContain(player, world.Actors);
 
         var runner = EnabledRunner();
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.2f);
         runner.Tick(world, scenario, spawn, TestContent.SpawnerPool, 0.01f);
 
-        Assert.Single(world.Characters, c => c.FactionId == spawn.PlayerFactionId);
+        Assert.Single(world.Actors, c => c.FactionId == spawn.PlayerFactionId);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class ScenarioRunnerTests
     {
         var emptySpawner = new SpawnerDefinition(
             "empty",
-            WeightedPool<CharacterDefinition>.Empty);
+            WeightedPool<ActorDefinition>.Empty);
         var pool = new WeightedPool<SpawnerDefinition>(
         [
             new WeightedEntry<SpawnerDefinition>(emptySpawner, 1),
@@ -160,5 +160,5 @@ public class ScenarioRunnerTests
     }
 
     private static int CountRivals(GameWorld world, int rivalFactionId) =>
-        world.Characters.Count(c => c.FactionId == rivalFactionId);
+        world.Actors.Count(c => c.FactionId == rivalFactionId);
 }

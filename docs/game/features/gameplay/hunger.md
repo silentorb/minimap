@@ -6,8 +6,8 @@ Character energy drain, vitality, and eating food. Related: [resources.md](resou
 
 - Every character has **current energy** (`energy` resource) and **max energy** (`max_energy` resource). Energy is limited by max energy, same pattern as health.
 - Default **max energy** (and starting energy) is **100**.
-- Characters gradually lose energy over time (**1** energy per second by default). Time drain and vitality live on a hidden **energy upkeep** accessory (`energy_upkeep`): activation **none**, not lobby-selectable, present on every character definition.
-- Characters also lose energy from movement: **1** energy per **120** world units traveled (about **1** energy per second at full move speed **120**). Distance drain lives on a separate hidden **movement energy** accessory (`movement_energy`): activation **none**, not lobby-selectable, present on every character definition.
+- Characters gradually lose energy over time (**1** energy per second by default). Time drain and vitality live on a hidden **energy upkeep** accessory (`energy_upkeep`): activation **none**, not lobby-selectable, present on every mobile actor definition that uses hunger.
+- Characters also lose energy from movement: **1** energy per **120** world units traveled (about **1** energy per second at full move speed **120**). Distance drain lives on a separate hidden **movement energy** accessory (`movement_energy`): activation **none**, not lobby-selectable, present on every mobile actor definition that uses hunger.
 - **Vitality** pulses every **1** second and modifies **health** from the character’s energy as a percent of max:
 
   | Energy (% of max) | Health delta / pulse |

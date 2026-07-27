@@ -12,7 +12,7 @@ public interface IGrowEffect
     int YieldAmount { get; }
 
     /// <summary>When set, harvest/emerge spawns this character id instead of granting yield.</summary>
-    string? EmergeCharacterId { get; }
+    string? EmergeActorId { get; }
 
     float EmergeAfterMatureSeconds { get; }
 

@@ -9,8 +9,6 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     private readonly Dictionary<string, IIntegrator> _integrators = new(StringComparer.Ordinal);
     private readonly List<AccessoryDefinition> _accessoryDefinitions = new();
     private readonly Dictionary<string, AccessoryDefinition> _accessoryById = new(StringComparer.Ordinal);
-    private readonly List<CharacterDefinition> _characterDefinitions = new();
-    private readonly Dictionary<string, CharacterDefinition> _characterById = new(StringComparer.Ordinal);
     private readonly List<ActorDefinition> _actorDefinitions = new();
     private readonly Dictionary<string, ActorDefinition> _actorById = new(StringComparer.Ordinal);
     private readonly List<ResourceDefinition> _resourceDefinitions = new();
@@ -28,8 +26,6 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         _integrators.Values.OrderBy(i => i.Id, StringComparer.Ordinal).ToList();
 
     public IReadOnlyList<AccessoryDefinition> AccessoryDefinitions => _accessoryDefinitions;
-
-    public IReadOnlyList<CharacterDefinition> CharacterDefinitions => _characterDefinitions;
 
     public IReadOnlyList<ActorDefinition> ActorDefinitions => _actorDefinitions;
 
@@ -100,29 +96,6 @@ public sealed class ExtensionRegistry : IExtensionRegistry
         }
 
         return _accessoryById.TryGetValue(id, out definition);
-    }
-
-    public void AddCharacterDefinition(CharacterDefinition definition)
-    {
-        ArgumentNullException.ThrowIfNull(definition);
-        if (!_characterById.TryAdd(definition.Id, definition))
-        {
-            throw new InvalidOperationException(
-                $"Duplicate character definition id '{definition.Id}'.");
-        }
-
-        _characterDefinitions.Add(definition);
-    }
-
-    public bool TryGetCharacterDefinition(string id, out CharacterDefinition? definition)
-    {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            definition = null;
-            return false;
-        }
-
-        return _characterById.TryGetValue(id, out definition);
     }
 
     public void AddActorDefinition(ActorDefinition definition)

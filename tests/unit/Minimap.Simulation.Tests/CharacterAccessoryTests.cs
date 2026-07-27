@@ -8,18 +8,20 @@ public class CharacterAccessoryTests
     [Fact]
     public void Instantiate_from_definition_adds_accessories_and_caches_effects()
     {
-        var c = new Character(0, 1, SimVec2.Zero, TestContent.Generic, TestContent.ResourceContext);
-        Assert.Single(c.Accessories);
-        Assert.Equal("gun", c.Accessories[0].Definition.Id);
-        Assert.Equal(2, c.Effects.Count);
-        Assert.IsType<TestGrantResourceEffect>(c.Effects[0]);
-        Assert.IsType<TestShootEffect>(c.Effects[1]);
+        var c = new Actor(0, TestContent.Generic, TestContent.ResourceContext, 1, SimVec2.Zero);
+        Assert.Equal(2, c.Accessories.Count);
+        Assert.Equal("move", c.Accessories[0].Definition.Id);
+        Assert.Equal("gun", c.Accessories[1].Definition.Id);
+        Assert.Contains(c.Effects, e => e is TestMoveEffect);
+        Assert.Contains(c.Effects, e => e is TestGrantResourceEffect);
+        Assert.Contains(c.Effects, e => e is TestShootEffect);
     }
 
     [Fact]
     public void Add_and_remove_accessory_syncs_effect_cache()
     {
-        var c = new Character(0, 1, SimVec2.Zero, TestContent.Bare, TestContent.ResourceContext);
+        var empty = new ActorDefinition("empty");
+        var c = new Actor(0, empty, TestContent.ResourceContext, 1, SimVec2.Zero);
         Assert.Empty(c.Effects);
 
         var gun = TestContent.Gun.CreateInstance();
@@ -40,7 +42,7 @@ public class CharacterAccessoryTests
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(
             3, 3, 1, gen, definition: TestContent.Bare);
-        w.AddCharacter(2, player.Position + new SimVec2(40f, 0f));
+        w.AddActor(2, player.Position + new SimVec2(40f, 0f));
 
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetFireHeld(true);

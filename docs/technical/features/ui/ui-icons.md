@@ -5,7 +5,7 @@ Opaque UI icon references on content definitions. Implements [ui-icons.md](../..
 ## Requirements
 
 - **`IconConfig`** lives in **`Minimap.Simulation.Types`**: `ResourcePath` only. No Godot types. Simulation does not load textures.
-- Optional on **`CharacterDefinition`**, **`AccessoryDefinition`**, and **`ResourceDefinition`** (`IconConfig?`).
+- Optional on **`ActorDefinition`**, **`AccessoryDefinition`**, and **`ResourceDefinition`** (`IconConfig?`).
 - JSON field `"icon"`: `{ "path" }` parsed by **`DefinitionConfig`**. Omit or null → no icon.
 - **Client** lobby accessory selection panel and **player HUD** resource rows load `ResourcePath` as a Godot texture for icons.
 - Domain-tagged accessories use Client **`DomainIconView`** (colored swatch + transparent-bg glyph); see [domains.md](../gameplay/domains.md).

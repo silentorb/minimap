@@ -19,25 +19,25 @@ public sealed class CompuQuestIntegrator : IIntegrator
     {
         ArgumentNullException.ThrowIfNull(registry);
 
-        if (!registry.TryGetCharacterDefinition(GenericCharacterId, out var generic) || generic is null)
+        if (!registry.TryGetActorDefinition(GenericCharacterId, out var generic) || generic is null)
         {
             throw new InvalidOperationException(
-                $"Character definition '{GenericCharacterId}' is not registered; cannot create game content.");
+                $"Actor definition '{GenericCharacterId}' is not registered; cannot create game content.");
         }
 
-        if (!registry.TryGetCharacterDefinition(ZombieCharacterId, out var zombie) || zombie is null)
+        if (!registry.TryGetActorDefinition(ZombieCharacterId, out var zombie) || zombie is null)
         {
             throw new InvalidOperationException(
-                $"Character definition '{ZombieCharacterId}' is not registered; cannot create game content.");
+                $"Actor definition '{ZombieCharacterId}' is not registered; cannot create game content.");
         }
 
         // Marker pool kept for parked ScenarioRunner wave tests; sandbox places the
         // zombie_spawner actor (intrinsic spawn accessory) via PlaceSpawnerActors.
         var zombieSpawner = new SpawnerDefinition(
             ZombieSpawnerId,
-            new WeightedPool<CharacterDefinition>(
+            new WeightedPool<ActorDefinition>(
             [
-                new WeightedEntry<CharacterDefinition>(zombie, 1),
+                new WeightedEntry<ActorDefinition>(zombie, 1),
             ]));
 
         var spawnerPool = new WeightedPool<SpawnerDefinition>(
@@ -49,8 +49,7 @@ public sealed class CompuQuestIntegrator : IIntegrator
             generic,
             spawnerPool,
             registry.ActorDefinitions,
-            registry.ResourceDefinitions,
-            registry.CharacterDefinitions);
+            registry.ResourceDefinitions);
     }
 
     public IReadOnlyList<AccessoryDefinition> GetPlayerSelectableAccessories(IExtensionRegistry registry)

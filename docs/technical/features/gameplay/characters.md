@@ -1,11 +1,3 @@
 # Characters (technical)
 
-Character definition vs instance contracts. Implements [characters.md](../../../game/features/gameplay/characters.md). Related: [actors.md](actors.md), [accessories.md](accessories.md), [characters-and-factions.md](characters-and-factions.md), [extensions.md](../platform/extensions.md), [definition-config.md](../platform/definition-config.md), [depiction.md](depiction.md).
-
-## Requirements
-
-- **`CharacterDefinition` : `ActorDefinition`** in **`Minimap.Simulation.Types`** (contracts only; see that project’s `AGENTS.md`).
-- Runtime **`Character` : `Actor`** (Simulation) adds faction, move intent, `AbilityLoadout`, health helpers (see [accessories.md](accessories.md), [actors.md](actors.md)).
-- Instantiation from a definition creates accessory instances (cloning effects), then **`AddAccessory`** each so the effect cache stays consistent.
-- **`GameContent.DefaultCharacter`** is the definition used for normal spawns (humans, rivals, refill). App obtains `GameContent` from the active integrator and passes it into the session/world; consumers treat it as ordinary content, not as an “integration” object.
-- Shipped short-term **generic** character is JSON under **`src/CompuQuest.Minimap/config/characters/generic.json`** (empty accessories list + sprite-frames depiction; copied to `extensions/CompuQuest.Minimap/` on build). Loaded by App into the registry (see [definition-config.md](../platform/definition-config.md)). Players receive selectable abilities only from lobby choices.
+**Superseded.** Use [actors.md](actors.md) and [characters-and-factions.md](characters-and-factions.md). There is no `Character` / `CharacterDefinition` type; mobile pawns are `Actor` instances from `ActorDefinition` JSON under `config/actors/`.

@@ -1,0 +1,21 @@
+{
+  "id": "carrot_growing",
+  "displayName": "Carrot",
+  "accessories": [
+    "grow_carrot"
+  ],
+  "resources": [
+    {
+      "id": "max_health",
+      "amount": 25
+    },
+    {
+      "id": "health",
+      "amount": 25
+    }
+  ],
+  "depiction": {
+    "kind": "texture",
+    "path": "res://assets/compuquest/game-icons/delapouite/seedling.svg"
+  }
+}

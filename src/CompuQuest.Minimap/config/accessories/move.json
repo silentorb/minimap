@@ -1,0 +1,13 @@
+{
+  "id": "move",
+  "displayName": "Move",
+  "activation": {
+    "kind": "none"
+  },
+  "effects": [
+    {
+      "type": "move",
+      "speed": 120
+    }
+  ]
+}

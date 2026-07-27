@@ -48,8 +48,7 @@ public class SwingAndActorHealthTests
         var w = CreateGrassWorld();
         var cell = new HexAxial(1, 0);
         var center = HexWorldLayout.ToWorld(cell, w.HexSize);
-        var def = new ActorDefinition(
-            "carrot",
+        var def = new ActorDefinition("carrot_growing",
             resources:
             [
                 new ActorResourceAmount(TestContent.MaxHealthResource.Tag, 50),
@@ -77,9 +76,18 @@ public class SwingAndActorHealthTests
     {
         var gen = new AllGrassGenerator();
         var (w, driver, player) = TestWorldHelpers.CreateDriven(
-            3, 3, 1, gen, definition: new CharacterDefinition("swinger", [TestContent.Swing]));
-        var front = w.AddCharacter(99, player.Position + new SimVec2(12f, 0f));
-        var behind = w.AddCharacter(99, player.Position + new SimVec2(-12f, 0f));
+            3, 3, 1, gen, definition: new ActorDefinition(
+                "swinger",
+                [TestContent.Swing],
+                resources:
+                [
+                    new ActorResourceAmount(TestContent.MaxHealthResource.Tag, 100),
+                    new ActorResourceAmount(TestContent.HealthResource.Tag, 100),
+                    new ActorResourceAmount(TestContent.MaxEnergyResource.Tag, 100),
+                    new ActorResourceAmount(TestContent.EnergyResource.Tag, 100),
+                ]));
+        var front = w.AddActor(99, player.Position + new SimVec2(12f, 0f));
+        var behind = w.AddActor(99, player.Position + new SimVec2(-12f, 0f));
         var frontBefore = front.Health;
         var behindBefore = behind.Health;
 
@@ -147,9 +155,9 @@ public class SwingAndActorHealthTests
     public void Ai_swings_when_hostile_in_range()
     {
         var w = CreateGrassWorld();
-        w.SetSpawnCharacterDefinition(TestContent.Zombie);
-        var swinger = w.AddCharacter(1, SimVec2.Zero, TestContent.Zombie);
-        w.AddCharacter(2, new SimVec2(10f, 0f));
+        w.SetSpawnActorDefinition(TestContent.Zombie);
+        var swinger = w.AddActor(1, SimVec2.Zero, TestContent.Zombie);
+        w.AddActor(2, new SimVec2(10f, 0f));
         var ai = new AiController(new Random(1));
         w.AttachController(ai, swinger);
         var effect = Swing.FindSwingEffect(swinger)!;
@@ -166,9 +174,9 @@ public class SwingAndActorHealthTests
     {
         var (w, driver, player) = TestWorldHelpers.CreateDriven(
             3, 3, 1, new AllGrassGenerator(),
-            definition: new CharacterDefinition("swinger", [TestContent.Swing]));
+            definition: new ActorDefinition("swinger", [TestContent.Swing]));
         player.Energy = 0;
-        w.AddCharacter(99, player.Position + new SimVec2(12f, 0f));
+        w.AddActor(99, player.Position + new SimVec2(12f, 0f));
         driver.SetAimInput(new SimVec2(1f, 0f));
         driver.SetSecondaryFireHeld(true);
         w.Tick(0.016f);

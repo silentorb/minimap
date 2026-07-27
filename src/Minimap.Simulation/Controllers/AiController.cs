@@ -27,7 +27,7 @@ public sealed class AiController : IController
         _retargetTimer = 0f;
     }
 
-    public Character? Pawn { get; private set; }
+    public Actor? Pawn { get; private set; }
 
     public IMoveSteering Steering => _steering;
 
@@ -35,7 +35,7 @@ public sealed class AiController : IController
 
     public bool SeekCrops => _seekCrops;
 
-    public void Possess(Character character)
+    public void Possess(Actor character)
     {
         Pawn = character;
         var shoot = Shoot.FindShootEffect(character);
@@ -81,7 +81,7 @@ public sealed class AiController : IController
             TryFarmerActions(world);
 
         var aimDir = SimVec2.Zero;
-        var target = Shoot.FindNearestHostile(Pawn, world.Characters);
+        var target = Shoot.FindNearestHostile(Pawn, world.Actors);
         if (target is not null)
         {
             var d = target.Position - Pawn.Position;
@@ -142,7 +142,7 @@ public sealed class AiController : IController
         var bestDistSq = float.PositiveInfinity;
         var origin = Pawn!.Position;
 
-        foreach (var other in world.Characters)
+        foreach (var other in world.Actors)
         {
             if (!other.IsAlive || other.Id == Pawn.Id)
                 continue;
@@ -252,7 +252,7 @@ public sealed class AiController : IController
         return false;
     }
 
-    public static bool CharacterSeeksCrops(CharacterDefinition definition)
+    public static bool ActorSeeksCrops(ActorDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
         foreach (var accessory in definition.Accessories)

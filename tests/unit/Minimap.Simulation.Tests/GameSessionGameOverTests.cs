@@ -64,7 +64,7 @@ public class GameSessionGameOverTests
             4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, content);
 
         Assert.Same(content, session.Content);
-        Assert.Equal("generic", session.Content.DefaultCharacter.Id);
+        Assert.Equal("generic", session.Content.DefaultActor.Id);
     }
 
     [Fact]

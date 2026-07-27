@@ -1,7 +1,9 @@
 {
   "id": "grow_crazed_carrot",
   "displayName": "Grow Crazed Carrot",
-  "tags": ["gardening"],
+  "tags": [
+    "gardening"
+  ],
   "activation": {
     "kind": "none"
   },
@@ -13,8 +15,8 @@
         "kind": "texture",
         "path": "res://assets/compuquest/game-icons/delapouite/carrot.svg"
       },
-      "emergeCharacterId": "crazed_carrot",
-      "emergeAfterMatureSeconds": 5
+      "emergeAfterMatureSeconds": 5,
+      "emergeActorId": "crazed_carrot"
     }
   ]
 }

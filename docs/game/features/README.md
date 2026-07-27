@@ -17,8 +17,8 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [gameplay/damage.md](gameplay/damage.md) | Changing how **damage** applies, missile / Swing damage amounts, placeable hits, or friendly-fire rules. |
 | [gameplay/depiction.md](gameplay/depiction.md) | Changing **depiction** on character/accessory/actor definitions, Kenney / SpriteFrames presentation, or how pawns look. |
 | [ui/ui-icons.md](ui/ui-icons.md) | Changing **UI / data-record icons**, game-icons art under `assets/compuquest/game-icons/`, or definition `icon` fields. |
-| [gameplay/actors.md](gameplay/actors.md) | Changing **actors**, actor definitions, cell-anchored actors, or the actor vs character split. |
-| [gameplay/characters.md](gameplay/characters.md) | Changing **character definitions**, CompuQuest `config/characters/` JSON, default character, or definition vs instance rules. |
+| [gameplay/actors.md](gameplay/actors.md) | Changing **actors**, actor definitions, default actor, cell occupancy, or mobile pawn loadouts. |
+| [gameplay/characters.md](gameplay/characters.md) | Historical redirect only — characters collapsed into [actors.md](gameplay/actors.md). |
 | [gameplay/accessories.md](gameplay/accessories.md) | Changing **accessories**, **abilities**, accessory effects, Gun, Farm, Geek, CompuQuest `config/accessories/` JSON, or effect-cache rules. |
 | [gameplay/animal-companions.md](gameplay/animal-companions.md) | Changing **animal companion** abilities (Fox, Squid, Monkey, Penguin, Poison dart frog), companion spawn-at-entry, or companion character defs. |
 | [gameplay/active-abilities.md](gameplay/active-abilities.md) | Changing **dedicated vs modal** ability activation, preview/confirm vs immediate activate, D-pad / bracket cycle select, or ability activate binds. |
