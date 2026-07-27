@@ -43,7 +43,8 @@ public sealed class SpawnNearbyAllyEffect : AccessoryEffect, IWorldActorPassiveE
             definition,
             actor.FactionId,
             Aggression,
-            seekCrops);
+            seekCrops,
+            ownerActorId: actor.Id);
         if (ally is not null)
             _spawned = true;
     }

@@ -3,14 +3,15 @@ using Minimap.Simulation.Types;
 namespace Minimap.Simulation;
 
 /// <summary>
-/// Aggression-blended wander + significant-goal pull; nearest-hostile combat;
-/// optional crop harvest / eat (docs/game/features/gameplay/ai.md).
+/// Aggression-blended wander + significant-goal pull; owner follow; injury flee;
+/// nearest-hostile combat; optional crop harvest / eat (docs/game/features/gameplay/ai.md).
 /// </summary>
 public sealed class AiController : IController
 {
     private readonly Random _random;
     private IMoveSteering _steering;
     private float _retargetTimer;
+    private float _fleeRemaining;
     private readonly float _aggression;
     private readonly bool _seekCrops;
 
@@ -25,6 +26,7 @@ public sealed class AiController : IController
         _aggression = Math.Clamp(aggression, 0f, 1f);
         _seekCrops = seekCrops;
         _retargetTimer = 0f;
+        _fleeRemaining = 0f;
     }
 
     public Actor? Pawn { get; private set; }
@@ -34,6 +36,9 @@ public sealed class AiController : IController
     public float Aggression => _aggression;
 
     public bool SeekCrops => _seekCrops;
+
+    /// <summary>Seconds remaining in an active injury flee; 0 when not fleeing.</summary>
+    public float FleeRemaining => _fleeRemaining;
 
     public void Possess(Actor character)
     {
@@ -46,6 +51,7 @@ public sealed class AiController : IController
             swing.CooldownRemaining = (float)(_random.NextDouble() * swing.FireIntervalSeconds);
         _steering.ClearGoal();
         _retargetTimer = 0f;
+        _fleeRemaining = 0f;
     }
 
     public void Unpossess()
@@ -54,6 +60,7 @@ public sealed class AiController : IController
         _steering.Dispose();
         _steering = new DirectMoveSteering();
         Pawn = null;
+        _fleeRemaining = 0f;
     }
 
     /// <summary>Swap move steering (e.g. App upgrades Direct → Godot crowd). Disposes the previous steering.</summary>
@@ -70,6 +77,9 @@ public sealed class AiController : IController
     {
         if (Pawn is null || !Pawn.IsAlive)
             return;
+
+        if (_fleeRemaining > 0f)
+            _fleeRemaining = Math.Max(0f, _fleeRemaining - dt);
 
         _retargetTimer -= dt;
         if (_retargetTimer <= 0f)
@@ -111,15 +121,47 @@ public sealed class AiController : IController
     private void PickGoal(GameWorld world)
     {
         _retargetTimer = AiWanderGoals.NextRetargetDelay(_random);
-        var significant = FindSignificantGoal(world);
-        var roam = AiWanderGoals.PickGrassGoalOrPause(world, _random);
 
+        if (_fleeRemaining <= 0f && IsSeriouslyInjured(Pawn!) && TryStartFlee())
+            _fleeRemaining = AiTuning.FleeDurationSeconds;
+
+        if (_fleeRemaining > 0f)
+        {
+            SetFleeGoal(world);
+            return;
+        }
+
+        var owner = FindLivingOwner(world);
+        var significant = FindSignificantGoal(world);
+
+        if (owner is not null)
+        {
+            PickOwnedGoal(world, owner, significant);
+            return;
+        }
+
+        var roam = AiWanderGoals.PickGrassGoalOrPause(world, _random);
+        ApplyAggressionBlend(roam, significant);
+    }
+
+    private void PickOwnedGoal(GameWorld world, Actor owner, SimVec2? significant)
+    {
+        var stayRadius = AiTuning.FollowStayRadiusHexes * world.HexSize;
+        var distSq = (owner.Position - Pawn!.Position).LengthSquared;
+        SimVec2? anchor = distSq <= stayRadius * stayRadius
+            ? null
+            : owner.Position;
+        ApplyAggressionBlend(anchor, significant);
+    }
+
+    private void ApplyAggressionBlend(SimVec2? anchor, SimVec2? significant)
+    {
         if (_aggression <= 0f || significant is null)
         {
-            if (roam is null)
+            if (anchor is null)
                 _steering.ClearGoal();
             else
-                _steering.SetGoal(roam.Value);
+                _steering.SetGoal(anchor.Value);
             return;
         }
 
@@ -129,11 +171,62 @@ public sealed class AiController : IController
             return;
         }
 
-        // Mid aggression: blend roam with a pull toward the significant target.
-        // If paused (no roam), pull partway from current position toward the target.
-        var from = roam ?? Pawn!.Position;
+        // Mid aggression: blend anchor with a pull toward the significant target.
+        // If paused (no anchor), pull partway from current position toward the target.
+        var from = anchor ?? Pawn!.Position;
         var blended = Lerp(from, significant.Value, _aggression);
         _steering.SetGoal(blended);
+    }
+
+    private void SetFleeGoal(GameWorld world)
+    {
+        var owner = FindLivingOwner(world);
+        if (owner is not null)
+        {
+            _steering.SetGoal(owner.Position);
+            return;
+        }
+
+        var hostile = Shoot.FindNearestHostile(Pawn!, world.Actors);
+        if (hostile is null)
+        {
+            _steering.ClearGoal();
+            return;
+        }
+
+        var away = Pawn!.Position - hostile.Position;
+        if (away.LengthSquared < 1e-10f)
+        {
+            _steering.ClearGoal();
+            return;
+        }
+
+        var escapeDistance = world.HexSize * 3f;
+        _steering.SetGoal(Pawn.Position + away.Normalized() * escapeDistance);
+    }
+
+    private bool TryStartFlee() =>
+        _random.NextDouble() < 1.0 - _aggression;
+
+    private static bool IsSeriouslyInjured(Actor pawn)
+    {
+        if (!pawn.IsDestructible || pawn.MaxHealth <= 0)
+            return false;
+        return (float)pawn.Health / pawn.MaxHealth <= AiTuning.SeriousInjuryHealthFraction;
+    }
+
+    private Actor? FindLivingOwner(GameWorld world)
+    {
+        if (Pawn?.OwnerActorId is not int ownerId)
+            return null;
+
+        foreach (var other in world.Actors)
+        {
+            if (other.Id == ownerId && other.IsAlive)
+                return other;
+        }
+
+        return null;
     }
 
     private SimVec2? FindSignificantGoal(GameWorld world)

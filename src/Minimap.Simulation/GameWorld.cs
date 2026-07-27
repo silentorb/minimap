@@ -388,7 +388,8 @@ public sealed class GameWorld
         ActorDefinition definition,
         int factionId,
         float aggression = AiTuning.DefaultAggression,
-        bool seekCrops = false)
+        bool seekCrops = false,
+        int? ownerActorId = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
 
@@ -408,6 +409,7 @@ public sealed class GameWorld
             factionId,
             HexWorldLayout.ToWorld(hex, HexSize),
             definition);
+        spawned.OwnerActorId = ownerActorId;
         AttachController(new AiController(_random, aggression: aggression, seekCrops: seekCrops), spawned);
         return spawned;
     }

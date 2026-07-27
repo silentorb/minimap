@@ -43,6 +43,9 @@ public class Actor
     /// <summary>Faction for hostility / ownership (default 0 for unowned placeables).</summary>
     public int FactionId { get; set; }
 
+    /// <summary>Living companion owner actor id when spawned as an ally; null when unowned.</summary>
+    public int? OwnerActorId { get; set; }
+
     /// <summary>Cell occupancy when this actor is cell-anchored; null when free.</summary>
     public HexAxial? Cell { get; set; }
 

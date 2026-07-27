@@ -266,7 +266,8 @@ internal sealed class TestSpawnNearbyAllyEffect : AccessoryEffect, IWorldActorPa
             definition,
             actor.FactionId,
             Aggression,
-            AiController.ActorSeeksCrops(definition));
+            AiController.ActorSeeksCrops(definition),
+            ownerActorId: actor.Id);
         if (ally is not null)
             _spawned = true;
     }

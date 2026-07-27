@@ -29,6 +29,7 @@ public class AnimalCompanionTests
 
         var ally = Assert.Single(w.Actors, c => c.Id != owner.Id);
         Assert.Equal(owner.FactionId, ally.FactionId);
+        Assert.Equal(owner.Id, ally.OwnerActorId);
         Assert.Equal("fox", ally.Definition.Id);
         Assert.Contains(
             w.Controllers,
