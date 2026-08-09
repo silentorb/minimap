@@ -15,7 +15,7 @@ Placing cell-anchored **actors** on map **cells** (spatial partitions). Related:
 - **Farm** (CompuQuest): modal ability; plant effect costs **seeds**; places a random vegetable actor on an **unoccupied Grass** cell in front of the player. See [farming.md](farming.md).
 - **Geek** (CompuQuest): modal ability; place effect costs **electronics**; places a **computer** actor on an **unoccupied Grass** cell in front of the player (inherits the placer’s faction). Computers are immobile **turrets**: intrinsic gun accessory, **10** starting ammo, auto-aim at nearest hostile and fire like AI gunners. With Geek selected, environment interact targets a computer in the front cell (costs **1** energy).
 - Placement UX (players): first modal activate enters **preview** (highlight front cell — greenish if valid, redder if invalid); second activate places if valid; **Back** cancels preview. (General two-step activate flow; see [active-abilities.md](active-abilities.md).)
-- Facing: last non-zero move direction; a short aim line shows facing; the front cell is the neighbor in that facing.
+- Facing: last non-zero **aim** direction (right stick / mouse); move does not change facing. A short aim line shows facing; the front cell is the neighbor in that facing.
 
 ## Terrain
 

@@ -7,7 +7,7 @@ Occupancy and placement APIs. Implements [cell-placement.md](../../../game/featu
 - Cell-anchored **`Actor`** + **`ActorDefinition`** (see [actors.md](actors.md)): occupancy map on **`GameWorld`**; `TryPlaceActor` / `TryRemoveActorAt` / `IsCellOccupied` return false for expected rejection (do not throw).
 - **`ICellPlacementEffect`** (Simulation): `CanPlace` / `TryPlace` for accessory effects. CompuQuest **`PlaceRandomActorEffect`** (`place_random_actor`) picks from a **weighted pool** of actor definition ids registered on the world. Placement gates/consumes via the effect’s **`IEffectUseCost`** (see [resources.md](resources.md)).
 - **`CellFacing`**: facing vector → hex neighbor offset → cell in front of a character.
-- **`Actor.Facing`** / character movement: updated from non-zero move intent during movement apply.
+- **`Actor.Facing`**: controllers update it (players from non-zero aim; AI from aim else move intent). Movement apply does not change facing.
 - Client: placement preview tint on hex polygons; texture depiction for prototype vegetable art; cell-actor layer sync with depiction override support.
 
 ## Non-goals (for now)

@@ -100,6 +100,11 @@ public sealed class AiController : IController
         }
 
         var hasAim = aimDir.LengthSquared >= 1e-10f;
+        if (hasAim)
+            Pawn.Facing = aimDir.Normalized();
+        else if (Pawn.MoveIntent.LengthSquared >= 1e-10f)
+            Pawn.Facing = Pawn.MoveIntent.Normalized();
+
         Shoot.Tick(world, Pawn, dt, aimDir, wantsFire: hasAim);
 
         var wantsSwing = false;

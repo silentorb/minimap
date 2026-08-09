@@ -68,6 +68,8 @@ public sealed class PlayerController : IController
             return;
 
         Pawn.MoveIntent = _moveInput;
+        if (_aimInput.LengthSquared >= 1e-10f)
+            Pawn.Facing = _aimInput.Normalized();
 
         if (_modalCycle is int delta)
         {

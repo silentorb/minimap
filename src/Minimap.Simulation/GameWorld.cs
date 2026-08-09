@@ -595,7 +595,6 @@ public sealed class GameWorld
             if (input.LengthSquared >= 1e-10f)
             {
                 var dir = input.Normalized();
-                actor.Facing = dir;
                 displacement = dir * (move.Speed * dt);
             }
 

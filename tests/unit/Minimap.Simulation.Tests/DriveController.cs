@@ -29,6 +29,8 @@ internal sealed class DriveController : IController
         if (Pawn is null || !Pawn.IsAlive)
             return;
         Pawn.MoveIntent = _moveInput;
+        if (_aimInput.LengthSquared >= 1e-10f)
+            Pawn.Facing = _aimInput.Normalized();
         Shoot.Tick(world, Pawn, dt, _aimInput, _fireHeld);
         Swing.Tick(world, Pawn, dt, _aimInput, _secondaryFireHeld);
     }
