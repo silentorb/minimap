@@ -6,7 +6,7 @@ All human players dead. Related: [post-session.md](post-session.md), [../gamepla
 
 - When **every local human player** has died (pawn removed or health ≤ 0), the game enters **game over**.
 - Gameplay pauses and the [post-session summary](post-session.md) appears (not a New game / Main menu dialog).
-- Level-end heal/resurrect (between waves levels) is separate from game over; see [scenarios.md](../session/scenarios.md).
+- Level-end heal/resurrect (between levels, after the wave countdown) is separate from game over; see [scenarios.md](../session/scenarios.md).
 
 ## Non-goals (for now)
 

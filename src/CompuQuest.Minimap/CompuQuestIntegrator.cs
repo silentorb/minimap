@@ -31,8 +31,8 @@ public sealed class CompuQuestIntegrator : IIntegrator
                 $"Actor definition '{ZombieCharacterId}' is not registered; cannot create game content.");
         }
 
-        // Marker pool kept for parked ScenarioRunner wave tests; sandbox places the
-        // zombie_spawner actor (intrinsic spawn accessory) via PlaceSpawnerActors.
+        // Marker pool kept for ScenarioRunner wave-burst tests / future events; normal play
+        // places the zombie_spawner actor (intrinsic spawn accessory) via PlaceSpawnerActors.
         var zombieSpawner = new SpawnerDefinition(
             ZombieSpawnerId,
             new WeightedPool<ActorDefinition>(

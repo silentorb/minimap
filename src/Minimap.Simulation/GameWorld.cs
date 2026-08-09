@@ -297,7 +297,10 @@ public sealed class GameWorld
         RebuildWallColliders();
 
         RepositionAndHealHumans(spawn);
-        PlaceSpawners(scenario.SpawnerCount, spawnerPool ?? _worldSpawnerPool);
+        if (spawnerPool is not null)
+            _worldSpawnerPool = spawnerPool;
+        // Live path: intrinsic placeables (wave-clock marker emission is separate / optional).
+        PlaceSpawnerActors(scenario.SpawnerCount, AiTuning.ZombieSpawnerActorId);
     }
 
     public void SpawnHumanPlayers(SpawnConfig spawn)
@@ -313,7 +316,8 @@ public sealed class GameWorld
 
     /// <summary>
     /// Place <paramref name="count"/> marker spawners by weighted-picking from <paramref name="pool"/>.
-    /// Empty pool places nothing. Kept for parked <see cref="ScenarioRunner"/> wave tests.
+    /// Empty pool places nothing. Used by tests and future wave-burst events; normal play uses
+    /// <see cref="PlaceSpawnerActors"/> instead.
     /// </summary>
     public void PlaceSpawners(int count, WeightedPool<SpawnerDefinition> pool)
     {

@@ -2,6 +2,10 @@
 
 Growing and harvesting food via the **Farm** ability. Related: [actors.md](actors.md), [accessories.md](accessories.md), [active-abilities.md](active-abilities.md), [interaction.md](interaction.md), [resources.md](resources.md), [cell-placement.md](cell-placement.md), [hunger.md](hunger.md), [ai.md](ai.md). Technical: [farming.md](../../../technical/features/gameplay/farming.md).
 
+## Design intent
+
+Farming / food gathering is **not** a foundational pillar of the current design pivot (survivor-defense pacing). Behavior below remains shipped until a dedicated scarcity/economy rollback pass; see also [resources.md](resources.md).
+
 ## Plant stages
 
 Standard vocabulary for vegetables:

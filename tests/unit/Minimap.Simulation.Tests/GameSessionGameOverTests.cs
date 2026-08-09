@@ -76,7 +76,7 @@ public class GameSessionGameOverTests
             4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestContent.Content);
 
         Assert.Empty(session.World.Spawners);
-        Assert.False(session.ScenarioRunner.Enabled);
+        Assert.True(session.ScenarioRunner.Enabled);
         Assert.Equal(2, scenario.SpawnerCount);
         var spawners = session.World.CellActors.Values
             .Where(a => a.Definition.Id == AiTuning.ZombieSpawnerActorId)
@@ -88,5 +88,39 @@ public class GameSessionGameOverTests
             Assert.Equal(400, a.MaxHealth);
             Assert.Equal(400, a.Health);
         });
+    }
+
+    [Fact]
+    public void Wave_countdown_regenerates_level_without_marker_wave_bursts()
+    {
+        var scenario = new Scenario
+        {
+            PreparationDuration = 0.1f,
+            WaveCount = 1,
+            WaveDuration = 0.1f,
+            SpawnerCount = 2,
+            SpawnerVolume = 5,
+        };
+        var spawn = new SpawnConfig { PlayerFactionId = 1, RivalFactionId = 2 };
+        var session = GameSession.Create(
+            4, 4, 42, HexWorldLayout.DefaultHexSize, spawn, scenario, 1, TestContent.Content);
+
+        Assert.Empty(session.World.Spawners);
+
+        session.Tick(0.2f);
+        Assert.Equal(ScenarioPhase.Waves, session.ScenarioRunner.Phase);
+        Assert.Equal(0, session.World.Actors.Count(a => a.FactionId == spawn.RivalFactionId));
+
+        session.Tick(0.2f);
+        Assert.Equal(ScenarioPhase.LevelComplete, session.ScenarioRunner.Phase);
+
+        session.Tick(0.01f);
+        Assert.True(session.LastScenarioTickResult.LevelRegenerated);
+        Assert.Equal(2, session.ScenarioRunner.LevelIndex);
+        Assert.Equal(ScenarioPhase.Preparation, session.ScenarioRunner.Phase);
+        Assert.Empty(session.World.Spawners);
+        Assert.Equal(
+            2,
+            session.World.CellActors.Values.Count(a => a.Definition.Id == AiTuning.ZombieSpawnerActorId));
     }
 }

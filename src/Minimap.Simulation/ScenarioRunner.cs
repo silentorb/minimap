@@ -11,13 +11,14 @@ public enum ScenarioPhase
 
 /// <summary>Wave timing and level transitions for a <see cref="Scenario"/>.</summary>
 /// <remarks>
-/// Parked for sandbox play: <see cref="Enabled"/> defaults to false (no waves, no level regen).
-/// Opt in for tests or when re-enabling the parked meta-loop.
+/// Normal play: countdown meta-loop (preparation → wave intervals → level regen).
+/// <see cref="Enabled"/> defaults to true. Marker <see cref="SpawnWave"/> emission only runs
+/// when the world has marker spawners; normal sessions use intrinsic placeables instead.
 /// </remarks>
 public sealed class ScenarioRunner
 {
-    /// <summary>When false (default), <see cref="Tick"/> is a no-op.</summary>
-    public bool Enabled { get; set; }
+    /// <summary>When false, <see cref="Tick"/> is a no-op. Defaults to true.</summary>
+    public bool Enabled { get; set; } = true;
 
     public int LevelIndex { get; private set; } = 1;
     public int WavesCompleted { get; private set; }

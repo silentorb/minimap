@@ -29,11 +29,16 @@ Local multiplayer join screen before a match. Related: [local-input.md](../sessi
 - **Return from a match**: when arriving from post-session (or other world→lobby end paths that keep the roster), the lobby **restores** still-connected players with their previous profile and accessory selections in **Selecting accessories** (one step before Ready). Disconnected joypad players are not restored. Fresh entry from the main menu still starts empty.
 - **Leave to main menu**: the **primary** player (lowest-index claimed slot; if none claimed, any unbound Back/Escape) may return to the [main menu](main-menu.md). With claimed slots, the primary backs through the wizard to Available (unclaim), then Back/Escape leaves to the main menu and clears the play context. This is how players reach the main menu after a match has started.
 
+## Intended (not built)
+
+- A lobby wizard step to **configure the scenario** (preparation, wave count/duration, spawner count, etc.) before start — players set pacing in the lobby rather than through diegetic in-match influence. Until built, scenario JSON / CLI / env remain the path; see [scenarios.md](../session/scenarios.md).
+
 ## Non-goals (for now)
 
 - Online or remote lobby
 - Changing panel count at runtime
 - Profile create/rename/delete inside the lobby
+- Lobby scenario UI (intent only; see above)
 
 ## Developer / test entry
 

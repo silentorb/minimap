@@ -14,16 +14,22 @@ public class ScenarioRunnerTests
         SpawnerVolume = 2,
     };
 
-    private static ScenarioRunner EnabledRunner() => new() { Enabled = true };
+    private static ScenarioRunner EnabledRunner() => new();
 
     [Fact]
-    public void Disabled_by_default_never_spawns_or_regenerates()
+    public void Enabled_by_default()
+    {
+        Assert.True(new ScenarioRunner().Enabled);
+    }
+
+    [Fact]
+    public void Disabled_opt_out_never_spawns_or_regenerates()
     {
         var scenario = FastScenario();
         var spawn = new SpawnConfig { RivalFactionId = 2, HumanPlayerCount = 1 };
         var world = GameWorld.Create(4, 4, 42);
         world.InitializeScenarioLevel(scenario, spawn, TestContent.Content);
-        var runner = new ScenarioRunner();
+        var runner = new ScenarioRunner { Enabled = false };
 
         Assert.False(runner.Enabled);
 
@@ -104,7 +110,10 @@ public class ScenarioRunnerTests
         Assert.Equal(ScenarioPhase.Preparation, runner.Phase);
         Assert.Equal(2, runner.LevelIndex);
         Assert.Equal(0, CountRivals(world, spawn.RivalFactionId));
-        Assert.Single(world.Spawners);
+        Assert.Empty(world.Spawners);
+        Assert.Single(
+            world.CellActors.Values,
+            a => a.Definition.Id == AiTuning.ZombieSpawnerActorId);
 
         var healed = world.Actors.Single(c => c.FactionId == spawn.PlayerFactionId);
         Assert.Equal(CombatTuning.DefaultMaxHealth, healed.Health);

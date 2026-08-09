@@ -13,7 +13,6 @@ CompuQuest has been used as the setting for a variety of unfinished games across
 - Hex grid world with mutable cell types
 - Dense, close quarters tactics
 - Minimally procedurally generated world
-- World transforms over the course of each playthrough
 
 ## Goal
 

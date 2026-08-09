@@ -2,6 +2,10 @@
 
 Actor-owned amounts keyed by tags, plus registered resource types. Related: [tags.md](tags.md), [health.md](health.md), [hunger.md](hunger.md), [medical.md](medical.md), [accessories.md](accessories.md), [farming.md](farming.md), [player-hud.md](../ui/player-hud.md). Technical: [resources.md](../../../technical/features/gameplay/resources.md).
 
+## Design intent
+
+Limited consumables (ammo, seeds, electronics, medkits with no refill) and the farming gather loop are **not** foundational pillars. A scarcity rollback is planned; **current shipped behavior below is unchanged** until that pass.
+
 ## Requirements
 
 - Each **actor** (including characters) has a map of **tag → integer** amounts (resources the actor owns).

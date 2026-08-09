@@ -21,7 +21,7 @@ JSON configuration for [scenarios](../../../game/features/session/scenarios.md).
 
 - All numeric fields are required. `preparationDuration` and `waveDuration` must be **> 0**. `waveCount`, `spawnerCount`, and `spawnerVolume` must be **≥ 1**. Invalid JSON or values fail fast.
 - Documented defaults match `Scenario.Defaults` in Simulation.
-- While [waves](../../../game/features/gameplay/waves.md) / level progression are **disabled** in normal play, these fields are still loaded and validated but unused by the default (disabled) `ScenarioRunner`.
+- Normal play uses these fields for the wave/level **countdown** and for **`spawnerCount`** intrinsic placeables. `spawnerVolume` applies when marker wave bursts are used (tests / future events); see [waves.md](../../../game/features/gameplay/waves.md).
 - Simulation owns the `Scenario` type; App performs file I/O only.
 
 ## Non-goals (for now)

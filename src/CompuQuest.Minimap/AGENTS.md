@@ -9,7 +9,7 @@
 - `IExtension` registration (integrator id **`compuquest`**, effect factories such as **`shoot`** / **`swing`** / **`move`** / **`place_random_actor`** / **`modify_resource`** / **`grow`** / **`spawn`** / **`spawn_nearby_ally`** / **`harvest`** / **`use_computer`** / **`heal`**, tags such as **`player_selectable`**, **`human`**, **`animal`**)
 - Sealed gameplay implementations (e.g. `ShootEffect`, `SwingEffect`, `MoveEffect`, `SpawnEffect`, `HealEffect`)
 - Content JSON under `config/` (**mirrored** to `extensions/CompuQuest.Minimap/` on build — wipe then copy): accessories, actors, resources, domains
-- Integrator policy: default actor **`generic`**, world spawner pool of **zombie spawners** (marker path for parked waves), intrinsic **`zombie_spawner`** actor for sandbox, player-selectable accessories via tag filter, resource catalog into `GameContent`
+- Integrator policy: default actor **`generic`**, world spawner pool of **zombie spawners** (marker path for tests / future wave events), intrinsic **`zombie_spawner`** actor for normal play (with wave/level countdown), player-selectable accessories via tag filter, resource catalog into `GameContent`
 - Effect factories: `shoot`, `swing`, `move`, `place_random_actor`, `modify_resource`, `grow`, `spawn`, `spawn_nearby_ally`, `harvest`, `pickup_resource`, `death_drop`, `use_computer`, `heal`, `drain_resource`, `drain_resource_by_distance`, `modify_resource_by_ratio_bands`, `modify_resource_on_use`
 
 ## What must not live here

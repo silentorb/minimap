@@ -39,7 +39,7 @@ Feature docs are grouped under `ui/`, `gameplay/`, `session/`, and `platform/` (
 | [ui/player-hud.md](ui/player-hud.md) | Changing **player HUD** slots, names, or on-screen resource / health display. |
 | [ui/lobby.md](ui/lobby.md) | Changing **local player lobby**, join panels, or lobby → world start flow. |
 | [ui/main-menu.md](ui/main-menu.md) | Changing **main menu** screen or popup, start screen, New/Quit/Continue, or pause overlay. |
-| [session/scenarios.md](session/scenarios.md) | Changing **scenario** JSON, wave pacing, spawner counts, level transitions, or single-map sandbox session rules. |
-| [gameplay/waves.md](gameplay/waves.md) | Changing **intrinsic spawners**, spawn effect interval/volume/pool, spawner health, or the parked global wave clock. |
+| [session/scenarios.md](session/scenarios.md) | Changing **scenario** JSON, wave/level countdown pacing, spawner counts, or level transitions. |
+| [gameplay/waves.md](gameplay/waves.md) | Changing **intrinsic spawners**, spawn effect interval/volume/pool, spawner health, or the wave/level clock. |
 | [ui/game-over.md](ui/game-over.md) | Changing **game over** detection (leads to post-session summary). |
 | [session/local-input.md](session/local-input.md) | Changing **gamepad/keyboard** binding, per-player devices, disconnect/reconnect, or in-world input. |
